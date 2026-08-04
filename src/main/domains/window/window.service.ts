@@ -41,7 +41,7 @@ export function createSettingsWindow(): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     _settingsWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '#/settings')
   } else {
-    _settingsWindow.loadFile(join(__dirname, '../../../renderer/index.html'), { hash: '/settings' })
+    _settingsWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/settings' })
   }
 
   _settingsWindow.on('closed', () => {
@@ -152,6 +152,6 @@ export function createWindow(callbacks: WindowCallbacks): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
-    mainWindow.loadFile(join(__dirname, '../../../renderer/index.html'))
+    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 }
