@@ -35,7 +35,9 @@ const defaultState = {
   shape: 'circle',
   sizeIndex: 0,
   rounding: 24,
-  alwaysOnTop: true
+  alwaysOnTop: true,
+  x: undefined,
+  y: undefined
 }
 
 let shortcuts = { ...defaultShortcuts }
@@ -129,6 +131,8 @@ function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 300,
     height: 300,
+    x: currentState.x,
+    y: currentState.y,
     useContentSize: true,
     show: false,
     autoHideMenuBar: true,
@@ -163,6 +167,13 @@ function createWindow(): void {
 
   mainWindow.on('blur', () => {
     globalShortcut.unregisterAll()
+  })
+
+  mainWindow.on('moved', () => {
+    const [x, y] = mainWindow.getPosition()
+    currentState.x = x
+    currentState.y = y
+    saveSettings()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
