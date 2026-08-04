@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { Camera } from './components/camera'
-import { Settings } from './components/settings'
+import { CameraPage } from './domains/camera/camera.page'
+import { SettingsPage } from './domains/settings/settings.page'
 
 function App(): React.JSX.Element {
   const [route, setRoute] = useState<string>('')
@@ -9,7 +9,7 @@ function App(): React.JSX.Element {
     const handleHashChange = () => {
       setRoute(window.location.hash)
     }
-    
+
     handleHashChange()
 
     window.addEventListener('hashchange', handleHashChange)
@@ -17,10 +17,10 @@ function App(): React.JSX.Element {
   }, [])
 
   if (route === '#/settings') {
-    return <Settings />
+    return <SettingsPage />
   }
 
-  return <Camera />
+  return <CameraPage />
 }
 
 export default App
