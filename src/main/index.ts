@@ -95,6 +95,21 @@ function createSettingsWindow() {
 }
 
 
+function toggleCamera(state: typeof currentState) {
+  isCameraOn = !isCameraOn
+  BrowserWindow.getAllWindows().forEach(win => {
+    if (win !== settingsWindow) {
+      if (isCameraOn) {
+        win.show()
+      } else {
+        win.hide()
+      }
+      win.webContents.send('power-state', isCameraOn)
+    }
+  })
+  buildTrayMenu(state)
+}
+
 function registerGlobalShortcuts(win: BrowserWindow) {
   const register = (key: string, action: () => void) => {
     if (key) {
@@ -167,6 +182,8 @@ function createWindow(): void {
 
   mainWindow.on('blur', () => {
     globalShortcut.unregisterAll()
+    // Re-registra F9 como atalho global permanente (funciona em segundo plano)
+    globalShortcut.register('F9', () => toggleCamera(currentState))
   })
 
   mainWindow.on('moved', () => {
@@ -262,20 +279,9 @@ function buildTrayMenu(state: any) {
   const menu = Menu.buildFromTemplate([
     {
       label: isCameraOn ? 'Turn Off' : 'Turn On',
-      click: () => {
-        isCameraOn = !isCameraOn
-        BrowserWindow.getAllWindows().forEach(win => {
-          if (win !== settingsWindow) {
-            if (isCameraOn) {
-              win.show()
-            } else {
-              win.hide()
-            }
-            win.webContents.send('power-state', isCameraOn)
-          }
-        })
-        buildTrayMenu(state)
-      }
+      accelerator: 'F9',
+      registerAccelerator: false,
+      click: () => toggleCamera(state)
     },
     ...(updateReady ? [
       { type: 'separator' as const },
@@ -442,7 +448,10 @@ app.whenReady().then(() => {
   const trayIcon = nativeImage.createFromPath(icon).resize({ width: 16, height: 16 })
   tray = new Tray(trayIcon)
   tray.setToolTip('Floating Head Cam')
-  buildTrayMenu(currentState) 
+  buildTrayMenu(currentState)
+
+  // Atalho global fixo F9 para ligar/desligar câmera (funciona mesmo sem foco na janela)
+  globalShortcut.register('F9', () => toggleCamera(currentState))
   
   autoUpdater.on('update-downloaded', () => {
     updateReady = true
@@ -472,6 +481,8 @@ app.whenReady().then(() => {
     const floatingHead = BrowserWindow.getAllWindows().find(w => w !== settingsWindow)
     if (floatingHead && floatingHead.isFocused()) {
       globalShortcut.unregisterAll()
+      // Re-registra F9 como atalho global permanente após atualizar atalhos
+      globalShortcut.register('F9', () => toggleCamera(currentState))
       registerGlobalShortcuts(floatingHead)
     }
   })
