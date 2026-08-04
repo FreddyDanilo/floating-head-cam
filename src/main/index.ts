@@ -8,11 +8,8 @@ import { registerGlobalShortcuts } from './domains/shortcuts/shortcuts.service'
 import { initTray, buildTrayMenu, toggleCamera, setUpdateReady } from './domains/tray/tray.service'
 
 const windowCallbacks = {
-  onFocus: (win: BrowserWindow) => registerGlobalShortcuts(win),
-  onBlur: () => {
-    globalShortcut.unregisterAll()
-    globalShortcut.register('F9', () => toggleCamera(currentState))
-  }
+  onFocus: () => {},
+  onBlur: () => {}
 }
 
 app.whenReady().then(() => {
@@ -65,7 +62,7 @@ app.whenReady().then(() => {
 
     const sw = getSettingsWindow()
     const floatingHead = BrowserWindow.getAllWindows().find(w => w !== sw)
-    if (floatingHead && floatingHead.isFocused()) {
+    if (floatingHead) {
       globalShortcut.unregisterAll()
       globalShortcut.register('F9', () => toggleCamera(currentState))
       registerGlobalShortcuts(floatingHead)
@@ -90,8 +87,20 @@ app.whenReady().then(() => {
   createWindow(windowCallbacks)
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow(windowCallbacks)
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow(windowCallbacks)
+      const mainWindow = BrowserWindow.getAllWindows()[0]
+      if (mainWindow) {
+        registerGlobalShortcuts(mainWindow)
+      }
+    }
   })
+
+  // Register them initially once created
+  const mainWindow = BrowserWindow.getAllWindows().find(w => w !== getSettingsWindow())
+  if (mainWindow) {
+    registerGlobalShortcuts(mainWindow)
+  }
 })
 
 app.on('window-all-closed', () => {

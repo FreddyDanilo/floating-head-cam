@@ -1,4 +1,4 @@
-let _isCameraOn = false
+let _isCameraOn = true
 
 export function getIsCameraOn(): boolean {
   return _isCameraOn
