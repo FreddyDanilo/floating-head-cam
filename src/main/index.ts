@@ -58,7 +58,6 @@ function saveSettings() {
 }
 
 let settingsWindow: BrowserWindow | null = null
-let aboutWindow: BrowserWindow | null = null
 
 function createSettingsWindow() {
   if (settingsWindow) {
@@ -93,38 +92,6 @@ function createSettingsWindow() {
   })
 }
 
-function createAboutWindow() {
-  if (aboutWindow) {
-    aboutWindow.focus()
-    return
-  }
-
-  aboutWindow = new BrowserWindow({
-    width: 400,
-    height: 400,
-    title: 'About',
-    transparent: true,
-    backgroundColor: '#00000000',
-    vibrancy: 'under-window',
-    visualEffectState: 'active',
-    titleBarStyle: 'hiddenInset',
-    autoHideMenuBar: true,
-    webPreferences: {
-      preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
-    }
-  })
-
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    aboutWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '#/about')
-  } else {
-    aboutWindow.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/about' })
-  }
-
-  aboutWindow.on('closed', () => {
-    aboutWindow = null
-  })
-}
 
 function registerGlobalShortcuts(win: BrowserWindow) {
   const register = (key: string, action: () => void) => {
@@ -212,7 +179,7 @@ function createWindow(): void {
 
 function setWindowPosition(pos: string) {
   BrowserWindow.getAllWindows().forEach(win => {
-    if (win === settingsWindow || win === aboutWindow) return
+    if (win === settingsWindow) return
 
     const bounds = win.getContentBounds()
     const display = screen.getDisplayMatching(bounds)
@@ -264,7 +231,7 @@ function buildTrayMenu(state: any) {
   const { devices = [], selectedDeviceId = '', isMirrored = false, shape = 'circle', sizeIndex = 0, rounding = 24, alwaysOnTop = true } = state
 
   BrowserWindow.getAllWindows().forEach(win => {
-    if (win !== settingsWindow && win !== aboutWindow) {
+    if (win !== settingsWindow) {
       win.setAlwaysOnTop(alwaysOnTop, 'screen-saver')
       win.setVisibleOnAllWorkspaces(alwaysOnTop, { visibleOnFullScreen: alwaysOnTop })
     }
@@ -276,7 +243,7 @@ function buildTrayMenu(state: any) {
     checked: device.deviceId === selectedDeviceId,
     click: () => {
       BrowserWindow.getAllWindows().forEach(win => {
-        if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-device', payload: device.deviceId })
+        if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-device', payload: device.deviceId })
       })
     }
   }))
@@ -287,7 +254,7 @@ function buildTrayMenu(state: any) {
       click: () => {
         isCameraOn = !isCameraOn
         BrowserWindow.getAllWindows().forEach(win => {
-          if (win !== settingsWindow && win !== aboutWindow) {
+          if (win !== settingsWindow) {
             if (isCameraOn) {
               win.show()
             } else {
@@ -330,7 +297,7 @@ function buildTrayMenu(state: any) {
           accelerator: shortcuts.shapeCircle,
           registerAccelerator: false,
           checked: shape === 'circle',
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'circle' }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'circle' }) })
         },
         {
           label: 'Square',
@@ -338,7 +305,7 @@ function buildTrayMenu(state: any) {
           accelerator: shortcuts.shapeSquare,
           registerAccelerator: false,
           checked: shape === 'square',
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'square' }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'square' }) })
         },
         {
           label: 'Vertical Rectangle',
@@ -346,7 +313,7 @@ function buildTrayMenu(state: any) {
           accelerator: shortcuts.shapeVertical,
           registerAccelerator: false,
           checked: shape === 'vertical-rect',
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'vertical-rect' }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'vertical-rect' }) })
         },
         {
           label: 'Horizontal Rectangle',
@@ -354,7 +321,7 @@ function buildTrayMenu(state: any) {
           accelerator: shortcuts.shapeHorizontal,
           registerAccelerator: false,
           checked: shape === 'horizontal-rect',
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'horizontal-rect' }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-shape', payload: 'horizontal-rect' }) })
         }
       ]
     },
@@ -366,25 +333,25 @@ function buildTrayMenu(state: any) {
           label: 'Sharp (8px)',
           type: 'radio',
           checked: rounding === 8,
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 8 }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 8 }) })
         },
         {
           label: 'Subtle (16px)',
           type: 'radio',
           checked: rounding === 16,
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 16 }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 16 }) })
         },
         {
           label: 'Round (24px)',
           type: 'radio',
           checked: rounding === 24,
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 24 }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 24 }) })
         },
         {
           label: 'Maximum (32px)',
           type: 'radio',
           checked: rounding === 32,
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 32 }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-rounding', payload: 32 }) })
         }
       ]
     },
@@ -397,7 +364,7 @@ function buildTrayMenu(state: any) {
           accelerator: shortcuts.sizeSmall,
           registerAccelerator: false,
           checked: sizeIndex === 0,
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-size-index', payload: 0 }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-size-index', payload: 0 }) })
         },
         {
           label: 'Medium',
@@ -405,7 +372,7 @@ function buildTrayMenu(state: any) {
           accelerator: shortcuts.sizeMedium,
           registerAccelerator: false,
           checked: sizeIndex === 1,
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-size-index', payload: 1 }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-size-index', payload: 1 }) })
         },
         {
           label: 'Large',
@@ -413,7 +380,7 @@ function buildTrayMenu(state: any) {
           accelerator: shortcuts.sizeLarge,
           registerAccelerator: false,
           checked: sizeIndex === 2,
-          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-size-index', payload: 2 }) })
+          click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-size-index', payload: 2 }) })
         }
       ]
     },
@@ -424,7 +391,7 @@ function buildTrayMenu(state: any) {
       accelerator: shortcuts.mirror,
       registerAccelerator: false,
       checked: isMirrored,
-      click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-mirror', payload: !isMirrored }) })
+      click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-mirror', payload: !isMirrored }) })
     },
     {
       label: 'Always on Top',
@@ -432,10 +399,8 @@ function buildTrayMenu(state: any) {
       accelerator: shortcuts.alwaysOnTop,
       registerAccelerator: false,
       checked: alwaysOnTop,
-      click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow && win !== aboutWindow) win.webContents.send('tray-action', { type: 'set-always-on-top', payload: !alwaysOnTop }) })
+      click: () => BrowserWindow.getAllWindows().forEach(win => { if (win !== settingsWindow) win.webContents.send('tray-action', { type: 'set-always-on-top', payload: !alwaysOnTop }) })
     },
-    { type: 'separator' },
-    { label: 'About', click: () => createAboutWindow() },
     { label: 'Quit', click: () => app.quit() }
   ])
 
@@ -493,7 +458,7 @@ app.whenReady().then(() => {
     saveSettings()
     buildTrayMenu(currentState)
     
-    const floatingHead = BrowserWindow.getAllWindows().find(w => w !== settingsWindow && w !== aboutWindow)
+    const floatingHead = BrowserWindow.getAllWindows().find(w => w !== settingsWindow)
     if (floatingHead && floatingHead.isFocused()) {
       globalShortcut.unregisterAll()
       registerGlobalShortcuts(floatingHead)
@@ -515,7 +480,7 @@ app.whenReady().then(() => {
   
   ipcMain.on('resize-window', (_, sizeObj) => {
     BrowserWindow.getAllWindows().forEach(win => {
-      if (win === settingsWindow || win === aboutWindow) return
+      if (win === settingsWindow) return
 
       const bounds = win.getContentBounds()
       const display = screen.getDisplayMatching(bounds)

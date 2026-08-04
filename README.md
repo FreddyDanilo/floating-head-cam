@@ -18,11 +18,11 @@
 
 ## Funcionalidades (Features)
 
-- **Sempre no Topo (Always on Top):** A câmera nunca é coberta por outras janelas.
+- **Sempre no Topo:** A câmera nunca é coberta por outras janelas.
 - **Formatos Personalizáveis:** Altere entre Círculo, Quadrado ou Retângulos (vertical/horizontal).
 - **Ajustes Visuais:** Altere o tamanho da câmera e o arredondamento das bordas.
-- **Modo Espelho (Mirror):** Inverta a imagem da câmera horizontalmente.
-- **Atalhos Globais (Global Shortcuts):** Posicione a câmera instantaneamente em qualquer canto da tela usando o teclado.
+- **Modo Espelho:** Inverta a imagem da câmera horizontalmente.
+- **Atalhos Globais:** Posicione a câmera instantaneamente em qualquer canto da tela usando o teclado.
 - **Múltiplas Câmeras:** Troque facilmente entre as webcams conectadas.
 
 ## Download

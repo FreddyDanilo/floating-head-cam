@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Camera } from './components/camera'
 import { Settings } from './components/settings'
-import { About } from './components/about'
 
 function App(): React.JSX.Element {
   const [route, setRoute] = useState<string>('')
@@ -19,10 +18,6 @@ function App(): React.JSX.Element {
 
   if (route === '#/settings') {
     return <Settings />
-  }
-
-  if (route === '#/about') {
-    return <About />
   }
 
   return <Camera />
