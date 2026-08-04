@@ -2,7 +2,7 @@ import { app, ipcMain, session, BrowserWindow, globalShortcut, systemPreferences
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import { loadSettings, saveSettings, shortcuts, currentState, resetToDefaults } from './domains/settings/settings.service'
-import { getIsCameraOn } from './domains/camera/camera.service'
+import { getIsCameraOn, setIsCameraOn } from './domains/camera/camera.service'
 import { createWindow, getSettingsWindow, setWindowPosition, resizeWindow } from './domains/window/window.service'
 import { registerGlobalShortcuts } from './domains/shortcuts/shortcuts.service'
 import { initTray, buildTrayMenu, toggleCamera, setUpdateReady } from './domains/tray/tray.service'
@@ -13,6 +13,13 @@ const windowCallbacks = {
 }
 
 app.whenReady().then(() => {
+  const loginSettings = app.getLoginItemSettings()
+  if (loginSettings.wasOpenedAtLogin) {
+    setIsCameraOn(false)
+  } else {
+    setIsCameraOn(true)
+  }
+
   loadSettings()
 
   if (process.platform === 'darwin') {
