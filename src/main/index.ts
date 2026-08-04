@@ -1,4 +1,5 @@
 import { app, shell, BrowserWindow, ipcMain, systemPreferences, session, Tray, Menu, nativeImage, screen, globalShortcut } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import { join } from 'path'
 import fs from 'fs'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -6,6 +7,7 @@ import icon from '../../resources/icon.png?asset'
 
 let tray: Tray | null = null
 let isCameraOn = false
+let updateReady = false
 
 const defaultShortcuts = {
   topLeft: 'Alt+Q',
@@ -297,6 +299,10 @@ function buildTrayMenu(state: any) {
         buildTrayMenu(state)
       }
     },
+    ...(updateReady ? [
+      { type: 'separator' as const },
+      { label: 'Start Update', click: () => autoUpdater.quitAndInstall() }
+    ] : []),
     { type: 'separator' },
     { label: 'Preferences...', click: () => createSettingsWindow() },
     { type: 'separator' },
@@ -461,6 +467,13 @@ app.whenReady().then(() => {
   tray = new Tray(trayIcon)
   tray.setToolTip('Floating Head Cam')
   buildTrayMenu(currentState) 
+  
+  autoUpdater.on('update-downloaded', () => {
+    updateReady = true
+    buildTrayMenu(currentState)
+  })
+  
+  autoUpdater.checkForUpdates()
 
   ipcMain.on('sync-tray', (_, state) => {
     currentState = state
