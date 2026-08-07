@@ -4,20 +4,16 @@ import icon from '../../../../resources/icon.png?asset'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
 import { getSettingsWindow, createSettingsWindow, setWindowPosition } from '../window/window.service'
 import { shortcuts } from '../settings/settings.service'
-
 let tray: Tray | null = null
 let _updateReady = false
-
 export function setUpdateReady(value: boolean): void {
   _updateReady = value
 }
-
 export function initTray(): void {
   const trayIcon = nativeImage.createFromPath(icon).resize({ width: 16, height: 16 })
   tray = new Tray(trayIcon)
   tray.setToolTip('Floating Head Cam')
 }
-
 export function toggleCamera(state: any): void {
   const newState = !getIsCameraOn()
   setIsCameraOn(newState)
@@ -30,10 +26,8 @@ export function toggleCamera(state: any): void {
   })
   buildTrayMenu(state)
 }
-
 export function buildTrayMenu(state: any): void {
   if (!tray) return
-
   const {
     devices = [],
     selectedDeviceId = '',
@@ -43,16 +37,13 @@ export function buildTrayMenu(state: any): void {
     rounding = 24,
     alwaysOnTop = true
   } = state
-
   const sw = getSettingsWindow()
-
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win !== sw) {
       win.setAlwaysOnTop(alwaysOnTop, 'screen-saver')
       win.setVisibleOnAllWorkspaces(alwaysOnTop, { visibleOnFullScreen: alwaysOnTop })
     }
   })
-
   const cameraItems = devices.map((device: any) => ({
     label: device.label || `Camera ${device.deviceId.substring(0, 5)}`,
     type: 'radio' as const,
@@ -63,7 +54,6 @@ export function buildTrayMenu(state: any): void {
       })
     }
   }))
-
   const menu = Menu.buildFromTemplate([
     {
       label: getIsCameraOn() ? 'Turn Off' : 'Turn On',
@@ -125,6 +115,5 @@ export function buildTrayMenu(state: any): void {
     { label: 'Always on Top', type: 'checkbox' as const, accelerator: shortcuts.alwaysOnTop, registerAccelerator: false, checked: alwaysOnTop, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-always-on-top', payload: !alwaysOnTop }) }) },
     { label: 'Quit', click: () => app.quit() }
   ])
-
   tray.setContextMenu(menu)
 }

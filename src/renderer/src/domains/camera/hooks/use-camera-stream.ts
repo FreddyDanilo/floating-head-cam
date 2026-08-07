@@ -1,11 +1,8 @@
 import { useEffect, useRef } from 'react'
-
 export function useCameraStream(selectedDeviceId: string, powerOn: boolean) {
   const videoRef = useRef<HTMLVideoElement>(null)
-
   useEffect(() => {
     if (!selectedDeviceId || !powerOn) return
-
     const startStream = async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
@@ -17,9 +14,7 @@ export function useCameraStream(selectedDeviceId: string, powerOn: boolean) {
         console.error('Error starting video stream:', err)
       }
     }
-
     startStream()
-
     return () => {
       if (videoRef.current && videoRef.current.srcObject) {
         const stream = videoRef.current.srcObject as MediaStream
@@ -28,6 +23,5 @@ export function useCameraStream(selectedDeviceId: string, powerOn: boolean) {
       }
     }
   }, [selectedDeviceId, powerOn])
-
   return { videoRef }
 }

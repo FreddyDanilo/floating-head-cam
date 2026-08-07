@@ -1,12 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { join } from 'path'
-
 vi.mock('electron', () => ({
   app: {
     getPath: vi.fn(() => '/mock/userData')
   }
 }))
-
 vi.mock('fs', () => ({
   default: {
     existsSync: vi.fn(() => false),
@@ -14,15 +12,12 @@ vi.mock('fs', () => ({
     writeFileSync: vi.fn()
   }
 }))
-
 import fs from 'fs'
-
 describe('settings.service', () => {
   beforeEach(async () => {
     vi.resetModules()
     vi.clearAllMocks()
   })
-
   describe('loadSettings', () => {
     it('does nothing when settings file does not exist', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(false)
@@ -31,7 +26,6 @@ describe('settings.service', () => {
       expect(shortcuts.topLeft).toBe(defaultShortcuts.topLeft)
       expect(currentState.shape).toBe(defaultState.shape)
     })
-
     it('loads shortcuts from file', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue(
@@ -41,7 +35,6 @@ describe('settings.service', () => {
       loadSettings()
       expect(shortcuts.topLeft).toBe('Ctrl+1')
     })
-
     it('loads state from file', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue(
@@ -52,7 +45,6 @@ describe('settings.service', () => {
       expect(currentState.shape).toBe('square')
       expect(currentState.sizeIndex).toBe(2)
     })
-
     it('silently ignores malformed JSON', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue('NOT_JSON{{{')
@@ -61,7 +53,6 @@ describe('settings.service', () => {
       expect(shortcuts.topLeft).toBe(defaultShortcuts.topLeft)
     })
   })
-
   describe('saveSettings', () => {
     it('writes settings JSON to the correct path', async () => {
       const { saveSettings } = await import('./settings.service')
@@ -71,7 +62,6 @@ describe('settings.service', () => {
         expect.stringContaining('"shortcuts"')
       )
     })
-
     it('JSON contains both shortcuts and state', async () => {
       const { saveSettings } = await import('./settings.service')
       saveSettings()
@@ -81,7 +71,6 @@ describe('settings.service', () => {
       expect(parsed).toHaveProperty('state')
     })
   })
-
   describe('resetToDefaults', () => {
     it('restores default shortcuts', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(true)
@@ -93,7 +82,6 @@ describe('settings.service', () => {
       resetToDefaults()
       expect(shortcuts.topLeft).toBe(defaultShortcuts.topLeft)
     })
-
     it('preserves devices and selectedDeviceId from current state', async () => {
       const { currentState, resetToDefaults } = await import('./settings.service')
       currentState.devices = [{ deviceId: 'cam1', label: 'Cam' }]
@@ -102,7 +90,6 @@ describe('settings.service', () => {
       expect(currentState.devices).toEqual([{ deviceId: 'cam1', label: 'Cam' }])
       expect(currentState.selectedDeviceId).toBe('cam1')
     })
-
     it('resets shape back to default', async () => {
       const { currentState, resetToDefaults, defaultState } = await import('./settings.service')
       currentState.shape = 'square'

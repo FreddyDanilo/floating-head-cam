@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-
 type TrayEventHandlers = {
   setSelectedDeviceId: (id: string) => void
   setShape: (s: any) => void
@@ -12,7 +11,6 @@ type TrayEventHandlers = {
   sizeIndex: number
   shape: string
 }
-
 export function useTrayEvents({
   setSelectedDeviceId,
   setShape,
@@ -28,7 +26,6 @@ export function useTrayEvents({
   useEffect(() => {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
-
     const handleTrayAction = (_event: any, action: { type: string; payload: any }) => {
       switch (action.type) {
         case 'set-device':      setSelectedDeviceId(action.payload); break
@@ -39,7 +36,6 @@ export function useTrayEvents({
         case 'set-always-on-top': setAlwaysOnTop(action.payload); break
       }
     }
-
     const handleReset = (_event: any, payload: { state: any }) => {
       setIsMirrored(payload.state.isMirrored)
       setShape(payload.state.shape)
@@ -48,22 +44,13 @@ export function useTrayEvents({
       setAlwaysOnTop(payload.state.alwaysOnTop)
       applySize(payload.state.sizeIndex, payload.state.shape)
     }
-
     const handlePower = (_event: any, state: boolean) => setPowerOn(state)
-
-    // @ts-ignore
     ipc.on('tray-action', handleTrayAction)
-    // @ts-ignore
     ipc.on('settings-reset', handleReset)
-    // @ts-ignore
     ipc.on('power-state', handlePower)
-
     return () => {
-      // @ts-ignore
       ipc.removeAllListeners('tray-action')
-      // @ts-ignore
       ipc.removeAllListeners('settings-reset')
-      // @ts-ignore
       ipc.removeAllListeners('power-state')
     }
   }, [applySize, sizeIndex, shape])

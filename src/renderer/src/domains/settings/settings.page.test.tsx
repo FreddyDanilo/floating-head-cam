@@ -1,17 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-
 const mockInvoke = vi.fn()
 const mockSend = vi.fn()
 const mockOn = vi.fn()
 const mockRemoveAllListeners = vi.fn()
-
 vi.mock('lucide-react', () => ({
   Keyboard: () => <span data-testid="keyboard-icon" />,
   Clapperboard: () => <span data-testid="clapperboard-icon" />,
   RotateCcw: () => <span data-testid="rotate-icon" />
 }))
-
 beforeEach(() => {
   vi.clearAllMocks()
   ;(window as any).electron = {
@@ -25,16 +22,12 @@ beforeEach(() => {
     sizeSmall: '1', sizeMedium: '2', sizeLarge: '3'
   })
 })
-
-
 import { SettingsPage } from './settings.page'
-
 describe('SettingsPage', () => {
   it('renders the app title', () => {
     render(<SettingsPage />)
     expect(screen.getByText('Floating Head Cam')).toBeTruthy()
   })
-
   it('renders all section headings', () => {
     render(<SettingsPage />)
     expect(screen.getByText('Positioning')).toBeTruthy()
@@ -42,32 +35,27 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Camera Shape')).toBeTruthy()
     expect(screen.getByText('Sizing')).toBeTruthy()
   })
-
   it('renders all shortcut labels', () => {
     render(<SettingsPage />)
     expect(screen.getByText('Top Left')).toBeTruthy()
     expect(screen.getByText('Toggle Mirror')).toBeTruthy()
     expect(screen.getByText('Size: Small')).toBeTruthy()
   })
-
   it('shows formatted shortcuts after IPC load', async () => {
     const { container } = render(<SettingsPage />)
     await waitFor(() => {
       expect(container.textContent).toContain('⌥ Q')
     })
   })
-
   it('renders Reset to Factory Defaults button', () => {
     render(<SettingsPage />)
     expect(screen.getByText('Reset to Factory Defaults')).toBeTruthy()
   })
-
   it('clicking reset button sends reset-settings IPC', () => {
     render(<SettingsPage />)
     fireEvent.click(screen.getByText('Reset to Factory Defaults'))
     expect(mockSend).toHaveBeenCalledWith('reset-settings')
   })
-
   it('clicking a shortcut box enters listening mode showing Press Keys...', async () => {
     const { container } = render(<SettingsPage />)
     const shortcutBoxes = container.querySelectorAll('.settings-shortcut')
@@ -77,7 +65,6 @@ describe('SettingsPage', () => {
       expect(screen.getByText('Press Keys...')).toBeTruthy()
     })
   })
-
   it('shows Unbound for empty shortcut values', async () => {
     mockInvoke.mockResolvedValue({
       shapeCircle: '', shapeSquare: '', shapeVertical: '', shapeHorizontal: ''

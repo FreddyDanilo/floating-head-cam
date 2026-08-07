@@ -1,18 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
 import { useTrayEvents } from './use-tray-events'
-
 const mockOn = vi.fn()
 const mockRemoveAllListeners = vi.fn()
-
 beforeEach(() => {
   vi.clearAllMocks()
   ;(window as any).electron = {
     ipcRenderer: { on: mockOn, removeAllListeners: mockRemoveAllListeners }
   }
 })
-
-
 function makeHandlers() {
   return {
     setSelectedDeviceId: vi.fn(),
@@ -27,7 +23,6 @@ function makeHandlers() {
     shape: 'circle'
   }
 }
-
 describe('useTrayEvents', () => {
   it('registers tray-action, settings-reset and power-state listeners on mount', () => {
     renderHook(() => useTrayEvents(makeHandlers()))
@@ -36,7 +31,6 @@ describe('useTrayEvents', () => {
     expect(channels).toContain('settings-reset')
     expect(channels).toContain('power-state')
   })
-
   it('removes all listeners on unmount', () => {
     const { unmount } = renderHook(() => useTrayEvents(makeHandlers()))
     unmount()
@@ -44,7 +38,6 @@ describe('useTrayEvents', () => {
     expect(mockRemoveAllListeners).toHaveBeenCalledWith('settings-reset')
     expect(mockRemoveAllListeners).toHaveBeenCalledWith('power-state')
   })
-
   it('set-device action calls setSelectedDeviceId', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -52,7 +45,6 @@ describe('useTrayEvents', () => {
     trayHandler({}, { type: 'set-device', payload: 'cam2' })
     expect(handlers.setSelectedDeviceId).toHaveBeenCalledWith('cam2')
   })
-
   it('set-shape action calls setShape and applySize', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -61,7 +53,6 @@ describe('useTrayEvents', () => {
     expect(handlers.setShape).toHaveBeenCalledWith('square')
     expect(handlers.applySize).toHaveBeenCalledWith(0, 'square')
   })
-
   it('set-mirror action calls setIsMirrored', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -69,7 +60,6 @@ describe('useTrayEvents', () => {
     trayHandler({}, { type: 'set-mirror', payload: true })
     expect(handlers.setIsMirrored).toHaveBeenCalledWith(true)
   })
-
   it('set-size-index action calls setSizeIndex and applySize', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -78,7 +68,6 @@ describe('useTrayEvents', () => {
     expect(handlers.setSizeIndex).toHaveBeenCalledWith(2)
     expect(handlers.applySize).toHaveBeenCalledWith(2, 'circle')
   })
-
   it('set-rounding action calls setRounding', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -86,7 +75,6 @@ describe('useTrayEvents', () => {
     trayHandler({}, { type: 'set-rounding', payload: 16 })
     expect(handlers.setRounding).toHaveBeenCalledWith(16)
   })
-
   it('set-always-on-top action calls setAlwaysOnTop', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -94,7 +82,6 @@ describe('useTrayEvents', () => {
     trayHandler({}, { type: 'set-always-on-top', payload: false })
     expect(handlers.setAlwaysOnTop).toHaveBeenCalledWith(false)
   })
-
   it('power-state event calls setPowerOn', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -102,7 +89,6 @@ describe('useTrayEvents', () => {
     powerHandler({}, true)
     expect(handlers.setPowerOn).toHaveBeenCalledWith(true)
   })
-
   it('settings-reset restores all state values', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -114,7 +100,6 @@ describe('useTrayEvents', () => {
     expect(handlers.setRounding).toHaveBeenCalledWith(16)
     expect(handlers.setAlwaysOnTop).toHaveBeenCalledWith(false)
   })
-
   it('does nothing if window.electron is not available', () => {
     ;(window as any).electron = undefined
     expect(() => renderHook(() => useTrayEvents(makeHandlers()))).not.toThrow()

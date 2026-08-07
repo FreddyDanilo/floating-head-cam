@@ -1,7 +1,6 @@
 import { app } from 'electron'
 import { join } from 'path'
 import fs from 'fs'
-
 export const defaultShortcuts = {
   topLeft: 'Alt+Q',
   topRight: 'Alt+E',
@@ -20,7 +19,6 @@ export const defaultShortcuts = {
   shapeVertical: '',
   shapeHorizontal: ''
 }
-
 export const defaultState = {
   devices: [] as any[],
   selectedDeviceId: '',
@@ -32,10 +30,8 @@ export const defaultState = {
   x: undefined as number | undefined,
   y: undefined as number | undefined
 }
-
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
 export const currentState: typeof defaultState & { [key: string]: any } = { ...defaultState }
-
 export function loadSettings(): void {
   const p = join(app.getPath('userData'), 'settings.json')
   if (fs.existsSync(p)) {
@@ -46,12 +42,10 @@ export function loadSettings(): void {
     } catch (e) {}
   }
 }
-
 export function saveSettings(): void {
   const p = join(app.getPath('userData'), 'settings.json')
   fs.writeFileSync(p, JSON.stringify({ shortcuts, state: currentState }, null, 2))
 }
-
 export function resetToDefaults(): void {
   Object.assign(shortcuts, defaultShortcuts)
   Object.assign(currentState, {

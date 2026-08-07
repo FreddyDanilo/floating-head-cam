@@ -1,10 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useCameraDevices } from './use-camera-devices'
-
 const mockGetUserMedia = vi.fn()
 const mockEnumerateDevices = vi.fn()
-
 beforeEach(() => {
   vi.clearAllMocks()
   Object.defineProperty(global.navigator, 'mediaDevices', {
@@ -13,7 +11,6 @@ beforeEach(() => {
     value: { getUserMedia: mockGetUserMedia, enumerateDevices: mockEnumerateDevices }
   })
 })
-
 describe('useCameraDevices', () => {
   it('starts with empty devices and no selectedDeviceId', () => {
     mockGetUserMedia.mockResolvedValue({})
@@ -22,7 +19,6 @@ describe('useCameraDevices', () => {
     expect(result.current.devices).toEqual([])
     expect(result.current.selectedDeviceId).toBe('')
   })
-
   it('loads only video devices on mount', async () => {
     mockGetUserMedia.mockResolvedValue({})
     mockEnumerateDevices.mockResolvedValue([
@@ -33,7 +29,6 @@ describe('useCameraDevices', () => {
     await waitFor(() => expect(result.current.devices).toHaveLength(1))
     expect(result.current.devices[0].deviceId).toBe('cam1')
   })
-
   it('auto-selects the first video device', async () => {
     mockGetUserMedia.mockResolvedValue({})
     mockEnumerateDevices.mockResolvedValue([
@@ -43,7 +38,6 @@ describe('useCameraDevices', () => {
     const { result } = renderHook(() => useCameraDevices())
     await waitFor(() => expect(result.current.selectedDeviceId).toBe('cam1'))
   })
-
   it('does not auto-select when no video devices exist', async () => {
     mockGetUserMedia.mockResolvedValue({})
     mockEnumerateDevices.mockResolvedValue([{ kind: 'audioinput', deviceId: 'mic1', label: 'Mic' }])
@@ -51,13 +45,11 @@ describe('useCameraDevices', () => {
     await waitFor(() => expect(result.current.devices).toHaveLength(0))
     expect(result.current.selectedDeviceId).toBe('')
   })
-
   it('handles getUserMedia error gracefully', async () => {
     mockGetUserMedia.mockRejectedValue(new Error('Permission denied'))
     const { result } = renderHook(() => useCameraDevices())
     await vi.waitFor(() => expect(result.current.devices).toEqual([]))
   })
-
   it('setSelectedDeviceId updates device selection', async () => {
     mockGetUserMedia.mockResolvedValue({})
     mockEnumerateDevices.mockResolvedValue([{ kind: 'videoinput', deviceId: 'cam1', label: 'Camera 1' }])

@@ -1,7 +1,6 @@
 import React from 'react'
 import { Keyboard, Clapperboard, RotateCcw } from 'lucide-react'
 import { useShortcuts } from './hooks/use-shortcuts'
-
 const sections = [
   {
     title: 'Positioning',
@@ -40,10 +39,8 @@ const sections = [
     ]
   }
 ]
-
 export function SettingsPage(): React.JSX.Element {
   const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut } = useShortcuts()
-
   return (
     <div className="settings-container">
       <div className="settings-header">
@@ -53,7 +50,6 @@ export function SettingsPage(): React.JSX.Element {
       <p className="settings-description">
         Click on any shortcut box and press your desired physical key combination. Mac special characters are automatically ignored!
       </p>
-
       <div className="settings-sections">
         {sections.map((section) => (
           <div key={section.title} className="settings-section">
@@ -75,7 +71,6 @@ export function SettingsPage(): React.JSX.Element {
           </div>
         ))}
       </div>
-
       <div className="settings-footer">
         <button className="reset-button" onClick={resetSettings}>
           <RotateCcw size={16} />

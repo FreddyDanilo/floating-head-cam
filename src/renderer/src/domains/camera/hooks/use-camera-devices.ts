@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
-
 export function useCameraDevices() {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
-
   useEffect(() => {
     const getDevices = async () => {
       try {
@@ -18,6 +16,5 @@ export function useCameraDevices() {
     }
     getDevices()
   }, [])
-
   return { devices, selectedDeviceId, setSelectedDeviceId }
 }
