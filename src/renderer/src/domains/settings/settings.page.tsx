@@ -4,7 +4,7 @@ import { useShortcuts } from './hooks/use-shortcuts'
 import { t } from '../../../../shared/i18n'
 
 export function SettingsPage(): React.JSX.Element {
-  const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, setAppLanguage } = useShortcuts()
+  const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language } = useShortcuts()
 
   const sections = [
     {
