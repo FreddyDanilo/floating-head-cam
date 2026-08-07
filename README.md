@@ -27,12 +27,9 @@
 
 ## Download
 
-Baixe a versão mais recente diretamente aqui do repositório (os instaladores são gerados pelo Electron):
+Baixe a versão mais recente diretamente aqui do repositório (acesse a página e baixe o instalador `.dmg` para Mac ou `.exe` para Windows):
 
-- **[Download para Mac (.dmg)](https://github.com/FreddyDanilo/floating-head-cam/releases/latest/download/Floating%20Head%20Cam-1.0.0.dmg)**
-- **[Download para Windows (.exe)](https://github.com/FreddyDanilo/floating-head-cam/releases/latest/download/Floating%20Head%20Cam-1.0.0-setup.exe)**
-
-*(Nota: Certifique-se de acessar a aba **Releases** do GitHub para baixar as versões compiladas mais recentes.)*
+- **[Baixar Versão Mais Recente (Página de Releases)](https://github.com/FreddyDanilo/floating-head-cam/releases/latest)**
 
 ## Como usar
 
