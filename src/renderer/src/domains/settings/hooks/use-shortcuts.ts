@@ -21,18 +21,27 @@ function codeToKey(code: string): string {
 export function useShortcuts() {
   const [shortcuts, setShortcuts] = useState<Record<string, string>>({})
   const [listeningKey, setListeningKey] = useState<string | null>(null)
+  const [language, setLanguage] = useState<'en' | 'pt'>('en')
+
   useEffect(() => {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
     ipc.invoke('get-shortcuts').then((data) => {
       setShortcuts(data)
     })
-    const handleReset = (_e: any, payload: any) => setShortcuts(payload.shortcuts)
+    ipc.invoke('get-initial-state').then((data) => {
+      if (data.language) setLanguage(data.language)
+    })
+    const handleReset = (_e: any, payload: any) => {
+      setShortcuts(payload.shortcuts)
+      if (payload.state?.language) setLanguage(payload.state.language)
+    }
     ipc.on('settings-reset', handleReset)
     return () => {
       ipc.removeAllListeners('settings-reset')
     }
   }, [])
+
   useEffect(() => {
     if (!listeningKey) return
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -53,8 +62,15 @@ export function useShortcuts() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [listeningKey])
+
   const resetSettings = () => {
     window.electron?.ipcRenderer.send('reset-settings')
   }
-  return { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut }
+
+  const setAppLanguage = (lang: 'en' | 'pt') => {
+    setLanguage(lang)
+    window.electron?.ipcRenderer.send('sync-tray', { language: lang })
+  }
+
+  return { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, setAppLanguage }
 }

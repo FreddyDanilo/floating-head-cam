@@ -4,6 +4,7 @@ import icon from '../../../../resources/icon.png?asset'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
 import { getSettingsWindow, createSettingsWindow, setWindowPosition } from '../window/window.service'
 import { shortcuts } from '../settings/settings.service'
+import { t } from '../../../shared/i18n'
 let tray: Tray | null = null
 let _updateReady = false
 export function setUpdateReady(value: boolean): void {
@@ -44,6 +45,7 @@ export function buildTrayMenu(state: any): void {
       win.setVisibleOnAllWorkspaces(alwaysOnTop, { visibleOnFullScreen: alwaysOnTop })
     }
   })
+  const lang = state.language || 'en'
   const cameraItems = devices.map((device: any) => ({
     label: device.label || `Camera ${device.deviceId.substring(0, 5)}`,
     type: 'radio' as const,
@@ -54,66 +56,67 @@ export function buildTrayMenu(state: any): void {
       })
     }
   }))
+
   const menu = Menu.buildFromTemplate([
     {
-      label: getIsCameraOn() ? 'Turn Off' : 'Turn On',
+      label: getIsCameraOn() ? t('tray.turnOff', lang) : t('tray.turnOn', lang),
       accelerator: 'F9',
       registerAccelerator: false,
       click: () => toggleCamera(state)
     },
     ...(_updateReady ? [
       { type: 'separator' as const },
-      { label: 'Start Update', click: () => autoUpdater.quitAndInstall() }
+      { label: t('tray.startUpdate', lang), click: () => autoUpdater.quitAndInstall() }
     ] : []),
     { type: 'separator' },
-    { label: 'Preferences...', click: () => createSettingsWindow() },
+    { label: t('tray.preferences', lang), click: () => createSettingsWindow() },
     { type: 'separator' },
-    { label: 'Cameras', submenu: cameraItems.length > 0 ? cameraItems : [{ label: 'No cameras found', enabled: false }] },
+    { label: t('tray.cameras', lang), submenu: cameraItems.length > 0 ? cameraItems : [{ label: t('tray.noCameras', lang), enabled: false }] },
     { type: 'separator' },
     {
-      label: 'Position',
+      label: t('tray.position', lang),
       submenu: [
-        { label: 'Top Left',     accelerator: shortcuts.topLeft,     registerAccelerator: false, click: () => setWindowPosition('top-left') },
-        { label: 'Top Right',    accelerator: shortcuts.topRight,    registerAccelerator: false, click: () => setWindowPosition('top-right') },
-        { label: 'Left Middle',  accelerator: shortcuts.leftMiddle,  registerAccelerator: false, click: () => setWindowPosition('left-middle') },
-        { label: 'Center',       accelerator: shortcuts.center,      registerAccelerator: false, click: () => setWindowPosition('center') },
-        { label: 'Right Middle', accelerator: shortcuts.rightMiddle, registerAccelerator: false, click: () => setWindowPosition('right-middle') },
-        { label: 'Bottom Left',  accelerator: shortcuts.bottomLeft,  registerAccelerator: false, click: () => setWindowPosition('bottom-left') },
-        { label: 'Bottom Right', accelerator: shortcuts.bottomRight, registerAccelerator: false, click: () => setWindowPosition('bottom-right') },
+        { label: t('settings.topLeft', lang),     accelerator: shortcuts.topLeft,     registerAccelerator: false, click: () => setWindowPosition('top-left') },
+        { label: t('settings.topRight', lang),    accelerator: shortcuts.topRight,    registerAccelerator: false, click: () => setWindowPosition('top-right') },
+        { label: t('settings.leftMiddle', lang),  accelerator: shortcuts.leftMiddle,  registerAccelerator: false, click: () => setWindowPosition('left-middle') },
+        { label: t('settings.center', lang),      accelerator: shortcuts.center,      registerAccelerator: false, click: () => setWindowPosition('center') },
+        { label: t('settings.rightMiddle', lang), accelerator: shortcuts.rightMiddle, registerAccelerator: false, click: () => setWindowPosition('right-middle') },
+        { label: t('settings.bottomLeft', lang),  accelerator: shortcuts.bottomLeft,  registerAccelerator: false, click: () => setWindowPosition('bottom-left') },
+        { label: t('settings.bottomRight', lang), accelerator: shortcuts.bottomRight, registerAccelerator: false, click: () => setWindowPosition('bottom-right') },
       ]
     },
     { type: 'separator' },
     {
-      label: 'Shape',
+      label: t('tray.shape', lang),
       submenu: [
-        { label: 'Circle',               type: 'radio' as const, accelerator: shortcuts.shapeCircle,     registerAccelerator: false, checked: shape === 'circle',          click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'circle' }) }) },
-        { label: 'Square',               type: 'radio' as const, accelerator: shortcuts.shapeSquare,     registerAccelerator: false, checked: shape === 'square',          click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'square' }) }) },
-        { label: 'Vertical Rectangle',   type: 'radio' as const, accelerator: shortcuts.shapeVertical,   registerAccelerator: false, checked: shape === 'vertical-rect',   click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'vertical-rect' }) }) },
-        { label: 'Horizontal Rectangle', type: 'radio' as const, accelerator: shortcuts.shapeHorizontal, registerAccelerator: false, checked: shape === 'horizontal-rect', click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'horizontal-rect' }) }) },
+        { label: t('tray.shape.circle', lang),               type: 'radio' as const, accelerator: shortcuts.shapeCircle,     registerAccelerator: false, checked: shape === 'circle',          click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'circle' }) }) },
+        { label: t('tray.shape.square', lang),               type: 'radio' as const, accelerator: shortcuts.shapeSquare,     registerAccelerator: false, checked: shape === 'square',          click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'square' }) }) },
+        { label: t('tray.shape.vertical', lang),   type: 'radio' as const, accelerator: shortcuts.shapeVertical,   registerAccelerator: false, checked: shape === 'vertical-rect',   click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'vertical-rect' }) }) },
+        { label: t('tray.shape.horizontal', lang), type: 'radio' as const, accelerator: shortcuts.shapeHorizontal, registerAccelerator: false, checked: shape === 'horizontal-rect', click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-shape', payload: 'horizontal-rect' }) }) },
       ]
     },
     {
-      label: 'Rounding',
+      label: t('tray.rounding', lang),
       enabled: shape !== 'circle',
       submenu: [
-        { label: 'Sharp (8px)',   type: 'radio' as const, checked: rounding === 8,  click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 8 }) }) },
-        { label: 'Subtle (16px)', type: 'radio' as const, checked: rounding === 16, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 16 }) }) },
-        { label: 'Round (24px)', type: 'radio' as const,  checked: rounding === 24, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 24 }) }) },
-        { label: 'Maximum (32px)', type: 'radio' as const, checked: rounding === 32, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 32 }) }) },
+        { label: t('tray.rounding.sharp', lang),   type: 'radio' as const, checked: rounding === 8,  click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 8 }) }) },
+        { label: t('tray.rounding.subtle', lang), type: 'radio' as const, checked: rounding === 16, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 16 }) }) },
+        { label: t('tray.rounding.round', lang), type: 'radio' as const,  checked: rounding === 24, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 24 }) }) },
+        { label: t('tray.rounding.max', lang), type: 'radio' as const, checked: rounding === 32, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-rounding', payload: 32 }) }) },
       ]
     },
     {
-      label: 'Size',
+      label: t('tray.size', lang),
       submenu: [
-        { label: 'Small',  type: 'radio' as const, accelerator: shortcuts.sizeSmall,  registerAccelerator: false, checked: sizeIndex === 0, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-size-index', payload: 0 }) }) },
-        { label: 'Medium', type: 'radio' as const, accelerator: shortcuts.sizeMedium, registerAccelerator: false, checked: sizeIndex === 1, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-size-index', payload: 1 }) }) },
-        { label: 'Large',  type: 'radio' as const, accelerator: shortcuts.sizeLarge,  registerAccelerator: false, checked: sizeIndex === 2, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-size-index', payload: 2 }) }) },
+        { label: t('tray.size.small', lang),  type: 'radio' as const, accelerator: shortcuts.sizeSmall,  registerAccelerator: false, checked: sizeIndex === 0, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-size-index', payload: 0 }) }) },
+        { label: t('tray.size.medium', lang), type: 'radio' as const, accelerator: shortcuts.sizeMedium, registerAccelerator: false, checked: sizeIndex === 1, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-size-index', payload: 1 }) }) },
+        { label: t('tray.size.large', lang),  type: 'radio' as const, accelerator: shortcuts.sizeLarge,  registerAccelerator: false, checked: sizeIndex === 2, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-size-index', payload: 2 }) }) },
       ]
     },
     { type: 'separator' },
-    { label: 'Mirror Camera', type: 'checkbox' as const, accelerator: shortcuts.mirror,      registerAccelerator: false, checked: isMirrored,  click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-mirror',       payload: !isMirrored }) }) },
-    { label: 'Always on Top', type: 'checkbox' as const, accelerator: shortcuts.alwaysOnTop, registerAccelerator: false, checked: alwaysOnTop, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-always-on-top', payload: !alwaysOnTop }) }) },
-    { label: 'Quit', click: () => app.quit() }
+    { label: t('tray.mirror', lang), type: 'checkbox' as const, accelerator: shortcuts.mirror,      registerAccelerator: false, checked: isMirrored,  click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-mirror',       payload: !isMirrored }) }) },
+    { label: t('tray.alwaysOnTop', lang), type: 'checkbox' as const, accelerator: shortcuts.alwaysOnTop, registerAccelerator: false, checked: alwaysOnTop, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-always-on-top', payload: !alwaysOnTop }) }) },
+    { label: t('tray.quit', lang), click: () => app.quit() }
   ])
   tray.setContextMenu(menu)
 }

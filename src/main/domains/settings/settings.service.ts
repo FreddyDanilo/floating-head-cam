@@ -28,7 +28,8 @@ export const defaultState = {
   rounding: 24,
   alwaysOnTop: true,
   x: undefined as number | undefined,
-  y: undefined as number | undefined
+  y: undefined as number | undefined,
+  language: app.getLocale().startsWith('pt') ? 'pt' : 'en' as 'en' | 'pt'
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
 export const currentState: typeof defaultState & { [key: string]: any } = { ...defaultState }

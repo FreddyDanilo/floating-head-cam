@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { renderHook, waitFor, act } from '@testing-library/react'
 import { useCameraDevices } from './use-camera-devices'
 const mockGetUserMedia = vi.fn()
 const mockEnumerateDevices = vi.fn()
@@ -55,7 +55,9 @@ describe('useCameraDevices', () => {
     mockEnumerateDevices.mockResolvedValue([{ kind: 'videoinput', deviceId: 'cam1', label: 'Camera 1' }])
     const { result } = renderHook(() => useCameraDevices())
     await waitFor(() => expect(result.current.selectedDeviceId).toBe('cam1'))
-    result.current.setSelectedDeviceId('cam2')
+    act(() => {
+      result.current.setSelectedDeviceId('cam2')
+    })
     await waitFor(() => expect(result.current.selectedDeviceId).toBe('cam2'))
   })
 })

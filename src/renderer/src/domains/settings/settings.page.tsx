@@ -1,54 +1,76 @@
 import React from 'react'
 import { Keyboard, Clapperboard, RotateCcw } from 'lucide-react'
 import { useShortcuts } from './hooks/use-shortcuts'
-const sections = [
-  {
-    title: 'Positioning',
-    actions: [
-      { key: 'topLeft', label: 'Top Left' },
-      { key: 'topRight', label: 'Top Right' },
-      { key: 'leftMiddle', label: 'Left Middle' },
-      { key: 'center', label: 'Center' },
-      { key: 'rightMiddle', label: 'Right Middle' },
-      { key: 'bottomLeft', label: 'Bottom Left' },
-      { key: 'bottomRight', label: 'Bottom Right' },
-    ]
-  },
-  {
-    title: 'Camera Control',
-    actions: [
-      { key: 'mirror', label: 'Toggle Mirror' },
-      { key: 'alwaysOnTop', label: 'Toggle Always on Top' },
-    ]
-  },
-  {
-    title: 'Camera Shape',
-    actions: [
-      { key: 'shapeCircle', label: 'Shape: Circle' },
-      { key: 'shapeSquare', label: 'Shape: Square' },
-      { key: 'shapeVertical', label: 'Shape: Vertical Rectangle' },
-      { key: 'shapeHorizontal', label: 'Shape: Horizontal Rectangle' },
-    ]
-  },
-  {
-    title: 'Sizing',
-    actions: [
-      { key: 'sizeSmall', label: 'Size: Small' },
-      { key: 'sizeMedium', label: 'Size: Medium' },
-      { key: 'sizeLarge', label: 'Size: Large' },
-    ]
-  }
-]
+import { t } from '../../../../shared/i18n'
+
 export function SettingsPage(): React.JSX.Element {
-  const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut } = useShortcuts()
+  const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, setAppLanguage } = useShortcuts()
+
+  const sections = [
+    {
+      title: t('settings.positioning', language),
+      actions: [
+        { key: 'topLeft', label: t('settings.topLeft', language) },
+        { key: 'topRight', label: t('settings.topRight', language) },
+        { key: 'leftMiddle', label: t('settings.leftMiddle', language) },
+        { key: 'center', label: t('settings.center', language) },
+        { key: 'rightMiddle', label: t('settings.rightMiddle', language) },
+        { key: 'bottomLeft', label: t('settings.bottomLeft', language) },
+        { key: 'bottomRight', label: t('settings.bottomRight', language) },
+      ]
+    },
+    {
+      title: t('settings.cameraControl', language),
+      actions: [
+        { key: 'mirror', label: t('settings.mirror', language) },
+        { key: 'alwaysOnTop', label: t('settings.alwaysOnTop', language) },
+      ]
+    },
+    {
+      title: t('settings.cameraShape', language),
+      actions: [
+        { key: 'shapeCircle', label: t('settings.shapeCircle', language) },
+        { key: 'shapeSquare', label: t('settings.shapeSquare', language) },
+        { key: 'shapeVertical', label: t('settings.shapeVertical', language) },
+        { key: 'shapeHorizontal', label: t('settings.shapeHorizontal', language) },
+      ]
+    },
+    {
+      title: t('settings.sizing', language),
+      actions: [
+        { key: 'sizeSmall', label: t('settings.sizeSmall', language) },
+        { key: 'sizeMedium', label: t('settings.sizeMedium', language) },
+        { key: 'sizeLarge', label: t('settings.sizeLarge', language) },
+      ]
+    }
+  ]
+
   return (
     <div className="settings-container">
-      <div className="settings-header">
-        <Clapperboard size={28} className="settings-icon" />
-        <h1>Floating Head Cam</h1>
+      <div className="settings-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Clapperboard size={28} className="settings-icon" />
+          <h1>{t('settings.title', language)}</h1>
+        </div>
+        <select 
+          value={language} 
+          onChange={(e) => setAppLanguage(e.target.value as 'en' | 'pt')}
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            color: 'white',
+            border: 'none',
+            padding: '6px 12px',
+            borderRadius: '6px',
+            fontSize: '14px',
+            cursor: 'pointer'
+          }}
+        >
+          <option value="en" style={{ color: 'black' }}>English</option>
+          <option value="pt" style={{ color: 'black' }}>Português</option>
+        </select>
       </div>
       <p className="settings-description">
-        Click on any shortcut box and press your desired physical key combination. Mac special characters are automatically ignored!
+        {t('settings.description', language)}
       </p>
       <div className="settings-sections">
         {sections.map((section) => (
@@ -62,7 +84,9 @@ export function SettingsPage(): React.JSX.Element {
                     className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
                     onClick={() => setListeningKey(action.key)}
                   >
-                    {listeningKey === action.key ? 'Press Keys...' : formatMacShortcut(shortcuts[action.key])}
+                    {listeningKey === action.key 
+                      ? t('settings.pressKeys', language) 
+                      : (formatMacShortcut(shortcuts[action.key]) === 'Unbound' ? t('settings.unbound', language) : formatMacShortcut(shortcuts[action.key]))}
                     <Keyboard size={14} className="shortcut-icon" />
                   </div>
                 </div>
@@ -74,7 +98,7 @@ export function SettingsPage(): React.JSX.Element {
       <div className="settings-footer">
         <button className="reset-button" onClick={resetSettings}>
           <RotateCcw size={16} />
-          Reset to Factory Defaults
+          {t('settings.reset', language)}
         </button>
       </div>
     </div>

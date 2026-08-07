@@ -4,6 +4,7 @@ import { is } from '@electron-toolkit/utils'
 import icon from '../../../../resources/icon.png?asset'
 import { currentState, saveSettings } from '../settings/settings.service'
 import { getIsCameraOn } from '../camera/camera.service'
+import { t } from '../../../shared/i18n'
 let _settingsWindow: BrowserWindow | null = null
 export function getSettingsWindow(): BrowserWindow | null {
   return _settingsWindow
@@ -20,7 +21,7 @@ export function createSettingsWindow(): void {
   _settingsWindow = new BrowserWindow({
     width: 600,
     height: 700,
-    title: 'Preferences',
+    title: t('tray.preferences', currentState.language || 'en').replace('...', ''),
     transparent: true,
     backgroundColor: '#00000000',
     vibrancy: 'under-window',

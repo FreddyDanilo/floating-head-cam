@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { join } from 'path'
 vi.mock('electron', () => ({
   app: {
-    getPath: vi.fn(() => '/mock/userData')
+    getPath: vi.fn(() => '/mock/userData'),
+    getLocale: vi.fn(() => 'en-US')
   }
 }))
 vi.mock('fs', () => ({
