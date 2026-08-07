@@ -44,7 +44,7 @@ app.whenReady().then(() => {
   ipcMain.on('sync-tray', (_, state) => {
     Object.assign(currentState, state)
     saveSettings()
-    buildTrayMenu(state)
+    buildTrayMenu(currentState)
   })
   ipcMain.on('set-window-position', (_, pos) => {
     setWindowPosition(pos)

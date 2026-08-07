@@ -36,9 +36,12 @@ export function useShortcuts() {
       setShortcuts(payload.shortcuts)
       if (payload.state?.language) setLanguage(payload.state.language)
     }
+    const handleSyncLanguage = (_e: any, lang: 'en' | 'pt') => setLanguage(lang)
     ipc.on('settings-reset', handleReset)
+    ipc.on('sync-language', handleSyncLanguage)
     return () => {
       ipc.removeAllListeners('settings-reset')
+      ipc.removeAllListeners('sync-language')
     }
   }, [])
 

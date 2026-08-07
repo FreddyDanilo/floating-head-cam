@@ -3,7 +3,7 @@ import { autoUpdater } from 'electron-updater'
 import icon from '../../../../resources/icon.png?asset'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
 import { getSettingsWindow, createSettingsWindow, setWindowPosition } from '../window/window.service'
-import { shortcuts } from '../settings/settings.service'
+import { shortcuts, saveSettings } from '../settings/settings.service'
 import { t } from '../../../shared/i18n'
 let tray: Tray | null = null
 let _updateReady = false
@@ -116,6 +116,29 @@ export function buildTrayMenu(state: any): void {
     { type: 'separator' },
     { label: t('tray.mirror', lang), type: 'checkbox' as const, accelerator: shortcuts.mirror,      registerAccelerator: false, checked: isMirrored,  click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-mirror',       payload: !isMirrored }) }) },
     { label: t('tray.alwaysOnTop', lang), type: 'checkbox' as const, accelerator: shortcuts.alwaysOnTop, registerAccelerator: false, checked: alwaysOnTop, click: () => BrowserWindow.getAllWindows().forEach(w => { if (w !== sw) w.webContents.send('tray-action', { type: 'set-always-on-top', payload: !alwaysOnTop }) }) },
+    {
+      label: t('settings.language', lang) || 'Language',
+      submenu: [
+        { label: 'English', type: 'radio', checked: lang === 'en', click: () => {
+          Object.assign(state, { language: 'en' })
+          saveSettings()
+          BrowserWindow.getAllWindows().forEach(w => {
+            if (w !== sw) w.webContents.send('tray-action', { type: 'set-language', payload: 'en' })
+            else w.webContents.send('sync-language', 'en')
+          })
+          buildTrayMenu(state)
+        } },
+        { label: 'Português', type: 'radio', checked: lang === 'pt', click: () => {
+          Object.assign(state, { language: 'pt' })
+          saveSettings()
+          BrowserWindow.getAllWindows().forEach(w => {
+            if (w !== sw) w.webContents.send('tray-action', { type: 'set-language', payload: 'pt' })
+            else w.webContents.send('sync-language', 'pt')
+          })
+          buildTrayMenu(state)
+        } }
+      ]
+    },
     { label: t('tray.quit', lang), click: () => app.quit() }
   ])
   tray.setContextMenu(menu)

@@ -52,22 +52,6 @@ export function SettingsPage(): React.JSX.Element {
           <Clapperboard size={28} className="settings-icon" />
           <h1>{t('settings.title', language)}</h1>
         </div>
-        <select 
-          value={language} 
-          onChange={(e) => setAppLanguage(e.target.value as 'en' | 'pt')}
-          style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            color: 'white',
-            border: 'none',
-            padding: '6px 12px',
-            borderRadius: '6px',
-            fontSize: '14px',
-            cursor: 'pointer'
-          }}
-        >
-          <option value="en" style={{ color: 'black' }}>English</option>
-          <option value="pt" style={{ color: 'black' }}>Português</option>
-        </select>
       </div>
       <p className="settings-description">
         {t('settings.description', language)}
