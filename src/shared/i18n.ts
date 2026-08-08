@@ -1,10 +1,11 @@
-type Dictionary = Record<string, string>;
-type Translations = Record<'en' | 'pt', Dictionary>;
+type Dictionary = Record<string, string>
+type Translations = Record<'en' | 'pt', Dictionary>
 
 const translations: Translations = {
   en: {
     'settings.title': 'Floating Head Cam',
-    'settings.description': 'Click on any shortcut box and press your desired physical key combination. Mac special characters are automatically ignored!',
+    'settings.description':
+      'Click on any shortcut box and press your desired physical key combination. Mac special characters are automatically ignored!',
     'settings.positioning': 'Positioning',
     'settings.topLeft': 'Top Left',
     'settings.topRight': 'Top Right',
@@ -57,7 +58,8 @@ const translations: Translations = {
   },
   pt: {
     'settings.title': 'Floating Head Cam',
-    'settings.description': 'Clique em qualquer caixa de atalho e pressione a combinação de teclas desejada. Caracteres especiais do Mac são ignorados automaticamente!',
+    'settings.description':
+      'Clique em qualquer caixa de atalho e pressione a combinação de teclas desejada. Caracteres especiais do Mac são ignorados automaticamente!',
     'settings.positioning': 'Posicionamento',
     'settings.topLeft': 'Superior Esquerdo',
     'settings.topRight': 'Superior Direito',
@@ -108,9 +110,9 @@ const translations: Translations = {
     'tray.alwaysOnTop': 'Sempre no Topo',
     'tray.quit': 'Sair'
   }
-};
+}
 
 export function t(key: string, lang: 'en' | 'pt'): string {
-  const dictionary = translations[lang] || translations['en'];
-  return dictionary[key] || translations['en'][key] || key;
+  const dictionary = translations[lang] || translations['en']
+  return dictionary[key] || translations['en'][key] || key
 }

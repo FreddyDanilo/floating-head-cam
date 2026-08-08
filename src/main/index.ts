@@ -1,11 +1,26 @@
-import { app, ipcMain, session, BrowserWindow, globalShortcut, systemPreferences } from 'electron'
 import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { app, BrowserWindow, globalShortcut, ipcMain, session, systemPreferences } from 'electron'
 import { autoUpdater } from 'electron-updater'
-import { loadSettings, saveSettings, shortcuts, currentState, resetToDefaults } from './domains/settings/settings.service'
 import { getIsCameraOn, setIsCameraOn } from './domains/camera/camera.service'
-import { createWindow, getSettingsWindow, setWindowPosition, resizeWindow } from './domains/window/window.service'
-import { registerGlobalShortcuts, unregisterGlobalShortcuts } from './domains/shortcuts/shortcuts.service'
-import { initTray, buildTrayMenu, toggleCamera, setUpdateReady } from './domains/tray/tray.service'
+import {
+  currentState,
+  loadSettings,
+  resetToDefaults,
+  saveSettings,
+  shortcuts
+} from './domains/settings/settings.service'
+import {
+  registerGlobalShortcuts,
+  unregisterGlobalShortcuts
+} from './domains/shortcuts/shortcuts.service'
+import { buildTrayMenu, initTray, setUpdateReady, toggleCamera } from './domains/tray/tray.service'
+import {
+  createWindow,
+  getSettingsWindow,
+  resizeWindow,
+  setWindowPosition
+} from './domains/window/window.service'
+
 const windowCallbacks = {
   onFocus: (win: BrowserWindow) => {
     registerGlobalShortcuts(win)
@@ -27,7 +42,9 @@ app.whenReady().then(() => {
     app.setLoginItemSettings({ openAtLogin: true, openAsHidden: true })
     systemPreferences.askForMediaAccess('camera')
   }
-  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) => callback(true))
+  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) =>
+    callback(true)
+  )
   session.defaultSession.setPermissionCheckHandler(() => true)
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, window) => {
@@ -56,7 +73,7 @@ app.whenReady().then(() => {
     saveSettings()
     buildTrayMenu(currentState)
     const sw = getSettingsWindow()
-    const floatingHead = BrowserWindow.getAllWindows().find(w => w !== sw)
+    const floatingHead = BrowserWindow.getAllWindows().find((w) => w !== sw)
     if (floatingHead) {
       globalShortcut.unregisterAll()
       globalShortcut.register('F9', () => toggleCamera(currentState))
@@ -69,7 +86,7 @@ app.whenReady().then(() => {
     resetToDefaults()
     saveSettings()
     buildTrayMenu(currentState)
-    BrowserWindow.getAllWindows().forEach(win => {
+    BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('settings-reset', { shortcuts, state: currentState })
     })
   })

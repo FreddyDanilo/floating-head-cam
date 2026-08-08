@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { CameraPage } from './domains/camera/camera.page'
 import { SettingsPage } from './domains/settings/settings.page'
+
 function App(): React.JSX.Element {
   const [route, setRoute] = useState<string>('')
   useEffect(() => {
-    const handleHashChange = () => {
+    const handleHashChange = (): void => {
       setRoute(window.location.hash)
     }
     handleHashChange()
@@ -16,4 +17,5 @@ function App(): React.JSX.Element {
   }
   return <CameraPage />
 }
+
 export default App

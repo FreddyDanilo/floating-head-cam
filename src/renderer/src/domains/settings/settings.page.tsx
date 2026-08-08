@@ -1,10 +1,11 @@
+import { Clapperboard, Keyboard, RotateCcw } from 'lucide-react'
 import React from 'react'
-import { Keyboard, Clapperboard, RotateCcw } from 'lucide-react'
-import { useShortcuts } from './hooks/use-shortcuts'
 import { t } from '../../../../shared/i18n'
+import { useShortcuts } from './hooks/use-shortcuts'
 
 export function SettingsPage(): React.JSX.Element {
-  const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language } = useShortcuts()
+  const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language } =
+    useShortcuts()
 
   const sections = [
     {
@@ -16,14 +17,14 @@ export function SettingsPage(): React.JSX.Element {
         { key: 'center', label: t('settings.center', language) },
         { key: 'rightMiddle', label: t('settings.rightMiddle', language) },
         { key: 'bottomLeft', label: t('settings.bottomLeft', language) },
-        { key: 'bottomRight', label: t('settings.bottomRight', language) },
+        { key: 'bottomRight', label: t('settings.bottomRight', language) }
       ]
     },
     {
       title: t('settings.cameraControl', language),
       actions: [
         { key: 'mirror', label: t('settings.mirror', language) },
-        { key: 'alwaysOnTop', label: t('settings.alwaysOnTop', language) },
+        { key: 'alwaysOnTop', label: t('settings.alwaysOnTop', language) }
       ]
     },
     {
@@ -32,7 +33,7 @@ export function SettingsPage(): React.JSX.Element {
         { key: 'shapeCircle', label: t('settings.shapeCircle', language) },
         { key: 'shapeSquare', label: t('settings.shapeSquare', language) },
         { key: 'shapeVertical', label: t('settings.shapeVertical', language) },
-        { key: 'shapeHorizontal', label: t('settings.shapeHorizontal', language) },
+        { key: 'shapeHorizontal', label: t('settings.shapeHorizontal', language) }
       ]
     },
     {
@@ -40,22 +41,23 @@ export function SettingsPage(): React.JSX.Element {
       actions: [
         { key: 'sizeSmall', label: t('settings.sizeSmall', language) },
         { key: 'sizeMedium', label: t('settings.sizeMedium', language) },
-        { key: 'sizeLarge', label: t('settings.sizeLarge', language) },
+        { key: 'sizeLarge', label: t('settings.sizeLarge', language) }
       ]
     }
   ]
 
   return (
     <div className="settings-container">
-      <div className="settings-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div
+        className="settings-header"
+        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Clapperboard size={28} className="settings-icon" />
           <h1>{t('settings.title', language)}</h1>
         </div>
       </div>
-      <p className="settings-description">
-        {t('settings.description', language)}
-      </p>
+      <p className="settings-description">{t('settings.description', language)}</p>
       <div className="settings-sections">
         {sections.map((section) => (
           <div key={section.title} className="settings-section">
@@ -68,9 +70,11 @@ export function SettingsPage(): React.JSX.Element {
                     className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
                     onClick={() => setListeningKey(action.key)}
                   >
-                    {listeningKey === action.key 
-                      ? t('settings.pressKeys', language) 
-                      : (formatMacShortcut(shortcuts[action.key]) === 'Unbound' ? t('settings.unbound', language) : formatMacShortcut(shortcuts[action.key]))}
+                    {listeningKey === action.key
+                      ? t('settings.pressKeys', language)
+                      : formatMacShortcut(shortcuts[action.key]) === 'Unbound'
+                        ? t('settings.unbound', language)
+                        : formatMacShortcut(shortcuts[action.key])}
                     <Keyboard size={14} className="shortcut-icon" />
                   </div>
                 </div>

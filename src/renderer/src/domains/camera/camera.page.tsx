@@ -1,17 +1,25 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { getGradient, GradientKey } from '../../../../shared/colors'
 import { useCameraDevices } from './hooks/use-camera-devices'
 import { useCameraStream } from './hooks/use-camera-stream'
 import { useTrayEvents } from './hooks/use-tray-events'
+
 const SIZES = [300, 450, 600]
 export function CameraPage(): React.JSX.Element {
   const { devices, selectedDeviceId, setSelectedDeviceId } = useCameraDevices()
   const [isMirrored, setIsMirrored] = useState(true)
-  const [shape, setShape] = useState<'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'>('circle')
+  const [shape, setShape] = useState<'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'>(
+    'circle'
+  )
   const [sizeIndex, setSizeIndex] = useState<number>(0)
   const [rounding, setRounding] = useState<number>(24)
   const [alwaysOnTop, setAlwaysOnTop] = useState<boolean>(true)
   const [powerOn, setPowerOn] = useState<boolean>(false)
   const [initialized, setInitialized] = useState(false)
+
+  const [borderGradient, setBorderGradient] = useState<GradientKey>('instagram')
+  const [borderWidth, setBorderWidth] = useState<number>(4)
+
   const { videoRef } = useCameraStream(selectedDeviceId, powerOn)
   const applySize = useCallback((index: number, currentShape: string) => {
     const size = SIZES[index]
@@ -36,11 +44,18 @@ export function CameraPage(): React.JSX.Element {
         setRounding(state.rounding)
         setAlwaysOnTop(state.alwaysOnTop)
         setPowerOn(state.isCameraOn)
+
+        console.log(state.borderWidth)
+
+        if (state.borderGradient) setBorderGradient(state.borderGradient)
+        if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
+
         setInitialized(true)
         applySize(state.sizeIndex, state.shape)
       })
     }
   }, [])
+
   useTrayEvents({
     setSelectedDeviceId,
     setShape,
@@ -49,6 +64,7 @@ export function CameraPage(): React.JSX.Element {
     setRounding,
     setAlwaysOnTop,
     setPowerOn,
+    setBorderGradient,
     applySize,
     sizeIndex,
     shape
@@ -60,28 +76,65 @@ export function CameraPage(): React.JSX.Element {
         selectedDeviceId,
         isMirrored,
         shape,
+        borderGradient,
+        borderWidth,
         sizeIndex,
         rounding,
         alwaysOnTop
       })
     }
-  }, [devices, selectedDeviceId, isMirrored, shape, sizeIndex, rounding, alwaysOnTop, initialized])
+  }, [
+    devices,
+    selectedDeviceId,
+    isMirrored,
+    shape,
+    borderGradient,
+    borderWidth,
+    sizeIndex,
+    rounding,
+    alwaysOnTop,
+    initialized
+  ])
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === '1') { setSizeIndex(0); applySize(0, shape) }
-      if (e.key === '2') { setSizeIndex(1); applySize(1, shape) }
-      if (e.key === '3') { setSizeIndex(2); applySize(2, shape) }
+    const handleKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === '1') {
+        setSizeIndex(0)
+        applySize(0, shape)
+      }
+      if (e.key === '2') {
+        setSizeIndex(1)
+        applySize(1, shape)
+      }
+      if (e.key === '3') {
+        setSizeIndex(2)
+        applySize(2, shape)
+      }
+      // Troca rápida de gradientes via teclado
+      if (e.key.toLowerCase() === 'g') setBorderGradient('instagram')
+      if (e.key.toLowerCase() === 'h') setBorderGradient('neon')
+      if (e.key.toLowerCase() === 'j') setBorderGradient('cyberpunk')
+      if (e.key.toLowerCase() === 'k') setBorderGradient('none')
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [applySize, shape])
   if (!initialized) return <div className="app-container" />
+
+  const computedRadius = shape === 'circle' ? '50%' : `${rounding}px`
   return (
     <div
       className="app-container"
       style={{
-        borderRadius: shape === 'circle' ? '50%' : `${rounding}px`,
-        WebkitMaskImage: shape === 'circle' ? '-webkit-radial-gradient(white, black)' : 'none'
+        background: getGradient(borderGradient),
+        padding: `${borderWidth}px`,
+        borderRadius: computedRadius,
+        WebkitMaskImage: shape === 'circle' ? '-webkit-radial-gradient(white, black)' : 'none',
+        boxSizing: 'border-box',
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
       }}
     >
       <video
@@ -90,7 +143,13 @@ export function CameraPage(): React.JSX.Element {
         playsInline
         muted
         className="camera-view"
-        style={{ transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)' }}
+        style={{
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          borderRadius: shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
+          transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)'
+        }}
       />
     </div>
   )

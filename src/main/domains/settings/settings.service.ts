@@ -1,6 +1,6 @@
 import { app } from 'electron'
-import { join } from 'path'
 import fs from 'fs'
+import { join } from 'path'
 export const defaultShortcuts = {
   topLeft: 'Alt+Q',
   topRight: 'Alt+E',
@@ -29,7 +29,7 @@ export const defaultState = {
   alwaysOnTop: true,
   x: undefined as number | undefined,
   y: undefined as number | undefined,
-  language: app.getLocale().startsWith('pt') ? 'pt' : 'en' as 'en' | 'pt'
+  language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt')
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
 export const currentState: typeof defaultState & { [key: string]: any } = { ...defaultState }
