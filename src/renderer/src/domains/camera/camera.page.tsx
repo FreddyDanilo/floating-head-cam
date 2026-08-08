@@ -17,7 +17,7 @@ export function CameraPage(): React.JSX.Element {
   const [powerOn, setPowerOn] = useState<boolean>(false)
   const [initialized, setInitialized] = useState(false)
 
-  const [borderGradient, setBorderGradient] = useState<GradientKey>('instagram')
+  const [borderGradient, setBorderGradient] = useState<GradientKey>('none')
   const [borderWidth, setBorderWidth] = useState<number>(4)
 
   const { videoRef } = useCameraStream(selectedDeviceId, powerOn)

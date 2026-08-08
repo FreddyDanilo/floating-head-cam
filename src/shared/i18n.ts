@@ -30,6 +30,9 @@ const translations: Translations = {
     'settings.pressKeys': 'Press Keys...',
     'settings.unbound': 'Unbound',
     'settings.language': 'Language',
+    'settings.border': 'Border Color',
+    'settings.border.none': 'none',
+    'settings.border.gold': 'Gold',
 
     'tray.turnOff': 'Turn Off',
     'tray.turnOn': 'Turn On',
@@ -84,6 +87,9 @@ const translations: Translations = {
     'settings.pressKeys': 'Pressione as Teclas...',
     'settings.unbound': 'Não Definido',
     'settings.language': 'Idioma',
+    'settings.border': 'Cor da Borda',
+    'settings.border.none': 'Sem borda',
+    'settings.border.gold': 'Ouro',
 
     'tray.turnOff': 'Desligar',
     'tray.turnOn': 'Ligar',
