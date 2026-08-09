@@ -242,7 +242,7 @@ export function buildTrayMenu(state: any): void {
       label: t('settings.border', lang),
       submenu: [
         {
-          label: 'Instagram',
+          label: t('settings.border.instagram', lang),
           type: 'radio' as const,
           checked: borderGradient === 'instagram',
           click: () =>
@@ -255,7 +255,7 @@ export function buildTrayMenu(state: any): void {
             })
         },
         {
-          label: 'Neon',
+          label: t('settings.border.neon', lang),
           type: 'radio' as const,
           checked: borderGradient === 'neon',
           click: () =>
@@ -268,7 +268,7 @@ export function buildTrayMenu(state: any): void {
             })
         },
         {
-          label: 'Cyberpunk',
+          label: t('settings.border.cyberpunk', lang),
           type: 'radio' as const,
           checked: borderGradient === 'cyberpunk',
           click: () =>

@@ -31,8 +31,11 @@ const translations: Translations = {
     'settings.unbound': 'Unbound',
     'settings.language': 'Language',
     'settings.border': 'Border Color',
-    'settings.border.none': 'none',
+    'settings.border.none': 'None',
     'settings.border.gold': 'Gold',
+    'settings.border.instagram': 'Instagram',
+    'settings.border.neon': 'Neon',
+    'settings.border.cyberpunk': 'Cyberpunk',
 
     'tray.turnOff': 'Turn Off',
     'tray.turnOn': 'Turn On',
@@ -90,6 +93,9 @@ const translations: Translations = {
     'settings.border': 'Cor da Borda',
     'settings.border.none': 'Sem borda',
     'settings.border.gold': 'Ouro',
+    'settings.border.instagram': 'Instagram',
+    'settings.border.neon': 'Neon',
+    'settings.border.cyberpunk': 'Cyberpunk',
 
     'tray.turnOff': 'Desligar',
     'tray.turnOn': 'Ligar',
