@@ -1,10 +1,11 @@
-type Dictionary = Record<string, string>;
-type Translations = Record<'en' | 'pt', Dictionary>;
+type Dictionary = Record<string, string>
+type Translations = Record<'en' | 'pt', Dictionary>
 
 const translations: Translations = {
   en: {
     'settings.title': 'Floating Head Cam',
-    'settings.description': 'Click on any shortcut box and press your desired physical key combination. Mac special characters are automatically ignored!',
+    'settings.description':
+      'Click on any shortcut box and press your desired physical key combination. Mac special characters are automatically ignored!',
     'settings.positioning': 'Positioning',
     'settings.topLeft': 'Top Left',
     'settings.topRight': 'Top Right',
@@ -21,6 +22,12 @@ const translations: Translations = {
     'settings.shapeSquare': 'Shape: Square',
     'settings.shapeVertical': 'Shape: Vertical Rectangle',
     'settings.shapeHorizontal': 'Shape: Horizontal Rectangle',
+    'settings.visuals': 'Visuals (Appearance)',
+    'settings.rounding': 'Rounding',
+    'settings.roundingSharp': 'Sharp (0px)',
+    'settings.roundingSubtle': 'Subtle (12px)',
+    'settings.roundingRound': 'Round (24px)',
+    'settings.roundingMax': 'Maximum',
     'settings.sizing': 'Sizing',
     'settings.sizeSmall': 'Size: Small',
     'settings.sizeMedium': 'Size: Medium',
@@ -29,6 +36,16 @@ const translations: Translations = {
     'settings.pressKeys': 'Press Keys...',
     'settings.unbound': 'Unbound',
     'settings.language': 'Language',
+    'settings.border': 'Border Color',
+    'settings.border.none': 'None',
+    'settings.border.gradient_01': 'Gradient 01',
+    'settings.border.gradient_02': 'Gradient 02',
+    'settings.border.gradient_03': 'Gradient 03',
+    'settings.border.gradient_04': 'Gradient 04',
+    'settings.border.gradient_05': 'Gradient 05',
+    'settings.border.gradient_06': 'Gradient 06',
+    'settings.border.gradient_07': 'Gradient 07',
+    'settings.border.gradient_08': 'Gradient 08',
 
     'tray.turnOff': 'Turn Off',
     'tray.turnOn': 'Turn On',
@@ -57,7 +74,8 @@ const translations: Translations = {
   },
   pt: {
     'settings.title': 'Floating Head Cam',
-    'settings.description': 'Clique em qualquer caixa de atalho e pressione a combinação de teclas desejada. Caracteres especiais do Mac são ignorados automaticamente!',
+    'settings.description':
+      'Clique em qualquer caixa de atalho e pressione a combinação de teclas desejada. Caracteres especiais do Mac são ignorados automaticamente!',
     'settings.positioning': 'Posicionamento',
     'settings.topLeft': 'Superior Esquerdo',
     'settings.topRight': 'Superior Direito',
@@ -74,6 +92,12 @@ const translations: Translations = {
     'settings.shapeSquare': 'Formato: Quadrado',
     'settings.shapeVertical': 'Formato: Retângulo Vertical',
     'settings.shapeHorizontal': 'Formato: Retângulo Horizontal',
+    'settings.visuals': 'Visual (Aparência)',
+    'settings.rounding': 'Arredondamento',
+    'settings.roundingSharp': 'Reto (0px)',
+    'settings.roundingSubtle': 'Suave (12px)',
+    'settings.roundingRound': 'Arredondado (24px)',
+    'settings.roundingMax': 'Máximo',
     'settings.sizing': 'Tamanho',
     'settings.sizeSmall': 'Tamanho: Pequeno',
     'settings.sizeMedium': 'Tamanho: Médio',
@@ -82,6 +106,16 @@ const translations: Translations = {
     'settings.pressKeys': 'Pressione as Teclas...',
     'settings.unbound': 'Não Definido',
     'settings.language': 'Idioma',
+    'settings.border': 'Cor da Borda',
+    'settings.border.none': 'Sem borda',
+    'settings.border.gradient_01': 'Gradiente 01',
+    'settings.border.gradient_02': 'Gradiente 02',
+    'settings.border.gradient_03': 'Gradiente 03',
+    'settings.border.gradient_04': 'Gradiente 04',
+    'settings.border.gradient_05': 'Gradiente 05',
+    'settings.border.gradient_06': 'Gradiente 06',
+    'settings.border.gradient_07': 'Gradiente 07',
+    'settings.border.gradient_08': 'Gradiente 08',
 
     'tray.turnOff': 'Desligar',
     'tray.turnOn': 'Ligar',
@@ -108,9 +142,9 @@ const translations: Translations = {
     'tray.alwaysOnTop': 'Sempre no Topo',
     'tray.quit': 'Sair'
   }
-};
+}
 
 export function t(key: string, lang: 'en' | 'pt'): string {
-  const dictionary = translations[lang] || translations['en'];
-  return dictionary[key] || translations['en'][key] || key;
+  const dictionary = translations[lang] || translations['en']
+  return dictionary[key] || translations['en'][key] || key
 }

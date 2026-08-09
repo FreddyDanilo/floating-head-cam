@@ -1,25 +1,32 @@
 :root {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
-body, html, #root {
+
+body,
+html,
+#root {
   width: 100vw;
   height: 100vh;
   overflow: hidden;
   background-color: transparent !important;
 }
+
 body {
   margin: 0;
   background-color: transparent;
 }
+
 * {
-  scrollbar-width: none; 
-  -ms-overflow-style: none; 
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
 *::-webkit-scrollbar {
-  display: none; 
+  display: none;
 }

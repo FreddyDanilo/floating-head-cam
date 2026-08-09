@@ -1,10 +1,10 @@
-import { app, BrowserWindow, shell, screen } from 'electron'
-import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
+import { app, BrowserWindow, screen, shell } from 'electron'
+import { join } from 'path'
 import icon from '../../../../resources/icon.png?asset'
-import { currentState, saveSettings } from '../settings/settings.service'
-import { getIsCameraOn } from '../camera/camera.service'
 import { t } from '../../../shared/i18n'
+import { getIsCameraOn } from '../camera/camera.service'
+import { currentState, saveSettings } from '../settings/settings.service'
 let _settingsWindow: BrowserWindow | null = null
 export function getSettingsWindow(): BrowserWindow | null {
   return _settingsWindow
@@ -54,13 +54,34 @@ export function setWindowPosition(pos: string): void {
     let newY = bounds.y
     const { width, height } = bounds
     switch (pos) {
-      case 'top-left':      newX = workArea.x; newY = workArea.y; break
-      case 'top-right':     newX = workArea.x + workArea.width - width; newY = workArea.y; break
-      case 'bottom-left':   newX = workArea.x; newY = workArea.y + workArea.height - height; break
-      case 'bottom-right':  newX = workArea.x + workArea.width - width; newY = workArea.y + workArea.height - height; break
-      case 'left-middle':   newX = workArea.x; newY = workArea.y + workArea.height / 2 - height / 2; break
-      case 'right-middle':  newX = workArea.x + workArea.width - width; newY = workArea.y + workArea.height / 2 - height / 2; break
-      case 'center':        newX = workArea.x + workArea.width / 2 - width / 2; newY = workArea.y + workArea.height / 2 - height / 2; break
+      case 'top-left':
+        newX = workArea.x
+        newY = workArea.y
+        break
+      case 'top-right':
+        newX = workArea.x + workArea.width - width
+        newY = workArea.y
+        break
+      case 'bottom-left':
+        newX = workArea.x
+        newY = workArea.y + workArea.height - height
+        break
+      case 'bottom-right':
+        newX = workArea.x + workArea.width - width
+        newY = workArea.y + workArea.height - height
+        break
+      case 'left-middle':
+        newX = workArea.x
+        newY = workArea.y + workArea.height / 2 - height / 2
+        break
+      case 'right-middle':
+        newX = workArea.x + workArea.width - width
+        newY = workArea.y + workArea.height / 2 - height / 2
+        break
+      case 'center':
+        newX = workArea.x + workArea.width / 2 - width / 2
+        newY = workArea.y + workArea.height / 2 - height / 2
+        break
     }
     win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
   })

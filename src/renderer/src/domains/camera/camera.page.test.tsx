@@ -11,9 +11,12 @@ beforeEach(() => {
   }
   Object.defineProperty(global.navigator, 'mediaDevices', {
     writable: true,
+    configurable: true,
     value: {
       getUserMedia: vi.fn().mockResolvedValue({}),
-      enumerateDevices: vi.fn().mockResolvedValue([])
+      enumerateDevices: vi.fn().mockResolvedValue([]),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
     }
   })
 })

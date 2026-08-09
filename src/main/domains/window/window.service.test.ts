@@ -1,11 +1,17 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { getSettingsWindow, resizeWindow, setWindowPosition } from './window.service'
 const { mockSetContentBounds, mockGetContentBounds, mockGetDisplayMatching } = vi.hoisted(() => ({
   mockSetContentBounds: vi.fn(),
   mockGetContentBounds: vi.fn(() => ({ x: 100, y: 100, width: 300, height: 300 })),
   mockGetDisplayMatching: vi.fn(() => ({ workArea: { x: 0, y: 0, width: 1920, height: 1080 } }))
 }))
 vi.mock('electron', () => ({
-  app: { getPath: vi.fn(() => '/mock'), focus: vi.fn(), dock: { hide: vi.fn() }, setLoginItemSettings: vi.fn() },
+  app: {
+    getPath: vi.fn(() => '/mock'),
+    focus: vi.fn(),
+    dock: { hide: vi.fn() },
+    setLoginItemSettings: vi.fn()
+  },
   BrowserWindow: {
     getAllWindows: vi.fn(() => [
       { getContentBounds: mockGetContentBounds, setContentBounds: mockSetContentBounds }
@@ -21,7 +27,6 @@ vi.mock('../settings/settings.service', () => ({
   saveSettings: vi.fn()
 }))
 vi.mock('../camera/camera.service', () => ({ getIsCameraOn: vi.fn(() => false) }))
-import { setWindowPosition, resizeWindow, getSettingsWindow } from './window.service'
 describe('window.service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -36,31 +41,52 @@ describe('window.service', () => {
   describe('setWindowPosition', () => {
     it('top-left: sets x=0, y=0', () => {
       setWindowPosition('top-left')
-      expect(mockSetContentBounds).toHaveBeenCalledWith({ x: 0, y: 0, width: 300, height: 300 }, true)
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 0, y: 0, width: 300, height: 300 },
+        true
+      )
     })
     it('top-right: x = workArea.width - winWidth', () => {
       setWindowPosition('top-right')
-      expect(mockSetContentBounds).toHaveBeenCalledWith({ x: 1620, y: 0, width: 300, height: 300 }, true)
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 1620, y: 0, width: 300, height: 300 },
+        true
+      )
     })
     it('bottom-left: y = workArea.height - winHeight', () => {
       setWindowPosition('bottom-left')
-      expect(mockSetContentBounds).toHaveBeenCalledWith({ x: 0, y: 780, width: 300, height: 300 }, true)
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 0, y: 780, width: 300, height: 300 },
+        true
+      )
     })
     it('bottom-right: both edges', () => {
       setWindowPosition('bottom-right')
-      expect(mockSetContentBounds).toHaveBeenCalledWith({ x: 1620, y: 780, width: 300, height: 300 }, true)
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 1620, y: 780, width: 300, height: 300 },
+        true
+      )
     })
     it('center: calculates center correctly', () => {
       setWindowPosition('center')
-      expect(mockSetContentBounds).toHaveBeenCalledWith({ x: 810, y: 390, width: 300, height: 300 }, true)
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 810, y: 390, width: 300, height: 300 },
+        true
+      )
     })
     it('left-middle: x=0, y=center', () => {
       setWindowPosition('left-middle')
-      expect(mockSetContentBounds).toHaveBeenCalledWith({ x: 0, y: 390, width: 300, height: 300 }, true)
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 0, y: 390, width: 300, height: 300 },
+        true
+      )
     })
     it('right-middle: x=right edge, y=center', () => {
       setWindowPosition('right-middle')
-      expect(mockSetContentBounds).toHaveBeenCalledWith({ x: 1620, y: 390, width: 300, height: 300 }, true)
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 1620, y: 390, width: 300, height: 300 },
+        true
+      )
     })
   })
   describe('resizeWindow', () => {

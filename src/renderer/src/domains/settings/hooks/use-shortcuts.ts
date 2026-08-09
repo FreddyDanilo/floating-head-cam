@@ -23,6 +23,16 @@ export function useShortcuts() {
   const [listeningKey, setListeningKey] = useState<string | null>(null)
   const [language, setLanguage] = useState<'en' | 'pt'>('en')
 
+  const [visualState, setVisualState] = useState<{
+    shape: string
+    rounding: number
+    borderGradient: string
+  }>({
+    shape: 'circle',
+    rounding: 24,
+    borderGradient: 'none'
+  })
+
   useEffect(() => {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
@@ -31,17 +41,37 @@ export function useShortcuts() {
     })
     ipc.invoke('get-initial-state').then((data) => {
       if (data.language) setLanguage(data.language)
+      setVisualState({
+        shape: data.shape || 'circle',
+        rounding: data.rounding ?? 24,
+        borderGradient: data.borderGradient || 'none'
+      })
     })
     const handleReset = (_e: any, payload: any) => {
       setShortcuts(payload.shortcuts)
       if (payload.state?.language) setLanguage(payload.state.language)
+      if (payload.state) {
+        setVisualState({
+          shape: payload.state.shape || 'circle',
+          rounding: payload.state.rounding ?? 24,
+          borderGradient: payload.state.borderGradient || 'none'
+        })
+      }
     }
     const handleSyncLanguage = (_e: any, lang: 'en' | 'pt') => setLanguage(lang)
+    
+    // Add handler for setting sync if updated elsewhere
+    const handleSyncSetting = (_e: any, { key, value }: { key: string, value: any }) => {
+      setVisualState(prev => ({ ...prev, [key]: value }))
+    }
+
     ipc.on('settings-reset', handleReset)
     ipc.on('sync-language', handleSyncLanguage)
+    ipc.on('sync-setting', handleSyncSetting)
     return () => {
       ipc.removeAllListeners('settings-reset')
       ipc.removeAllListeners('sync-language')
+      ipc.removeAllListeners('sync-setting')
     }
   }, [])
 
@@ -75,5 +105,10 @@ export function useShortcuts() {
     window.electron?.ipcRenderer.send('sync-tray', { language: lang })
   }
 
-  return { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, setAppLanguage }
+  const updateVisualState = (key: keyof typeof visualState, value: string | number) => {
+    setVisualState((prev) => ({ ...prev, [key]: value }))
+    window.electron?.ipcRenderer.send('update-setting', { key, value })
+  }
+
+  return { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, setAppLanguage, visualState, updateVisualState }
 }
