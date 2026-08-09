@@ -1,16 +1,19 @@
 import { useEffect } from 'react'
-
+import { GradientKey } from '../../../../../shared/colors'
+import { filterKey } from '../../../../../shared/filter-camera'
+import { Shape } from '../../../../src/types/shepe'
 
 type TrayEventHandlers = {
   setSelectedDeviceId: (id: string) => void
-  setShape: (s: any) => void
+  setShape: (s: Shape) => void
   setIsMirrored: (v: boolean) => void
   setSizeIndex: (i: number) => void
   setRounding: (r: number) => void
   setAlwaysOnTop: (v: boolean) => void
   setPowerOn: (v: boolean) => void
-  setBorderGradient: (g: string) => void
+  setBorderGradient: (g: GradientKey) => void
   setBorderWidth: (w: number) => void
+  setFilterCamera: (fc: filterKey) => void
   applySize: (index: number, shape: string) => void
   sizeIndex: number
   shape: string
@@ -26,6 +29,7 @@ export function useTrayEvents({
   setPowerOn,
   setBorderGradient,
   setBorderWidth,
+  setFilterCamera,
   applySize,
   sizeIndex,
   shape
@@ -62,6 +66,9 @@ export function useTrayEvents({
         case 'set-border-width':
           setBorderWidth(action.payload)
           break
+        case 'set-filter-camera':
+          setFilterCamera(action.payload)
+          break
       }
     }
 
@@ -75,9 +82,12 @@ export function useTrayEvents({
       if (payload.state.borderGradient) {
         setBorderGradient(payload.state.borderGradient)
       }
+
       if (payload.state.borderWidth !== undefined) {
         setBorderWidth(payload.state.borderWidth)
       }
+
+      if (payload.state.filterCamera) setFilterCamera(payload.state.filterCamera)
 
       applySize(payload.state.sizeIndex, payload.state.shape)
     }
@@ -105,6 +115,7 @@ export function useTrayEvents({
     setAlwaysOnTop,
     setPowerOn,
     setBorderGradient,
-    setBorderWidth
+    setBorderWidth,
+    setFilterCamera
   ])
 }

@@ -63,14 +63,14 @@ app.whenReady().then(() => {
     saveSettings()
     buildTrayMenu(currentState)
   })
-  
+
   ipcMain.on('update-setting', (_, { key, value }) => {
     currentState[key] = value
     saveSettings()
     buildTrayMenu(currentState)
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('sync-setting', { key, value })
-      
+
       if (key === 'shape') {
         win.webContents.send('tray-action', { type: 'set-shape', payload: value })
       } else if (key === 'rounding') {
@@ -79,6 +79,8 @@ app.whenReady().then(() => {
         win.webContents.send('tray-action', { type: 'set-border-gradient', payload: value })
       } else if (key === 'borderWidth') {
         win.webContents.send('tray-action', { type: 'set-border-width', payload: value })
+      } else if (key === 'filterCamera') {
+        win.webContents.send('tray-action', { type: 'set-filter-camera', payload: value })
       }
     })
   })

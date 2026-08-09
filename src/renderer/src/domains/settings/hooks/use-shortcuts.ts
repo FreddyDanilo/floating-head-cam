@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { filterKey } from '../../../../../shared/filter-camera'
 export function formatMacShortcut(shortcut: string): string {
   if (!shortcut) return 'Unbound'
   return shortcut
@@ -28,11 +29,13 @@ export function useShortcuts() {
     rounding: number
     borderGradient: string
     borderWidth: number
+    filterCamera: filterKey
   }>({
     shape: 'circle',
     rounding: 24,
     borderGradient: 'none',
-    borderWidth: 4
+    borderWidth: 4,
+    filterCamera: 'none'
   })
 
   useEffect(() => {
@@ -47,7 +50,8 @@ export function useShortcuts() {
         shape: data.shape || 'circle',
         rounding: data.rounding ?? 24,
         borderGradient: data.borderGradient || 'none',
-        borderWidth: data.borderWidth ?? 4
+        borderWidth: data.borderWidth ?? 4,
+        filterCamera: data.filterCamera || 'none'
       })
     })
     const handleReset = (_e: any, payload: any) => {
@@ -58,15 +62,16 @@ export function useShortcuts() {
           shape: payload.state.shape || 'circle',
           rounding: payload.state.rounding ?? 24,
           borderGradient: payload.state.borderGradient || 'none',
-          borderWidth: payload.state.borderWidth ?? 4
+          borderWidth: payload.state.borderWidth ?? 4,
+          filterCamera: payload.filterCamera || 'none'
         })
       }
     }
     const handleSyncLanguage = (_e: any, lang: 'en' | 'pt') => setLanguage(lang)
-    
+
     // Add handler for setting sync if updated elsewhere
-    const handleSyncSetting = (_e: any, { key, value }: { key: string, value: any }) => {
-      setVisualState(prev => ({ ...prev, [key]: value }))
+    const handleSyncSetting = (_e: any, { key, value }: { key: string; value: any }) => {
+      setVisualState((prev) => ({ ...prev, [key]: value }))
     }
 
     ipc.on('settings-reset', handleReset)
@@ -84,7 +89,16 @@ export function useShortcuts() {
     const handleKeyDown = (e: KeyboardEvent) => {
       e.preventDefault()
       e.stopPropagation()
-      const modifiers = ['MetaLeft', 'MetaRight', 'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight', 'ShiftLeft', 'ShiftRight']
+      const modifiers = [
+        'MetaLeft',
+        'MetaRight',
+        'ControlLeft',
+        'ControlRight',
+        'AltLeft',
+        'AltRight',
+        'ShiftLeft',
+        'ShiftRight'
+      ]
       if (modifiers.includes(e.code)) return
       const keys: string[] = []
       if (e.metaKey || e.ctrlKey) keys.push('CmdOrCtrl')
@@ -114,5 +128,15 @@ export function useShortcuts() {
     window.electron?.ipcRenderer.send('update-setting', { key, value })
   }
 
-  return { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, setAppLanguage, visualState, updateVisualState }
+  return {
+    shortcuts,
+    listeningKey,
+    setListeningKey,
+    resetSettings,
+    formatMacShortcut,
+    language,
+    setAppLanguage,
+    visualState,
+    updateVisualState
+  }
 }

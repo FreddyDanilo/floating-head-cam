@@ -1,6 +1,7 @@
 import { Clapperboard, Keyboard, RotateCcw } from 'lucide-react'
 import React, { useState } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
+import { FILTER_CAMERA } from '../../../../shared/filter-camera'
 import { t } from '../../../../shared/i18n'
 import { useShortcuts } from './hooks/use-shortcuts'
 
@@ -43,7 +44,12 @@ const SHAPE_KEYS = [
   }
 ]
 
-const GRADIENT_ENTRIES = Object.entries(GRADIENTS).filter(([k]) => k !== 'none') as [GradientKey, string][]
+const GRADIENT_ENTRIES = Object.entries(GRADIENTS).filter(([k]) => k !== 'none') as [
+  GradientKey,
+  string
+][]
+
+const FILTER_CAMERA_ENTRIES = Object.entries(FILTER_CAMERA) as [GradientKey, string][]
 
 const PRESET_ANGLES = [0, 45, 90, 135]
 
@@ -78,8 +84,16 @@ function parseCustomGradient(grad: string): { color1: string; color2: string; an
 }
 
 export function SettingsPage(): React.JSX.Element {
-  const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, visualState, updateVisualState } =
-    useShortcuts()
+  const {
+    shortcuts,
+    listeningKey,
+    setListeningKey,
+    resetSettings,
+    formatMacShortcut,
+    language,
+    visualState,
+    updateVisualState
+  } = useShortcuts()
 
   const [showGradientEditor, setShowGradientEditor] = useState(false)
   const [gradColor1, setGradColor1] = useState('#ff6b6b')
@@ -106,9 +120,9 @@ export function SettingsPage(): React.JSX.Element {
   }
 
   const roundingTicks = [
-    { val: 0,   i18nKey: 'settings.rounding.sharp' },
-    { val: 12,  i18nKey: 'settings.rounding.subtle' },
-    { val: 24,  i18nKey: 'settings.rounding.round' },
+    { val: 0, i18nKey: 'settings.rounding.sharp' },
+    { val: 12, i18nKey: 'settings.rounding.subtle' },
+    { val: 24, i18nKey: 'settings.rounding.round' },
     { val: 100, i18nKey: 'settings.rounding.max' }
   ]
 
@@ -157,18 +171,18 @@ export function SettingsPage(): React.JSX.Element {
         </div>
       </div>
       <p className="settings-description">{t('settings.description', language)}</p>
-      <div className="settings-sections">
 
+      <div className="settings-sections">
         <div className="settings-section">
           <h2>{t('settings.visuals', language)}</h2>
           <div className="settings-list">
-
             <div className="settings-row settings-row--column">
               <span className="settings-label">{t('settings.cameraShape', language)}</span>
               <div className="shape-picker">
                 {SHAPE_KEYS.map((s) => (
                   <button
                     key={s.key}
+                    type="button"
                     className={`shape-btn ${visualState.shape === s.key ? 'shape-btn--active' : ''}`}
                     onClick={() => updateVisualState('shape', s.key)}
                     title={t(s.i18nKey, language)}
@@ -180,11 +194,17 @@ export function SettingsPage(): React.JSX.Element {
               </div>
             </div>
 
-            <div className={`settings-row settings-row--column${isCircle ? ' settings-row--disabled' : ''}`}>
+            <div
+              className={`settings-row settings-row--column${isCircle ? ' settings-row--disabled' : ''}`}
+            >
               <div className="rounding-header">
                 <span className="settings-label">{t('settings.rounding', language)}</span>
                 <span className="rounding-value">
-                  {isCircle ? '—' : visualState.rounding >= 9999 ? '∞' : `${visualState.rounding}px`}
+                  {isCircle
+                    ? '—'
+                    : visualState.rounding >= 9999
+                      ? '∞'
+                      : `${visualState.rounding}px`}
                 </span>
               </div>
               <div className="slider-wrap">
@@ -196,12 +216,15 @@ export function SettingsPage(): React.JSX.Element {
                   value={sliderVal}
                   className="rounding-slider"
                   disabled={isCircle}
-                  onChange={(e) => updateVisualState('rounding', sliderToRounding(Number(e.target.value)))}
+                  onChange={(e) =>
+                    updateVisualState('rounding', sliderToRounding(Number(e.target.value)))
+                  }
                 />
                 <div className="slider-ticks">
                   {roundingTicks.map((tick) => (
                     <button
                       key={tick.val}
+                      type="button"
                       className={`slider-tick ${!isCircle && sliderVal === tick.val ? 'slider-tick--active' : ''}`}
                       disabled={isCircle}
                       onClick={() => updateVisualState('rounding', sliderToRounding(tick.val))}
@@ -218,7 +241,11 @@ export function SettingsPage(): React.JSX.Element {
               <div className="gradient-picker">
                 <button
                   className={`gradient-swatch gradient-swatch--none ${visualState.borderGradient === 'none' ? 'gradient-swatch--active' : ''}`}
-                  onClick={() => { updateVisualState('borderGradient', 'none'); setShowGradientEditor(false) }}
+                  type="button"
+                  onClick={() => {
+                    updateVisualState('borderGradient', 'none')
+                    setShowGradientEditor(false)
+                  }}
                   title={t('settings.gradient.none', language)}
                 >
                   <span className="gradient-swatch__x">✕</span>
@@ -227,9 +254,13 @@ export function SettingsPage(): React.JSX.Element {
                 {GRADIENT_ENTRIES.map(([key, grad]) => (
                   <button
                     key={key}
+                    type="button"
                     className={`gradient-swatch ${visualState.borderGradient === key ? 'gradient-swatch--active' : ''}`}
                     style={{ background: grad }}
-                    onClick={() => { updateVisualState('borderGradient', key); setShowGradientEditor(false) }}
+                    onClick={() => {
+                      updateVisualState('borderGradient', key)
+                      setShowGradientEditor(false)
+                    }}
                     title={key}
                   />
                 ))}
@@ -237,6 +268,7 @@ export function SettingsPage(): React.JSX.Element {
                 <button
                   className={`gradient-swatch gradient-swatch--custom ${isCustom ? 'gradient-swatch--active' : ''}`}
                   style={isCustom ? { background: visualState.borderGradient } : undefined}
+                  type="button"
                   onClick={handleOpenGradientEditor}
                   title={t('settings.gradient.custom', language)}
                 >
@@ -244,9 +276,14 @@ export function SettingsPage(): React.JSX.Element {
                 </button>
               </div>
 
-              <div className={`border-width-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}>
+              <div
+                className={`border-width-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}
+              >
                 <div className="rounding-header">
-                  <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
+                  <span
+                    className="settings-label"
+                    style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}
+                  >
                     {t('settings.borderWidth', language)}
                   </span>
                   <span className="rounding-value">{visualState.borderWidth}px</span>
@@ -283,12 +320,18 @@ export function SettingsPage(): React.JSX.Element {
 
               {showGradientEditor && (
                 <div className="gradient-editor">
-                  <div className="gradient-editor__preview" style={{ background: customGradientValue }} />
+                  <div
+                    className="gradient-editor__preview"
+                    style={{ background: customGradientValue }}
+                  />
 
                   <div className="gradient-editor__colors">
                     <label className="gradient-editor__color-label">
                       <span>{t('settings.gradient.colorA', language)}</span>
-                      <div className="gradient-editor__color-wrap" style={{ background: gradColor1 }}>
+                      <div
+                        className="gradient-editor__color-wrap"
+                        style={{ background: gradColor1 }}
+                      >
                         <input
                           type="color"
                           value={gradColor1}
@@ -302,7 +345,10 @@ export function SettingsPage(): React.JSX.Element {
 
                     <label className="gradient-editor__color-label">
                       <span>{t('settings.gradient.colorB', language)}</span>
-                      <div className="gradient-editor__color-wrap" style={{ background: gradColor2 }}>
+                      <div
+                        className="gradient-editor__color-wrap"
+                        style={{ background: gradColor2 }}
+                      >
                         <input
                           type="color"
                           value={gradColor2}
@@ -315,7 +361,9 @@ export function SettingsPage(): React.JSX.Element {
 
                   <div className="gradient-editor__angle-row">
                     <div className="gradient-editor__angle-header">
-                      <span className="gradient-editor__angle-label">{t('settings.gradient.angle', language)}</span>
+                      <span className="gradient-editor__angle-label">
+                        {t('settings.gradient.angle', language)}
+                      </span>
                       <span className="gradient-editor__angle-value">{gradAngle}°</span>
                     </div>
                     <div className="gradient-editor__angle-presets">
@@ -347,6 +395,34 @@ export function SettingsPage(): React.JSX.Element {
               )}
             </div>
 
+            <div className="settings-row settings-row--column">
+              <span className="settings-label">{t('settings.filter', language)}</span>
+              <div className="filter-picker">
+                {FILTER_CAMERA_ENTRIES.map(([key, filter]) => (
+                  <div className="filter-picker-item" key={key}>
+                    <button
+                      type="button"
+                      title={key}
+                      onClick={() => {
+                        updateVisualState('filterCamera', key)
+                      }}
+
+                      style={{
+                        width: 55,
+                        height: 55,
+                        filter: filter,
+                        borderRadius: 5,
+                        borderWidth: visualState.filterCamera === key ? 5 : 5 - 5,
+                        borderColor: visualState.filterCamera === key ? 'red' : 'transparent'
+                      }}
+                    >
+                      <Clapperboard size={28} className="settings-icon" />
+                    </button>
+                    <p className="filter-label">{key}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -374,6 +450,7 @@ export function SettingsPage(): React.JSX.Element {
           </div>
         ))}
       </div>
+
       <div className="settings-footer">
         <button className="reset-button" onClick={resetSettings}>
           <RotateCcw size={16} />

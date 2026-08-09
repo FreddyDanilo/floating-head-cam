@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { getGradient } from '../../../../shared/colors'
+import { Shape } from '../../../../renderer/src/types/shepe'
+import { getGradient, GradientKey } from '../../../../shared/colors'
+import { filterKey, getFilferCamera } from '../../../../shared/filter-camera'
 import { useCameraDevices } from './hooks/use-camera-devices'
 import { useCameraStream } from './hooks/use-camera-stream'
 import { useTrayEvents } from './hooks/use-tray-events'
@@ -9,17 +11,17 @@ const SIZES = [300, 450, 600]
 export function CameraPage(): React.JSX.Element {
   const { devices, selectedDeviceId, setSelectedDeviceId } = useCameraDevices()
   const [isMirrored, setIsMirrored] = useState(true)
-  const [shape, setShape] = useState<'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'>(
-    'circle'
-  )
+  const [shape, setShape] = useState<Shape>('circle')
   const [sizeIndex, setSizeIndex] = useState<number>(0)
   const [rounding, setRounding] = useState<number>(24)
   const [alwaysOnTop, setAlwaysOnTop] = useState<boolean>(true)
   const [powerOn, setPowerOn] = useState<boolean>(false)
   const [initialized, setInitialized] = useState(false)
 
-  const [borderGradient, setBorderGradient] = useState<string>('none')
+  const [borderGradient, setBorderGradient] = useState<GradientKey>('none')
   const [borderWidth, setBorderWidth] = useState<number>(4)
+
+  const [filterCamera, setFilterCamera] = useState<filterKey>('none')
 
   const { videoRef } = useCameraStream(selectedDeviceId, powerOn)
 
@@ -50,12 +52,13 @@ export function CameraPage(): React.JSX.Element {
 
         if (state.borderGradient) setBorderGradient(state.borderGradient)
         if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
+        if (state.filterCamera) setFilterCamera(state.filterCamera)
 
         setInitialized(true)
         applySize(state.sizeIndex, state.shape)
       })
     }
-  }, [])
+  }, [applySize])
 
   useTrayEvents({
     setSelectedDeviceId,
@@ -67,6 +70,7 @@ export function CameraPage(): React.JSX.Element {
     setPowerOn,
     setBorderGradient,
     setBorderWidth,
+    setFilterCamera,
     applySize,
     sizeIndex,
     shape
@@ -136,7 +140,8 @@ export function CameraPage(): React.JSX.Element {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transition: 'background 0.4s ease, border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
+        transition:
+          'background 0.4s ease, border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
       }}
     >
       <video
@@ -149,6 +154,7 @@ export function CameraPage(): React.JSX.Element {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
+          filter: getFilferCamera(filterCamera),
           borderRadius: shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
           transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)'
         }}

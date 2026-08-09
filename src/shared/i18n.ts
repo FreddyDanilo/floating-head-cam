@@ -69,6 +69,8 @@ const translations: Translations = {
     'settings.borderWidth.default': 'Default',
     'settings.borderWidth.thick': 'Thick',
 
+    'settings.filter': 'Filters',
+
     'tray.turnOff': 'Turn Off',
     'tray.turnOn': 'Turn On',
     'tray.startUpdate': 'Start Update',
@@ -160,6 +162,8 @@ const translations: Translations = {
     'settings.borderWidth.thin': 'Fina',
     'settings.borderWidth.default': 'Padrão',
     'settings.borderWidth.thick': 'Grossa',
+
+    'settings.filter': 'Filtros',
 
     'tray.turnOff': 'Desligar',
     'tray.turnOn': 'Ligar',

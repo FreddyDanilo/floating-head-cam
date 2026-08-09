@@ -59,6 +59,7 @@ body {
   padding-top: 0;
   background: rgb(15, 15, 15);
   overflow-y: auto;
+  scroll-behavior: smooth;
   color: #ffffff;
   -webkit-app-region: no-drag;
 }
@@ -405,15 +406,13 @@ body {
 }
 
 .gradient-swatch--custom {
-  background: conic-gradient(
-    hsl(0deg 100% 60%),
-    hsl(60deg 100% 60%),
-    hsl(120deg 100% 50%),
-    hsl(180deg 100% 50%),
-    hsl(240deg 100% 65%),
-    hsl(300deg 100% 65%),
-    hsl(360deg 100% 60%)
-  );
+  background: conic-gradient(hsl(0deg 100% 60%),
+      hsl(60deg 100% 60%),
+      hsl(120deg 100% 50%),
+      hsl(180deg 100% 50%),
+      hsl(240deg 100% 65%),
+      hsl(300deg 100% 65%),
+      hsl(360deg 100% 60%));
 }
 
 .gradient-swatch__plus {
@@ -437,8 +436,15 @@ body {
 }
 
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .gradient-editor__preview {
@@ -563,6 +569,28 @@ body {
 .gradient-editor__apply:hover {
   background: rgba(10, 132, 255, 0.22);
 }
+
+
+.filter-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  -webkit-app-region: no-drag;
+}
+
+.filter-picker-item {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.filter-label {
+  text-align: center;
+  text-overflow: ellipsis;
+  text-wrap: nowrap;
+}
+
 
 
 @keyframes pulse {
