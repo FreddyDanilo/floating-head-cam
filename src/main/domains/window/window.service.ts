@@ -118,6 +118,7 @@ export function createWindow(callbacks: WindowCallbacks): void {
     backgroundColor: '#00000000',
     hasShadow: false,
     resizable: false,
+    roundedCorners: false,
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

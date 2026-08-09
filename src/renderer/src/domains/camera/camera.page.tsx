@@ -66,6 +66,7 @@ export function CameraPage(): React.JSX.Element {
     setAlwaysOnTop,
     setPowerOn,
     setBorderGradient,
+    setBorderWidth,
     applySize,
     sizeIndex,
     shape
@@ -126,7 +127,7 @@ export function CameraPage(): React.JSX.Element {
       className="app-container"
       style={{
         background: getGradient(borderGradient),
-        padding: `${borderWidth}px`,
+        padding: borderGradient === 'none' ? '0px' : `${borderWidth}px`,
         borderRadius: computedRadius,
         WebkitMaskImage: shape === 'circle' ? '-webkit-radial-gradient(white, black)' : 'none',
         boxSizing: 'border-box',

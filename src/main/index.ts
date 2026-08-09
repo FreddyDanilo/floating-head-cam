@@ -77,6 +77,8 @@ app.whenReady().then(() => {
         win.webContents.send('tray-action', { type: 'set-rounding', payload: value })
       } else if (key === 'borderGradient') {
         win.webContents.send('tray-action', { type: 'set-border-gradient', payload: value })
+      } else if (key === 'borderWidth') {
+        win.webContents.send('tray-action', { type: 'set-border-width', payload: value })
       }
     })
   })

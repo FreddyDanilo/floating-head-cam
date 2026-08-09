@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { GradientKey } from '../../../../../shared/colors'
+
 
 type TrayEventHandlers = {
   setSelectedDeviceId: (id: string) => void
@@ -9,7 +9,8 @@ type TrayEventHandlers = {
   setRounding: (r: number) => void
   setAlwaysOnTop: (v: boolean) => void
   setPowerOn: (v: boolean) => void
-  setBorderGradient: (g: GradientKey) => void
+  setBorderGradient: (g: string) => void
+  setBorderWidth: (w: number) => void
   applySize: (index: number, shape: string) => void
   sizeIndex: number
   shape: string
@@ -24,6 +25,7 @@ export function useTrayEvents({
   setAlwaysOnTop,
   setPowerOn,
   setBorderGradient,
+  setBorderWidth,
   applySize,
   sizeIndex,
   shape
@@ -57,6 +59,9 @@ export function useTrayEvents({
         case 'set-border-gradient':
           setBorderGradient(action.payload)
           break
+        case 'set-border-width':
+          setBorderWidth(action.payload)
+          break
       }
     }
 
@@ -69,6 +74,9 @@ export function useTrayEvents({
 
       if (payload.state.borderGradient) {
         setBorderGradient(payload.state.borderGradient)
+      }
+      if (payload.state.borderWidth !== undefined) {
+        setBorderWidth(payload.state.borderWidth)
       }
 
       applySize(payload.state.sizeIndex, payload.state.shape)
@@ -96,6 +104,7 @@ export function useTrayEvents({
     setRounding,
     setAlwaysOnTop,
     setPowerOn,
-    setBorderGradient
+    setBorderGradient,
+    setBorderWidth
   ])
 }

@@ -27,6 +27,8 @@ export const defaultState = {
   sizeIndex: 0,
   rounding: 24,
   alwaysOnTop: true,
+  borderWidth: 4,
+  borderGradient: 'none',
   x: undefined as number | undefined,
   y: undefined as number | undefined,
   language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt')

@@ -47,6 +47,28 @@ const translations: Translations = {
     'settings.border.gradient_07': 'Gradient 07',
     'settings.border.gradient_08': 'Gradient 08',
 
+    'settings.shape.circle': 'Circle',
+    'settings.shape.square': 'Square',
+    'settings.shape.portrait': 'Portrait',
+    'settings.shape.landscape': 'Landscape',
+
+    'settings.rounding.sharp': 'Sharp',
+    'settings.rounding.subtle': 'Subtle',
+    'settings.rounding.round': 'Round',
+    'settings.rounding.max': '∞',
+
+    'settings.gradient.colorA': 'Color A',
+    'settings.gradient.colorB': 'Color B',
+    'settings.gradient.angle': 'Angle',
+    'settings.gradient.apply': 'Apply',
+    'settings.gradient.custom': 'Custom',
+    'settings.gradient.none': 'None',
+
+    'settings.borderWidth': 'Border Width',
+    'settings.borderWidth.thin': 'Thin',
+    'settings.borderWidth.default': 'Default',
+    'settings.borderWidth.thick': 'Thick',
+
     'tray.turnOff': 'Turn Off',
     'tray.turnOn': 'Turn On',
     'tray.startUpdate': 'Start Update',
@@ -116,6 +138,28 @@ const translations: Translations = {
     'settings.border.gradient_06': 'Gradiente 06',
     'settings.border.gradient_07': 'Gradiente 07',
     'settings.border.gradient_08': 'Gradiente 08',
+
+    'settings.shape.circle': 'Círculo',
+    'settings.shape.square': 'Quadrado',
+    'settings.shape.portrait': 'Retrato',
+    'settings.shape.landscape': 'Paisagem',
+
+    'settings.rounding.sharp': 'Reto',
+    'settings.rounding.subtle': 'Suave',
+    'settings.rounding.round': 'Redondo',
+    'settings.rounding.max': '∞',
+
+    'settings.gradient.colorA': 'Cor A',
+    'settings.gradient.colorB': 'Cor B',
+    'settings.gradient.angle': 'Ângulo',
+    'settings.gradient.apply': 'Aplicar',
+    'settings.gradient.custom': 'Personalizado',
+    'settings.gradient.none': 'Nenhum',
+
+    'settings.borderWidth': 'Espessura da Borda',
+    'settings.borderWidth.thin': 'Fina',
+    'settings.borderWidth.default': 'Padrão',
+    'settings.borderWidth.thick': 'Grossa',
 
     'tray.turnOff': 'Desligar',
     'tray.turnOn': 'Ligar',

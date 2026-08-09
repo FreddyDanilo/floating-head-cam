@@ -1,13 +1,13 @@
 import { Clapperboard, Keyboard, RotateCcw } from 'lucide-react'
-import React, { useRef } from 'react'
+import React, { useState } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
 import { t } from '../../../../shared/i18n'
 import { useShortcuts } from './hooks/use-shortcuts'
 
-const SHAPES = [
+const SHAPE_KEYS = [
   {
     key: 'circle',
-    label: 'Circle',
+    i18nKey: 'settings.shape.circle',
     svg: (
       <svg viewBox="0 0 40 40" width={36} height={36}>
         <circle cx="20" cy="20" r="18" />
@@ -16,7 +16,7 @@ const SHAPES = [
   },
   {
     key: 'square',
-    label: 'Square',
+    i18nKey: 'settings.shape.square',
     svg: (
       <svg viewBox="0 0 40 40" width={36} height={36}>
         <rect x="3" y="3" width="34" height="34" rx="6" />
@@ -25,7 +25,7 @@ const SHAPES = [
   },
   {
     key: 'vertical-rect',
-    label: 'Portrait',
+    i18nKey: 'settings.shape.portrait',
     svg: (
       <svg viewBox="0 0 40 40" width={36} height={36}>
         <rect x="9" y="2" width="22" height="36" rx="5" />
@@ -34,7 +34,7 @@ const SHAPES = [
   },
   {
     key: 'horizontal-rect',
-    label: 'Landscape',
+    i18nKey: 'settings.shape.landscape',
     svg: (
       <svg viewBox="0 0 40 40" width={36} height={36}>
         <rect x="2" y="11" width="36" height="18" rx="5" />
@@ -44,6 +44,8 @@ const SHAPES = [
 ]
 
 const GRADIENT_ENTRIES = Object.entries(GRADIENTS).filter(([k]) => k !== 'none') as [GradientKey, string][]
+
+const PRESET_ANGLES = [0, 45, 90, 135]
 
 /**
  * Maps a rounding value to a 0-100 slider position.
@@ -61,11 +63,54 @@ function sliderToRounding(val: number): number {
   return val >= 100 ? 9999 : val
 }
 
+/** Checks whether a CSS string looks like a linear-gradient (custom). */
+function isLinearGradient(val: string): boolean {
+  return val.startsWith('linear-gradient')
+}
+
+/** Parses color1, color2 and angle from a simple two-stop linear-gradient string. */
+function parseCustomGradient(grad: string): { color1: string; color2: string; angle: number } {
+  const match = grad.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/)
+  if (match) {
+    return { angle: Number(match[1]), color1: match[2].trim(), color2: match[3].trim() }
+  }
+  return { angle: 45, color1: '#ff6b6b', color2: '#7c3aed' }
+}
+
 export function SettingsPage(): React.JSX.Element {
   const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, visualState, updateVisualState } =
     useShortcuts()
 
-  const customColorRef = useRef<HTMLInputElement>(null)
+  const [showGradientEditor, setShowGradientEditor] = useState(false)
+  const [gradColor1, setGradColor1] = useState('#ff6b6b')
+  const [gradColor2, setGradColor2] = useState('#7c3aed')
+  const [gradAngle, setGradAngle] = useState(45)
+
+  const customGradientValue = `linear-gradient(${gradAngle}deg, ${gradColor1}, ${gradColor2})`
+
+  const isCustom = isLinearGradient(visualState.borderGradient)
+
+  const handleOpenGradientEditor = () => {
+    if (isCustom) {
+      const parsed = parseCustomGradient(visualState.borderGradient)
+      setGradColor1(parsed.color1)
+      setGradColor2(parsed.color2)
+      setGradAngle(parsed.angle)
+    }
+    setShowGradientEditor((v) => !v)
+  }
+
+  const handleApplyGradient = () => {
+    updateVisualState('borderGradient', customGradientValue)
+    setShowGradientEditor(false)
+  }
+
+  const roundingTicks = [
+    { val: 0,   i18nKey: 'settings.rounding.sharp' },
+    { val: 12,  i18nKey: 'settings.rounding.subtle' },
+    { val: 24,  i18nKey: 'settings.rounding.round' },
+    { val: 100, i18nKey: 'settings.rounding.max' }
+  ]
 
   const sections = [
     {
@@ -100,9 +145,6 @@ export function SettingsPage(): React.JSX.Element {
   const sliderVal = roundingToSlider(visualState.rounding)
   const isCircle = visualState.shape === 'circle'
 
-  const isCustomColor = visualState.borderGradient !== 'none' && !(visualState.borderGradient in GRADIENTS)
-  const customColor = isCustomColor ? visualState.borderGradient : '#ff6b6b'
-
   return (
     <div className="settings-container">
       <div
@@ -124,15 +166,15 @@ export function SettingsPage(): React.JSX.Element {
             <div className="settings-row settings-row--column">
               <span className="settings-label">{t('settings.cameraShape', language)}</span>
               <div className="shape-picker">
-                {SHAPES.map((s) => (
+                {SHAPE_KEYS.map((s) => (
                   <button
                     key={s.key}
                     className={`shape-btn ${visualState.shape === s.key ? 'shape-btn--active' : ''}`}
                     onClick={() => updateVisualState('shape', s.key)}
-                    title={s.label}
+                    title={t(s.i18nKey, language)}
                   >
                     {s.svg}
-                    <span className="shape-label">{s.label}</span>
+                    <span className="shape-label">{t(s.i18nKey, language)}</span>
                   </button>
                 ))}
               </div>
@@ -157,19 +199,14 @@ export function SettingsPage(): React.JSX.Element {
                   onChange={(e) => updateVisualState('rounding', sliderToRounding(Number(e.target.value)))}
                 />
                 <div className="slider-ticks">
-                  {[
-                    { val: 0, label: 'Sharp' },
-                    { val: 12, label: 'Subtle' },
-                    { val: 24, label: 'Round' },
-                    { val: 100, label: '∞' }
-                  ].map((tick) => (
+                  {roundingTicks.map((tick) => (
                     <button
                       key={tick.val}
                       className={`slider-tick ${!isCircle && sliderVal === tick.val ? 'slider-tick--active' : ''}`}
                       disabled={isCircle}
                       onClick={() => updateVisualState('rounding', sliderToRounding(tick.val))}
                     >
-                      {tick.label}
+                      {t(tick.i18nKey, language)}
                     </button>
                   ))}
                 </div>
@@ -181,8 +218,8 @@ export function SettingsPage(): React.JSX.Element {
               <div className="gradient-picker">
                 <button
                   className={`gradient-swatch gradient-swatch--none ${visualState.borderGradient === 'none' ? 'gradient-swatch--active' : ''}`}
-                  onClick={() => updateVisualState('borderGradient', 'none')}
-                  title="None"
+                  onClick={() => { updateVisualState('borderGradient', 'none'); setShowGradientEditor(false) }}
+                  title={t('settings.gradient.none', language)}
                 >
                   <span className="gradient-swatch__x">✕</span>
                 </button>
@@ -192,27 +229,122 @@ export function SettingsPage(): React.JSX.Element {
                     key={key}
                     className={`gradient-swatch ${visualState.borderGradient === key ? 'gradient-swatch--active' : ''}`}
                     style={{ background: grad }}
-                    onClick={() => updateVisualState('borderGradient', key)}
+                    onClick={() => { updateVisualState('borderGradient', key); setShowGradientEditor(false) }}
                     title={key}
                   />
                 ))}
 
                 <button
-                  className={`gradient-swatch gradient-swatch--custom ${isCustomColor ? 'gradient-swatch--active' : ''}`}
-                  style={isCustomColor ? { background: customColor } : undefined}
-                  onClick={() => customColorRef.current?.click()}
-                  title="Custom color"
+                  className={`gradient-swatch gradient-swatch--custom ${isCustom ? 'gradient-swatch--active' : ''}`}
+                  style={isCustom ? { background: visualState.borderGradient } : undefined}
+                  onClick={handleOpenGradientEditor}
+                  title={t('settings.gradient.custom', language)}
                 >
-                  {!isCustomColor && <span className="gradient-swatch__plus">+</span>}
-                  <input
-                    ref={customColorRef}
-                    type="color"
-                    defaultValue={customColor}
-                    style={{ position: 'absolute', opacity: 0, width: 0, height: 0, pointerEvents: 'none' }}
-                    onChange={(e) => updateVisualState('borderGradient', e.target.value)}
-                  />
+                  {!isCustom && <span className="gradient-swatch__plus">+</span>}
                 </button>
               </div>
+
+              <div className={`border-width-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}>
+                <div className="rounding-header">
+                  <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}>
+                    {t('settings.borderWidth', language)}
+                  </span>
+                  <span className="rounding-value">{visualState.borderWidth}px</span>
+                </div>
+                <div className="slider-wrap">
+                  <input
+                    type="range"
+                    min={1}
+                    max={20}
+                    step={1}
+                    value={visualState.borderWidth}
+                    className="rounding-slider"
+                    disabled={visualState.borderGradient === 'none'}
+                    onChange={(e) => updateVisualState('borderWidth', Number(e.target.value))}
+                  />
+                  <div className="slider-ticks">
+                    {[
+                      { val: 1, i18nKey: 'settings.borderWidth.thin' },
+                      { val: 4, i18nKey: 'settings.borderWidth.default' },
+                      { val: 20, i18nKey: 'settings.borderWidth.thick' }
+                    ].map((tick) => (
+                      <button
+                        key={tick.val}
+                        className={`slider-tick ${visualState.borderWidth === tick.val ? 'slider-tick--active' : ''}`}
+                        disabled={visualState.borderGradient === 'none'}
+                        onClick={() => updateVisualState('borderWidth', tick.val)}
+                      >
+                        {t(tick.i18nKey, language)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {showGradientEditor && (
+                <div className="gradient-editor">
+                  <div className="gradient-editor__preview" style={{ background: customGradientValue }} />
+
+                  <div className="gradient-editor__colors">
+                    <label className="gradient-editor__color-label">
+                      <span>{t('settings.gradient.colorA', language)}</span>
+                      <div className="gradient-editor__color-wrap" style={{ background: gradColor1 }}>
+                        <input
+                          type="color"
+                          value={gradColor1}
+                          onChange={(e) => setGradColor1(e.target.value)}
+                          className="gradient-editor__color-input"
+                        />
+                      </div>
+                    </label>
+
+                    <div className="gradient-editor__arrow">→</div>
+
+                    <label className="gradient-editor__color-label">
+                      <span>{t('settings.gradient.colorB', language)}</span>
+                      <div className="gradient-editor__color-wrap" style={{ background: gradColor2 }}>
+                        <input
+                          type="color"
+                          value={gradColor2}
+                          onChange={(e) => setGradColor2(e.target.value)}
+                          className="gradient-editor__color-input"
+                        />
+                      </div>
+                    </label>
+                  </div>
+
+                  <div className="gradient-editor__angle-row">
+                    <div className="gradient-editor__angle-header">
+                      <span className="gradient-editor__angle-label">{t('settings.gradient.angle', language)}</span>
+                      <span className="gradient-editor__angle-value">{gradAngle}°</span>
+                    </div>
+                    <div className="gradient-editor__angle-presets">
+                      {PRESET_ANGLES.map((a) => (
+                        <button
+                          key={a}
+                          className={`gradient-editor__angle-btn ${gradAngle === a ? 'gradient-editor__angle-btn--active' : ''}`}
+                          onClick={() => setGradAngle(a)}
+                        >
+                          {a}°
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={360}
+                      step={1}
+                      value={gradAngle}
+                      className="rounding-slider"
+                      onChange={(e) => setGradAngle(Number(e.target.value))}
+                    />
+                  </div>
+
+                  <button className="gradient-editor__apply" onClick={handleApplyGradient}>
+                    {t('settings.gradient.apply', language)}
+                  </button>
+                </div>
+              )}
             </div>
 
           </div>

@@ -27,10 +27,12 @@ export function useShortcuts() {
     shape: string
     rounding: number
     borderGradient: string
+    borderWidth: number
   }>({
     shape: 'circle',
     rounding: 24,
-    borderGradient: 'none'
+    borderGradient: 'none',
+    borderWidth: 4
   })
 
   useEffect(() => {
@@ -44,7 +46,8 @@ export function useShortcuts() {
       setVisualState({
         shape: data.shape || 'circle',
         rounding: data.rounding ?? 24,
-        borderGradient: data.borderGradient || 'none'
+        borderGradient: data.borderGradient || 'none',
+        borderWidth: data.borderWidth ?? 4
       })
     })
     const handleReset = (_e: any, payload: any) => {
@@ -54,7 +57,8 @@ export function useShortcuts() {
         setVisualState({
           shape: payload.state.shape || 'circle',
           rounding: payload.state.rounding ?? 24,
-          borderGradient: payload.state.borderGradient || 'none'
+          borderGradient: payload.state.borderGradient || 'none',
+          borderWidth: payload.state.borderWidth ?? 4
         })
       }
     }
