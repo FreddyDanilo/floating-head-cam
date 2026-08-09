@@ -12,6 +12,8 @@ export const GRADIENTS = {
 
 export type GradientKey = keyof typeof GRADIENTS
 
-export function getGradient(key: GradientKey): string {
-  return GRADIENTS[key]
+export function getGradient(key: string): string {
+  if (key in GRADIENTS) return GRADIENTS[key as GradientKey]
+  // Custom solid color (hex, rgb, etc.)
+  return key
 }

@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { getGradient, GradientKey } from '../../../../shared/colors'
+import { getGradient } from '../../../../shared/colors'
 import { useCameraDevices } from './hooks/use-camera-devices'
 import { useCameraStream } from './hooks/use-camera-stream'
 import { useTrayEvents } from './hooks/use-tray-events'
 
 const SIZES = [300, 450, 600]
+
 export function CameraPage(): React.JSX.Element {
   const { devices, selectedDeviceId, setSelectedDeviceId } = useCameraDevices()
   const [isMirrored, setIsMirrored] = useState(true)
@@ -17,10 +18,11 @@ export function CameraPage(): React.JSX.Element {
   const [powerOn, setPowerOn] = useState<boolean>(false)
   const [initialized, setInitialized] = useState(false)
 
-  const [borderGradient, setBorderGradient] = useState<GradientKey>('none')
+  const [borderGradient, setBorderGradient] = useState<string>('none')
   const [borderWidth, setBorderWidth] = useState<number>(4)
 
   const { videoRef } = useCameraStream(selectedDeviceId, powerOn)
+
   const applySize = useCallback((index: number, currentShape: string) => {
     const size = SIZES[index]
     if (!size || !window.electron) return
@@ -35,6 +37,7 @@ export function CameraPage(): React.JSX.Element {
     }
     window.electron.ipcRenderer.send('resize-window', { width, height })
   }, [])
+
   useEffect(() => {
     if (window.electron) {
       window.electron.ipcRenderer.invoke('get-initial-state').then((state) => {
@@ -44,8 +47,6 @@ export function CameraPage(): React.JSX.Element {
         setRounding(state.rounding)
         setAlwaysOnTop(state.alwaysOnTop)
         setPowerOn(state.isCameraOn)
-
-        console.log(state.borderWidth)
 
         if (state.borderGradient) setBorderGradient(state.borderGradient)
         if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
@@ -69,6 +70,7 @@ export function CameraPage(): React.JSX.Element {
     sizeIndex,
     shape
   })
+
   useEffect(() => {
     if (window.electron && initialized) {
       window.electron.ipcRenderer.send('sync-tray', {
@@ -95,6 +97,7 @@ export function CameraPage(): React.JSX.Element {
     alwaysOnTop,
     initialized
   ])
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent): void => {
       if (e.key === '1') {
@@ -113,9 +116,11 @@ export function CameraPage(): React.JSX.Element {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [applySize, shape])
+
   if (!initialized) return <div className="app-container" />
 
   const computedRadius = shape === 'circle' ? '50%' : `${rounding}px`
+
   return (
     <div
       className="app-container"
@@ -129,7 +134,8 @@ export function CameraPage(): React.JSX.Element {
         height: '100%',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        transition: 'background 0.4s ease, border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
       }}
     >
       <video

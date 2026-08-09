@@ -141,6 +141,23 @@ body {
   background: rgba(255, 255, 255, 0.08);
 }
 
+/* Column variant for full-width controls (shape, slider, swatches) */
+.settings-row--column {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.settings-row--column:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Disabled row (e.g. rounding when shape is circle) */
+.settings-row--disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 .settings-label {
   font-size: 14px;
   font-weight: 500;
@@ -209,6 +226,188 @@ body {
 
 .reset-button:active {
   background: rgba(255, 69, 58, 0.3);
+}
+
+/* ── Shape Picker ─────────────────────────────────────────────────────── */
+.shape-picker {
+  display: flex;
+  gap: 12px;
+  -webkit-app-region: no-drag;
+  width: 100%;
+}
+
+.shape-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 2px solid transparent;
+  border-radius: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  flex: 1;
+  transition: all 0.2s ease;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.shape-btn svg {
+  fill: currentColor;
+  transition: fill 0.2s;
+}
+
+.shape-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.shape-btn--active {
+  color: #0A84FF;
+}
+
+.shape-label {
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Rounding Slider ──────────────────────────────────────────────────── */
+.rounding-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.rounding-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0A84FF;
+  font-variant-numeric: tabular-nums;
+}
+
+.slider-wrap {
+  width: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.rounding-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+  cursor: pointer;
+  accent-color: #0A84FF;
+}
+
+.rounding-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #0A84FF;
+  cursor: pointer;
+  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
+  transition: box-shadow 0.2s;
+}
+
+.rounding-slider::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 5px rgba(10, 132, 255, 0.35);
+}
+
+.slider-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.slider-tick {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.slider-tick:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.slider-tick--active {
+  color: #0A84FF;
+}
+
+/* ── Gradient Swatches ────────────────────────────────────────────────── */
+.gradient-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  -webkit-app-region: no-drag;
+}
+
+.gradient-swatch {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gradient-swatch:hover {
+  transform: scale(1.12);
+}
+
+.gradient-swatch--active {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(255, 255, 255, 0.3);
+  transform: scale(1.08);
+}
+
+.gradient-swatch--none {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.gradient-swatch--none.gradient-swatch--active {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(255, 255, 255, 0.3);
+}
+
+.gradient-swatch__x {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  line-height: 1;
+}
+
+.gradient-swatch--custom {
+  background: conic-gradient(
+    hsl(0deg 100% 60%),
+    hsl(60deg 100% 60%),
+    hsl(120deg 100% 50%),
+    hsl(180deg 100% 50%),
+    hsl(240deg 100% 65%),
+    hsl(300deg 100% 65%),
+    hsl(360deg 100% 60%)
+  );
+}
+
+.gradient-swatch__plus {
+  font-size: 18px;
+  font-weight: 300;
+  color: white;
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 @keyframes pulse {
