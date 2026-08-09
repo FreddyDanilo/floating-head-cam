@@ -109,11 +109,6 @@ export function CameraPage(): React.JSX.Element {
         setSizeIndex(2)
         applySize(2, shape)
       }
-      // Troca rápida de gradientes via teclado
-      if (e.key.toLowerCase() === 'g') setBorderGradient('instagram')
-      if (e.key.toLowerCase() === 'h') setBorderGradient('neon')
-      if (e.key.toLowerCase() === 'j') setBorderGradient('cyberpunk')
-      if (e.key.toLowerCase() === 'k') setBorderGradient('none')
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)

@@ -1,10 +1,13 @@
 export const GRADIENTS = {
-  instagram:
-    'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
-  neon: 'linear-gradient(135deg, #00f2fe 0%, #4facfe 100%)',
-  cyberpunk: 'linear-gradient(90deg, #ff007f 0%, #7f00ff 100%)',
-  gold: 'linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7)',
-  none: 'transparent'
+  none: 'transparent',
+  gradient_01: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+  gradient_02: 'linear-gradient(45deg, #25F4EE 0%, #FE2C55 50%, #25F4EE 100%)',
+  gradient_03: 'linear-gradient(45deg, #25D366 0%, #128C7E 100%)',
+  gradient_04: 'linear-gradient(45deg, #00C6FF 0%, #0072FF 100%)',
+  gradient_05: 'linear-gradient(45deg, #b224ef 0%, #7579ff 100%)',
+  gradient_06: 'linear-gradient(45deg, #a8e063 0%, #56ab2f 100%)',
+  gradient_07: 'linear-gradient(45deg, #ff00cc 0%, #333399 100%)',
+  gradient_08: 'linear-gradient(45deg, #ffffff 0%, #8e8e93 100%)'
 } as const
 
 export type GradientKey = keyof typeof GRADIENTS

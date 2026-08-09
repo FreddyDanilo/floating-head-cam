@@ -58,7 +58,7 @@ describe('SettingsPage', () => {
   })
   it('clicking a shortcut box enters listening mode showing Press Keys...', async () => {
     const { container } = render(<SettingsPage />)
-    const shortcutBoxes = container.querySelectorAll('.settings-shortcut')
+    const shortcutBoxes = container.querySelectorAll('div.settings-shortcut')
     expect(shortcutBoxes.length).toBeGreaterThan(0)
     fireEvent.click(shortcutBoxes[0])
     await waitFor(() => {
