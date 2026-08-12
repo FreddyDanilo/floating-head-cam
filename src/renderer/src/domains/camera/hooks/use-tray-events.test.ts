@@ -19,6 +19,8 @@ function makeHandlers() {
     setAlwaysOnTop: vi.fn(),
     setPowerOn: vi.fn(),
     applySize: vi.fn(),
+    setBorderGradient: vi.fn(),
+    setBorderWidth: vi.fn(),
     sizeIndex: 0,
     shape: 'circle'
   }

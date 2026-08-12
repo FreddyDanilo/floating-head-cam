@@ -42,11 +42,8 @@ export function buildTrayMenu(state: any): void {
     devices = [],
     selectedDeviceId = '',
     isMirrored = false,
-    shape = 'circle',
     sizeIndex = 0,
-    rounding = 24,
-    alwaysOnTop = true,
-    borderGradient = 'none'
+    alwaysOnTop = true
   } = state
 
   const sw = getSettingsWindow()

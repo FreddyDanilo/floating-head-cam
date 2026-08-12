@@ -18,6 +18,7 @@
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps && patch-package",
+    "release": "npm run build && dotenv -e .env -- electron-builder --mac --arm64 --win --x64 --publish always",
     "build:unpack": "npm run build && dotenv -e .env -- electron-builder --dir",
     "build:win": "npm run build && dotenv -e .env -- electron-builder --win --x64",
     "build:mac": "npm run build && dotenv -e .env -- electron-builder --mac --arm64",
