@@ -1,4 +1,4 @@
-import { Clapperboard, Keyboard, RotateCcw } from 'lucide-react'
+import { Clapperboard, Keyboard, RotateCcw, ArrowUpLeft, ArrowUpRight, ArrowLeft, Target, ArrowRight, ArrowDownLeft, ArrowDownRight, PowerOff, FlipHorizontal, Pin, TriangleAlert } from 'lucide-react'
 import React, { useState } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
 import { t } from '../../../../shared/i18n'
@@ -119,21 +119,22 @@ export function SettingsPage(): React.JSX.Element {
       key: 'positioning',
       title: t('settings.positioning', language),
       actions: [
-        { key: 'topLeft', label: t('settings.topLeft', language) },
-        { key: 'topRight', label: t('settings.topRight', language) },
-        { key: 'leftMiddle', label: t('settings.leftMiddle', language) },
-        { key: 'center', label: t('settings.center', language) },
-        { key: 'rightMiddle', label: t('settings.rightMiddle', language) },
-        { key: 'bottomLeft', label: t('settings.bottomLeft', language) },
-        { key: 'bottomRight', label: t('settings.bottomRight', language) }
+        { key: 'topLeft', label: t('settings.topLeft', language), icon: <ArrowUpLeft size={16} /> },
+        { key: 'topRight', label: t('settings.topRight', language), icon: <ArrowUpRight size={16} /> },
+        { key: 'leftMiddle', label: t('settings.leftMiddle', language), icon: <ArrowLeft size={16} /> },
+        { key: 'center', label: t('settings.center', language), icon: <Target size={16} /> },
+        { key: 'rightMiddle', label: t('settings.rightMiddle', language), icon: <ArrowRight size={16} /> },
+        { key: 'bottomLeft', label: t('settings.bottomLeft', language), icon: <ArrowDownLeft size={16} /> },
+        { key: 'bottomRight', label: t('settings.bottomRight', language), icon: <ArrowDownRight size={16} /> }
       ]
     },
     {
       key: 'cameraControl',
       title: t('settings.cameraControl', language),
       actions: [
-        { key: 'mirror', label: t('settings.mirror', language) },
-        { key: 'alwaysOnTop', label: t('settings.alwaysOnTop', language) }
+        { key: 'mirror', label: t('settings.mirror', language), icon: <FlipHorizontal size={16} /> },
+        { key: 'alwaysOnTop', label: t('settings.alwaysOnTop', language), icon: <Pin size={16} /> },
+        { key: 'toggleCamera', label: t('settings.toggleCamera', language), icon: <PowerOff size={16} /> }
       ]
     },
     {
@@ -313,6 +314,52 @@ export function SettingsPage(): React.JSX.Element {
                 </div>
               </div>
 
+              <div 
+                className={`settings-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}
+                style={{ 
+                  display: 'flex', 
+                  justifyContent: 'space-between', 
+                  alignItems: 'center',
+                  background: 'rgba(0, 0, 0, 0.2)', 
+                  padding: '14px', 
+                  borderRadius: '10px', 
+                  width: '100%'
+                }}
+              >
+                <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                  {t('settings.animation', language)}
+                </span>
+                <button
+                  className={`toggle-button ${visualState.isBorderAnimated ? 'toggle-button--active' : ''}`}
+                  disabled={visualState.borderGradient === 'none'}
+                  onClick={() => updateVisualState('isBorderAnimated', !visualState.isBorderAnimated)}
+                  style={{
+                    width: '40px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    background: visualState.isBorderAnimated ? '#0A84FF' : 'rgba(255, 255, 255, 0.15)',
+                    position: 'relative',
+                    cursor: visualState.borderGradient === 'none' ? 'not-allowed' : 'pointer',
+                    border: 'none',
+                    transition: 'background 0.2s',
+                    padding: 0
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      background: '#fff',
+                      position: 'absolute',
+                      top: '2px',
+                      left: visualState.isBorderAnimated ? '18px' : '2px',
+                      transition: 'left 0.2s, background 0.2s'
+                    }}
+                  />
+                </button>
+              </div>
+
               {showGradientEditor && (
                 <div className="gradient-editor">
                   <div className="gradient-editor__preview" style={{ background: customGradientValue }} />
@@ -389,20 +436,31 @@ export function SettingsPage(): React.JSX.Element {
             <div key={section.title} className="settings-section">
               <div className="settings-list">
                 {section.actions.map((action) => (
-                  <div className="settings-row" key={action.key}>
-                    <span className="settings-label">{action.label}</span>
-                    <div
-                      className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
-                      onClick={() => setListeningKey(action.key)}
-                    >
-                      {listeningKey === action.key
-                        ? t('settings.pressKeys', language)
-                        : formatMacShortcut(shortcuts[action.key]) === 'Unbound'
-                          ? t('settings.unbound', language)
-                          : formatMacShortcut(shortcuts[action.key])}
-                      <Keyboard size={14} className="shortcut-icon" />
+                  <React.Fragment key={action.key}>
+                    <div className="settings-row">
+                      <span className="settings-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {action.icon}
+                        {action.label}
+                      </span>
+                      <div
+                        className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
+                        onClick={() => setListeningKey(action.key)}
+                      >
+                        {listeningKey === action.key
+                          ? t('settings.pressKeys', language)
+                          : formatMacShortcut(shortcuts[action.key]) === 'Unbound'
+                            ? t('settings.unbound', language)
+                            : formatMacShortcut(shortcuts[action.key])}
+                        <Keyboard size={14} className="shortcut-icon" />
+                      </div>
                     </div>
-                  </div>
+                    {action.key === 'toggleCamera' && (
+                      <div className="settings-global-warning" style={{ fontSize: '12px', color: '#ffcc00', display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px', marginBottom: '8px' }}>
+                        <TriangleAlert size={14} />
+                        {t('settings.globalShortcutWarning', language)}
+                      </div>
+                    )}
+                  </React.Fragment>
                 ))}
               </div>
             </div>

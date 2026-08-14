@@ -20,6 +20,7 @@ export function CameraPage(): React.JSX.Element {
 
   const [borderGradient, setBorderGradient] = useState<string>('none')
   const [borderWidth, setBorderWidth] = useState<number>(4)
+  const [isBorderAnimated, setIsBorderAnimated] = useState<boolean>(false)
 
   const [prevGradient, setPrevGradient] = useState<string>('none')
   const [currentGradient, setCurrentGradient] = useState<string>('none')
@@ -57,6 +58,9 @@ export function CameraPage(): React.JSX.Element {
           setPrevGradient(state.borderGradient)
           setCurrentGradient(state.borderGradient)
         }
+        if (state.isBorderAnimated !== undefined) {
+          setIsBorderAnimated(state.isBorderAnimated)
+        }
         if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
 
         setInitialized(true)
@@ -89,6 +93,7 @@ export function CameraPage(): React.JSX.Element {
     setPowerOn,
     setBorderGradient,
     setBorderWidth,
+    setIsBorderAnimated,
     applySize,
     sizeIndex,
     shape
@@ -103,6 +108,7 @@ export function CameraPage(): React.JSX.Element {
         shape,
         borderGradient,
         borderWidth,
+        isBorderAnimated,
         sizeIndex,
         rounding,
         alwaysOnTop
@@ -115,6 +121,7 @@ export function CameraPage(): React.JSX.Element {
     shape,
     borderGradient,
     borderWidth,
+    isBorderAnimated,
     sizeIndex,
     rounding,
     alwaysOnTop,
@@ -166,10 +173,11 @@ export function CameraPage(): React.JSX.Element {
         style={{
           position: 'absolute',
           inset: 0,
-          background: getGradient(prevGradient),
+          background: getGradient(prevGradient, isBorderAnimated),
           borderRadius: 'inherit',
           opacity: (fade || currentGradient !== 'none') ? 1 : 0,
           transition: fade ? 'none' : 'opacity 0.4s ease',
+          animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
           zIndex: -2
         }}
       />
@@ -177,10 +185,11 @@ export function CameraPage(): React.JSX.Element {
         style={{
           position: 'absolute',
           inset: 0,
-          background: getGradient(currentGradient),
+          background: getGradient(currentGradient, isBorderAnimated),
           borderRadius: 'inherit',
           opacity: fade ? 0 : 1,
           transition: fade ? 'none' : 'opacity 0.4s ease',
+          animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
           zIndex: -1
         }}
       />

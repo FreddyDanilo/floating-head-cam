@@ -7,7 +7,18 @@ const mockRemoveAllListeners = vi.fn()
 vi.mock('lucide-react', () => ({
   Keyboard: () => <span data-testid="keyboard-icon" />,
   Clapperboard: () => <span data-testid="clapperboard-icon" />,
-  RotateCcw: () => <span data-testid="rotate-icon" />
+  RotateCcw: () => <span data-testid="rotate-icon" />,
+  ArrowUpLeft: () => <span data-testid="arrow-up-left" />,
+  ArrowUpRight: () => <span data-testid="arrow-up-right" />,
+  ArrowLeft: () => <span data-testid="arrow-left" />,
+  Target: () => <span data-testid="target" />,
+  ArrowRight: () => <span data-testid="arrow-right" />,
+  ArrowDownLeft: () => <span data-testid="arrow-down-left" />,
+  ArrowDownRight: () => <span data-testid="arrow-down-right" />,
+  PowerOff: () => <span data-testid="power-off" />,
+  FlipHorizontal: () => <span data-testid="flip-horizontal" />,
+  Pin: () => <span data-testid="pin" />,
+  TriangleAlert: () => <span data-testid="triangle-alert" />
 }))
 beforeEach(() => {
   vi.clearAllMocks()

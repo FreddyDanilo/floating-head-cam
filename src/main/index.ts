@@ -52,7 +52,9 @@ app.whenReady().then(() => {
   })
   initTray()
   buildTrayMenu(currentState)
-  globalShortcut.register('F9', () => toggleCamera(currentState))
+  if (shortcuts.toggleCamera) {
+    globalShortcut.register(shortcuts.toggleCamera, () => toggleCamera(currentState))
+  }
   autoUpdater.on('update-downloaded', () => {
     setUpdateReady(true)
     buildTrayMenu(currentState)
@@ -79,6 +81,8 @@ app.whenReady().then(() => {
         win.webContents.send('tray-action', { type: 'set-border-gradient', payload: value })
       } else if (key === 'borderWidth') {
         win.webContents.send('tray-action', { type: 'set-border-width', payload: value })
+      } else if (key === 'isBorderAnimated') {
+        win.webContents.send('tray-action', { type: 'set-border-animated', payload: value })
       }
     })
   })
@@ -95,7 +99,9 @@ app.whenReady().then(() => {
     const floatingHead = BrowserWindow.getAllWindows().find((w) => w !== sw)
     if (floatingHead) {
       globalShortcut.unregisterAll()
-      globalShortcut.register('F9', () => toggleCamera(currentState))
+      if (shortcuts.toggleCamera) {
+        globalShortcut.register(shortcuts.toggleCamera, () => toggleCamera(currentState))
+      }
       if (floatingHead.isFocused()) {
         registerGlobalShortcuts(floatingHead)
       }

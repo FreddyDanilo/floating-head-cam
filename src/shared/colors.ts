@@ -12,8 +12,25 @@ export const GRADIENTS = {
 
 export type GradientKey = keyof typeof GRADIENTS
 
-export function getGradient(key: string): string {
-  if (key in GRADIENTS) return GRADIENTS[key as GradientKey]
-  // Custom solid color (hex, rgb, etc.)
-  return key
+export function getGradient(key: string, isAnimated = false): string {
+  let val = key
+  if (key in GRADIENTS) {
+    val = GRADIENTS[key as GradientKey]
+  }
+  
+  if (isAnimated && val.startsWith('linear-gradient')) {
+    const match = val.match(/^linear-gradient\([^,]+,\s*(.*)\)$/)
+    if (match && match[1]) {
+      const colors = match[1].match(/(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|hsla?\([^)]+\))/gi)
+      if (colors && colors.length > 0) {
+        let finalColors = [...colors]
+        if (finalColors[0].toLowerCase() !== finalColors[finalColors.length - 1].toLowerCase()) {
+          finalColors = [...finalColors, ...finalColors.slice(0, -1).reverse()]
+        }
+        return `conic-gradient(from var(--spin-angle, 0deg), ${finalColors.join(', ')})`
+      }
+    }
+  }
+  
+  return val
 }

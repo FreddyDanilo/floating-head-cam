@@ -11,6 +11,7 @@ type TrayEventHandlers = {
   setPowerOn: (v: boolean) => void
   setBorderGradient: (g: string) => void
   setBorderWidth: (w: number) => void
+  setIsBorderAnimated: (v: boolean) => void
   applySize: (index: number, shape: string) => void
   sizeIndex: number
   shape: string
@@ -26,6 +27,7 @@ export function useTrayEvents({
   setPowerOn,
   setBorderGradient,
   setBorderWidth,
+  setIsBorderAnimated,
   applySize,
   sizeIndex,
   shape
@@ -62,6 +64,9 @@ export function useTrayEvents({
         case 'set-border-width':
           setBorderWidth(action.payload)
           break
+        case 'set-border-animated':
+          setIsBorderAnimated(action.payload)
+          break
       }
     }
 
@@ -77,6 +82,9 @@ export function useTrayEvents({
       }
       if (payload.state.borderWidth !== undefined) {
         setBorderWidth(payload.state.borderWidth)
+      }
+      if (payload.state.isBorderAnimated !== undefined) {
+        setIsBorderAnimated(payload.state.isBorderAnimated)
       }
 
       applySize(payload.state.sizeIndex, payload.state.shape)

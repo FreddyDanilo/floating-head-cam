@@ -28,11 +28,13 @@ export function useShortcuts() {
     rounding: number
     borderGradient: string
     borderWidth: number
+    isBorderAnimated: boolean
   }>({
     shape: 'circle',
     rounding: 24,
     borderGradient: 'none',
-    borderWidth: 4
+    borderWidth: 4,
+    isBorderAnimated: false
   })
 
   useEffect(() => {
@@ -47,7 +49,8 @@ export function useShortcuts() {
         shape: data.shape || 'circle',
         rounding: data.rounding ?? 24,
         borderGradient: data.borderGradient || 'none',
-        borderWidth: data.borderWidth ?? 4
+        borderWidth: data.borderWidth ?? 4,
+        isBorderAnimated: data.isBorderAnimated || false
       })
     })
     const handleReset = (_e: any, payload: any) => {
@@ -58,7 +61,8 @@ export function useShortcuts() {
           shape: payload.state.shape || 'circle',
           rounding: payload.state.rounding ?? 24,
           borderGradient: payload.state.borderGradient || 'none',
-          borderWidth: payload.state.borderWidth ?? 4
+          borderWidth: payload.state.borderWidth ?? 4,
+          isBorderAnimated: payload.state.isBorderAnimated || false
         })
       }
     }
@@ -109,7 +113,7 @@ export function useShortcuts() {
     window.electron?.ipcRenderer.send('sync-tray', { language: lang })
   }
 
-  const updateVisualState = (key: keyof typeof visualState, value: string | number) => {
+  const updateVisualState = (key: keyof typeof visualState, value: string | number | boolean) => {
     setVisualState((prev) => ({ ...prev, [key]: value }))
     window.electron?.ipcRenderer.send('update-setting', { key, value })
   }

@@ -20,7 +20,7 @@ function makeHandlers() {
     setPowerOn: vi.fn(),
     applySize: vi.fn(),
     setBorderGradient: vi.fn(),
-    setBorderWidth: vi.fn(),
+    setBorderWidth: vi.fn(), setIsBorderAnimated: vi.fn(),
     sizeIndex: 0,
     shape: 'circle'
   }

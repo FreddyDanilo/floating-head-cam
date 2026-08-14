@@ -14,6 +14,7 @@ export const defaultShortcuts = {
   sizeLarge: '3',
   mirror: 'Alt+M',
   alwaysOnTop: 'Alt+T',
+  toggleCamera: 'F9',
   shapeCircle: '',
   shapeSquare: '',
   shapeVertical: '',
@@ -29,6 +30,7 @@ export const defaultState = {
   alwaysOnTop: true,
   borderWidth: 4,
   borderGradient: 'none',
+  isBorderAnimated: false,
   x: undefined as number | undefined,
   y: undefined as number | undefined,
   language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt')
@@ -58,8 +60,9 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
   if (!targetTab || targetTab === 'visuals') {
     currentState.shape = defaultState.shape
     currentState.rounding = defaultState.rounding
-    currentState.borderGradient = defaultState.borderGradient
     currentState.borderWidth = defaultState.borderWidth
+    currentState.borderGradient = defaultState.borderGradient
+    currentState.isBorderAnimated = defaultState.isBorderAnimated
   }
   
   if (!targetTab || targetTab === 'positioning') {
@@ -68,7 +71,7 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
   }
   
   if (!targetTab || targetTab === 'cameraControl') {
-    const camKeys = ['mirror', 'alwaysOnTop']
+    const camKeys = ['mirror', 'alwaysOnTop', 'toggleCamera']
     camKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
     currentState.isMirrored = defaultState.isMirrored
     currentState.alwaysOnTop = defaultState.alwaysOnTop

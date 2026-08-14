@@ -56,7 +56,7 @@ export function buildTrayMenu(state: any): void {
 
   const lang = state.language || 'en'
   const cameraItems = devices.map((device: any) => ({
-    label: device.label || `Camera ${device.deviceId.substring(0, 5)}`,
+    label: device.label || t('tray.cameraFallback', lang).replace('{id}', device.deviceId.substring(0, 5)),
     type: 'radio' as const,
     checked: device.deviceId === selectedDeviceId,
     click: () => {
