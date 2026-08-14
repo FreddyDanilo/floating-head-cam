@@ -221,6 +221,7 @@ export function buildTrayMenu(state: any): void {
               else w.webContents.send('sync-language', 'en')
             })
             buildTrayMenu(state)
+            if (sw) sw.setTitle(t('tray.preferences', 'en').replace('...', ''))
           }
         },
         {
@@ -236,6 +237,7 @@ export function buildTrayMenu(state: any): void {
               else w.webContents.send('sync-language', 'pt')
             })
             buildTrayMenu(state)
+            if (sw) sw.setTitle(t('tray.preferences', 'pt').replace('...', ''))
           }
         }
       ]

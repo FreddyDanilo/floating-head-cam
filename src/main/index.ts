@@ -2,6 +2,7 @@ import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut, ipcMain, session, systemPreferences } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { getIsCameraOn, setIsCameraOn } from './domains/camera/camera.service'
+import { t } from '../shared/i18n'
 import {
   currentState,
   loadSettings,
@@ -64,6 +65,10 @@ app.whenReady().then(() => {
     Object.assign(currentState, state)
     saveSettings()
     buildTrayMenu(currentState)
+    const sw = getSettingsWindow()
+    if (sw && state.language) {
+      sw.setTitle(t('tray.preferences', state.language).replace('...', ''))
+    }
   })
   
   ipcMain.on('update-setting', (_, { key, value }) => {
