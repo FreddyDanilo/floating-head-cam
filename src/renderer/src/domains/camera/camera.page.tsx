@@ -21,6 +21,10 @@ export function CameraPage(): React.JSX.Element {
   const [borderGradient, setBorderGradient] = useState<string>('none')
   const [borderWidth, setBorderWidth] = useState<number>(4)
 
+  const [prevGradient, setPrevGradient] = useState<string>('none')
+  const [currentGradient, setCurrentGradient] = useState<string>('none')
+  const [fade, setFade] = useState(false)
+
   const { videoRef } = useCameraStream(selectedDeviceId, powerOn)
 
   const applySize = useCallback((index: number, currentShape: string) => {
@@ -48,7 +52,11 @@ export function CameraPage(): React.JSX.Element {
         setAlwaysOnTop(state.alwaysOnTop)
         setPowerOn(state.isCameraOn)
 
-        if (state.borderGradient) setBorderGradient(state.borderGradient)
+        if (state.borderGradient) {
+          setBorderGradient(state.borderGradient)
+          setPrevGradient(state.borderGradient)
+          setCurrentGradient(state.borderGradient)
+        }
         if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
 
         setInitialized(true)
@@ -56,6 +64,20 @@ export function CameraPage(): React.JSX.Element {
       })
     }
   }, [])
+
+  useEffect(() => {
+    if (borderGradient !== currentGradient) {
+      setPrevGradient(currentGradient)
+      setCurrentGradient(borderGradient)
+      setFade(true)
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setFade(false)
+        })
+      })
+    }
+  }, [borderGradient, currentGradient])
 
   useTrayEvents({
     setSelectedDeviceId,
@@ -126,7 +148,7 @@ export function CameraPage(): React.JSX.Element {
     <div
       className="app-container"
       style={{
-        background: getGradient(borderGradient),
+        position: 'relative',
         padding: borderGradient === 'none' ? '0px' : `${borderWidth}px`,
         borderRadius: computedRadius,
         WebkitMaskImage: shape === 'circle' ? '-webkit-radial-gradient(white, black)' : 'none',
@@ -136,9 +158,32 @@ export function CameraPage(): React.JSX.Element {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        transition: 'background 0.4s ease, border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
+        transition: 'border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease',
+        zIndex: 1
       }}
     >
+      <div 
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: getGradient(prevGradient),
+          borderRadius: 'inherit',
+          opacity: (fade || currentGradient !== 'none') ? 1 : 0,
+          transition: fade ? 'none' : 'opacity 0.4s ease',
+          zIndex: -2
+        }}
+      />
+      <div 
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: getGradient(currentGradient),
+          borderRadius: 'inherit',
+          opacity: fade ? 0 : 1,
+          transition: fade ? 'none' : 'opacity 0.4s ease',
+          zIndex: -1
+        }}
+      />
       <video
         ref={videoRef}
         autoPlay

@@ -10,13 +10,13 @@
 
 ---
 
-## Sobre (About)
+## Sobre
 
 **Floating Head Cam** é um aplicativo de câmera "picture-in-picture" construído com Electron, React e TypeScript. Ele permite exibir a imagem da sua webcam em uma janela flutuante que fica **sempre no topo** das outras janelas. 
 
 É a ferramenta perfeita para quem grava tutoriais, faz transmissões ao vivo (streams), apresentações ou reuniões online, e quer manter seu rosto visível na tela sem complicação.
 
-## Funcionalidades (Features)
+## Funcionalidades
 
 - **Sempre no Topo:** A câmera nunca é coberta por outras janelas.
 - **Formatos Personalizáveis:** Altere entre Círculo, Quadrado ou Retângulos (vertical/horizontal).
@@ -40,7 +40,7 @@ Baixe a versão mais recente diretamente aqui do repositório (acesse a página 
 
 ---
 
-### Para Desenvolvedores (Development)
+### Para Desenvolvedores
 
 Se quiser rodar o projeto localmente:
 
