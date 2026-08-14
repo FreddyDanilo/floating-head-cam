@@ -52,7 +52,7 @@ describe('useShortcuts', () => {
     mockInvoke.mockResolvedValue({})
     const { result } = renderHook(() => useShortcuts())
     act(() => result.current.resetSettings())
-    expect(mockSend).toHaveBeenCalledWith('reset-settings')
+    expect(mockSend).toHaveBeenCalledWith('reset-settings', undefined)
   })
   it('captures keydown and sends update-shortcut', () => {
     mockInvoke.mockResolvedValue({})

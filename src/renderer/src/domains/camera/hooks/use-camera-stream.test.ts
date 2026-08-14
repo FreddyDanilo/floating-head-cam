@@ -30,7 +30,12 @@ describe('useCameraStream', () => {
     renderHook(() => useCameraStream('cam1', true))
     await vi.waitFor(() => expect(mockGetUserMedia).toHaveBeenCalledOnce())
     expect(mockGetUserMedia).toHaveBeenCalledWith({
-      video: { deviceId: { exact: 'cam1' } },
+      video: { 
+        deviceId: { exact: 'cam1' },
+        width: { ideal: 1920 },
+        height: { ideal: 1080 },
+        aspectRatio: { ideal: 16 / 9 }
+      },
       audio: false
     })
   })

@@ -100,8 +100,8 @@ export function useShortcuts() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [listeningKey])
 
-  const resetSettings = () => {
-    window.electron?.ipcRenderer.send('reset-settings')
+  const resetSettings = (tab?: string) => {
+    window.electron?.ipcRenderer.send('reset-settings', tab)
   }
 
   const setAppLanguage = (lang: 'en' | 'pt') => {

@@ -101,8 +101,8 @@ app.whenReady().then(() => {
       }
     }
   })
-  ipcMain.on('reset-settings', () => {
-    resetToDefaults()
+  ipcMain.on('reset-settings', (_, tab) => {
+    resetToDefaults(tab)
     saveSettings()
     buildTrayMenu(currentState)
     BrowserWindow.getAllWindows().forEach((win) => {

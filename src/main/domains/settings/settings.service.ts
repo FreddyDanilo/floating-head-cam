@@ -49,11 +49,34 @@ export function saveSettings(): void {
   const p = join(app.getPath('userData'), 'settings.json')
   fs.writeFileSync(p, JSON.stringify({ shortcuts, state: currentState }, null, 2))
 }
-export function resetToDefaults(): void {
-  Object.assign(shortcuts, defaultShortcuts)
-  Object.assign(currentState, {
-    ...defaultState,
-    devices: currentState.devices,
-    selectedDeviceId: currentState.selectedDeviceId
-  })
+export type SettingsTab = 'visuals' | 'positioning' | 'cameraControl' | 'sizing' | undefined
+
+export function resetToDefaults(tab?: SettingsTab | unknown): void {
+  // If the parameter passed is an IPC event object or unknown string, we default to full reset (undefined)
+  const targetTab = (typeof tab === 'string' && ['visuals', 'positioning', 'cameraControl', 'sizing'].includes(tab)) ? tab as SettingsTab : undefined;
+  
+  if (!targetTab || targetTab === 'visuals') {
+    currentState.shape = defaultState.shape
+    currentState.rounding = defaultState.rounding
+    currentState.borderGradient = defaultState.borderGradient
+    currentState.borderWidth = defaultState.borderWidth
+  }
+  
+  if (!targetTab || targetTab === 'positioning') {
+    const posKeys = ['topLeft', 'topRight', 'leftMiddle', 'center', 'rightMiddle', 'bottomLeft', 'bottomRight']
+    posKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
+  }
+  
+  if (!targetTab || targetTab === 'cameraControl') {
+    const camKeys = ['mirror', 'alwaysOnTop']
+    camKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
+    currentState.isMirrored = defaultState.isMirrored
+    currentState.alwaysOnTop = defaultState.alwaysOnTop
+  }
+  
+  if (!targetTab || targetTab === 'sizing') {
+    const sizeKeys = ['sizeSmall', 'sizeMedium', 'sizeLarge']
+    sizeKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
+    currentState.sizeIndex = defaultState.sizeIndex
+  }
 }

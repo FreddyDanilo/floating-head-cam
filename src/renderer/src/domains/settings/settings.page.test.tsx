@@ -28,36 +28,41 @@ describe('SettingsPage', () => {
     render(<SettingsPage />)
     expect(screen.getByText('Floating Head Cam')).toBeTruthy()
   })
-  it('renders all section headings', () => {
+  it('renders all section headings (tabs)', () => {
     render(<SettingsPage />)
     expect(screen.getByText('Positioning')).toBeTruthy()
     expect(screen.getByText('Camera Control')).toBeTruthy()
     expect(screen.getByText('Camera Shape')).toBeTruthy()
     expect(screen.getByText('Sizing')).toBeTruthy()
   })
-  it('renders all shortcut labels', () => {
+  it('renders all shortcut labels', async () => {
     render(<SettingsPage />)
-    expect(screen.getByText('Top Left')).toBeTruthy()
-    expect(screen.getByText('Toggle Mirror')).toBeTruthy()
-    expect(screen.getByText('Size: Small')).toBeTruthy()
+    fireEvent.click(screen.getByText('Positioning'))
+    expect(await screen.findByText('Top Left')).toBeTruthy()
+    fireEvent.click(screen.getByText('Camera Control'))
+    expect(await screen.findByText('Toggle Mirror')).toBeTruthy()
+    fireEvent.click(screen.getByText('Sizing'))
+    expect(await screen.findByText('Small')).toBeTruthy()
   })
   it('shows formatted shortcuts after IPC load', async () => {
     const { container } = render(<SettingsPage />)
+    fireEvent.click(screen.getByText('Positioning'))
     await waitFor(() => {
       expect(container.textContent).toContain('⌥ Q')
     })
   })
-  it('renders Reset to Factory Defaults button', () => {
+  it('renders Restore button', () => {
     render(<SettingsPage />)
-    expect(screen.getByText('Reset to Factory Defaults')).toBeTruthy()
+    expect(screen.getByText('Restore')).toBeTruthy()
   })
   it('clicking reset button sends reset-settings IPC', () => {
     render(<SettingsPage />)
-    fireEvent.click(screen.getByText('Reset to Factory Defaults'))
-    expect(mockSend).toHaveBeenCalledWith('reset-settings')
+    fireEvent.click(screen.getByText('Restore'))
+    expect(mockSend).toHaveBeenCalledWith('reset-settings', 'visuals')
   })
   it('clicking a shortcut box enters listening mode showing Press Keys...', async () => {
     const { container } = render(<SettingsPage />)
+    fireEvent.click(screen.getByText('Positioning'))
     const shortcutBoxes = container.querySelectorAll('div.settings-shortcut')
     expect(shortcutBoxes.length).toBeGreaterThan(0)
     fireEvent.click(shortcutBoxes[0])
@@ -67,9 +72,10 @@ describe('SettingsPage', () => {
   })
   it('shows Unbound for empty shortcut values', async () => {
     mockInvoke.mockResolvedValue({
-      shapeCircle: '', shapeSquare: '', shapeVertical: '', shapeHorizontal: ''
+      topLeft: '', shapeSquare: '', shapeVertical: '', shapeHorizontal: ''
     })
     const { container } = render(<SettingsPage />)
+    fireEvent.click(screen.getByText('Positioning'))
     await waitFor(() => {
       expect(container.textContent).toContain('Unbound')
     })

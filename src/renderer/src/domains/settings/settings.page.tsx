@@ -81,6 +81,8 @@ export function SettingsPage(): React.JSX.Element {
   const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, visualState, updateVisualState } =
     useShortcuts()
 
+  const [activeTab, setActiveTab] = useState<'visuals' | 'positioning' | 'cameraControl' | 'sizing'>('visuals')
+
   const [showGradientEditor, setShowGradientEditor] = useState(false)
   const [gradColor1, setGradColor1] = useState('#ff6b6b')
   const [gradColor2, setGradColor2] = useState('#7c3aed')
@@ -114,6 +116,7 @@ export function SettingsPage(): React.JSX.Element {
 
   const sections = [
     {
+      key: 'positioning',
       title: t('settings.positioning', language),
       actions: [
         { key: 'topLeft', label: t('settings.topLeft', language) },
@@ -126,6 +129,7 @@ export function SettingsPage(): React.JSX.Element {
       ]
     },
     {
+      key: 'cameraControl',
       title: t('settings.cameraControl', language),
       actions: [
         { key: 'mirror', label: t('settings.mirror', language) },
@@ -133,6 +137,7 @@ export function SettingsPage(): React.JSX.Element {
       ]
     },
     {
+      key: 'sizing',
       title: t('settings.sizing', language),
       actions: [
         { key: 'sizeSmall', label: t('settings.sizeSmall', language) },
@@ -157,11 +162,38 @@ export function SettingsPage(): React.JSX.Element {
         </div>
       </div>
       <p className="settings-description">{t('settings.description', language)}</p>
-      <div className="settings-sections">
 
-        <div className="settings-section">
-          <h2>{t('settings.visuals', language)}</h2>
-          <div className="settings-list">
+      <div className="settings-tabs">
+        <button
+          className={`settings-tab ${activeTab === 'visuals' ? 'settings-tab--active' : ''}`}
+          onClick={() => setActiveTab('visuals')}
+        >
+          {t('settings.visuals', language)}
+        </button>
+        <button
+          className={`settings-tab ${activeTab === 'positioning' ? 'settings-tab--active' : ''}`}
+          onClick={() => setActiveTab('positioning')}
+        >
+          {t('settings.positioning', language)}
+        </button>
+        <button
+          className={`settings-tab ${activeTab === 'cameraControl' ? 'settings-tab--active' : ''}`}
+          onClick={() => setActiveTab('cameraControl')}
+        >
+          {t('settings.cameraControl', language)}
+        </button>
+        <button
+          className={`settings-tab ${activeTab === 'sizing' ? 'settings-tab--active' : ''}`}
+          onClick={() => setActiveTab('sizing')}
+        >
+          {t('settings.sizing', language)}
+        </button>
+      </div>
+
+      <div className="settings-sections">
+        {activeTab === 'visuals' && (
+          <div className="settings-section">
+            <div className="settings-list">
 
             <div className="settings-row settings-row--column">
               <span className="settings-label">{t('settings.cameraShape', language)}</span>
@@ -347,35 +379,37 @@ export function SettingsPage(): React.JSX.Element {
               )}
             </div>
 
-          </div>
-        </div>
-
-        {sections.map((section) => (
-          <div key={section.title} className="settings-section">
-            <h2>{section.title}</h2>
-            <div className="settings-list">
-              {section.actions.map((action) => (
-                <div className="settings-row" key={action.key}>
-                  <span className="settings-label">{action.label}</span>
-                  <div
-                    className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
-                    onClick={() => setListeningKey(action.key)}
-                  >
-                    {listeningKey === action.key
-                      ? t('settings.pressKeys', language)
-                      : formatMacShortcut(shortcuts[action.key]) === 'Unbound'
-                        ? t('settings.unbound', language)
-                        : formatMacShortcut(shortcuts[action.key])}
-                    <Keyboard size={14} className="shortcut-icon" />
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
-        ))}
+        )}
+
+        {sections
+          .filter((section) => section.key === activeTab)
+          .map((section) => (
+            <div key={section.title} className="settings-section">
+              <div className="settings-list">
+                {section.actions.map((action) => (
+                  <div className="settings-row" key={action.key}>
+                    <span className="settings-label">{action.label}</span>
+                    <div
+                      className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
+                      onClick={() => setListeningKey(action.key)}
+                    >
+                      {listeningKey === action.key
+                        ? t('settings.pressKeys', language)
+                        : formatMacShortcut(shortcuts[action.key]) === 'Unbound'
+                          ? t('settings.unbound', language)
+                          : formatMacShortcut(shortcuts[action.key])}
+                      <Keyboard size={14} className="shortcut-icon" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
       </div>
       <div className="settings-footer">
-        <button className="reset-button" onClick={resetSettings}>
+        <button className="reset-button" onClick={() => resetSettings(activeTab)}>
           <RotateCcw size={16} />
           {t('settings.reset', language)}
         </button>
