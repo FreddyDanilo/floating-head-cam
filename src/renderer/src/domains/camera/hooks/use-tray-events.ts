@@ -1,6 +1,5 @@
 import { useEffect } from 'react'
 
-
 type TrayEventHandlers = {
   setSelectedDeviceId: (id: string) => void
   setShape: (s: any) => void

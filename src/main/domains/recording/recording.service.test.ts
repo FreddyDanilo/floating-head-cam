@@ -24,7 +24,7 @@ vi.mock('fluent-ffmpeg', () => {
     output: vi.fn().mockReturnThis(),
     videoCodec: vi.fn().mockReturnThis(),
     outputOptions: vi.fn().mockReturnThis(),
-    on: vi.fn().mockImplementation(function(this: any, event: string, callback: any) {
+    on: vi.fn().mockImplementation(function (this: any, event: string, callback: any) {
       if (event === 'end') {
         setTimeout(callback, 10)
       }

@@ -28,7 +28,7 @@ export function useCameraStream(
     const startStream = async (): Promise<void> => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { 
+          video: {
             deviceId: { exact: selectedDeviceId },
             width: { ideal: 1920 },
             height: { ideal: 1080 },

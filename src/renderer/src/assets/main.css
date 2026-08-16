@@ -4,7 +4,7 @@ html {
   margin: 0;
   padding: 0;
   background-color: transparent !important;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 body {
@@ -38,7 +38,7 @@ body {
   align-items: center;
   justify-content: center;
   transition: border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  
+
   transform: translateZ(0);
   background: linear-gradient(to right, #6a11cb, #2575fc);
   padding: 4px;
@@ -96,7 +96,7 @@ body {
 }
 
 .settings-icon {
-  color: #0A84FF;
+  color: #0a84ff;
 }
 
 .settings-description {
@@ -141,7 +141,6 @@ body {
   background: rgba(255, 255, 255, 0.08);
 }
 
-
 .settings-row--column {
   flex-direction: column;
   align-items: flex-start;
@@ -151,7 +150,6 @@ body {
 .settings-row--column:hover {
   background: rgba(255, 255, 255, 0.04);
 }
-
 
 .settings-row--disabled {
   opacity: 0.35;
@@ -173,8 +171,8 @@ body {
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  color: #0A84FF;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #0a84ff;
   cursor: pointer;
   transition: all 0.2s ease;
   min-width: 120px;
@@ -189,7 +187,7 @@ body {
 
 .settings-shortcut.listening {
   background: rgba(255, 69, 58, 0.15);
-  color: #FF453A;
+  color: #ff453a;
   animation: pulse 1.5s infinite;
 }
 
@@ -210,7 +208,7 @@ body {
   gap: 8px;
   background: rgba(255, 69, 58, 0.1);
   border: none;
-  color: #FF453A;
+  color: #ff453a;
   padding: 8px 16px;
   border-radius: 8px;
   font-size: 13px;
@@ -228,20 +226,18 @@ body {
   background: rgba(255, 69, 58, 0.3);
 }
 
-
 .border-width-row {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  
+
   background: rgba(0, 0, 0, 0.2);
   padding: 14px;
   border-radius: 10px;
   -webkit-app-region: no-drag;
   transition: opacity 0.2s ease;
 }
-
 
 .shape-picker {
   display: flex;
@@ -276,7 +272,7 @@ body {
 }
 
 .shape-btn--active {
-  color: #0A84FF;
+  color: #0a84ff;
 }
 
 .shape-label {
@@ -284,7 +280,6 @@ body {
   font-weight: 500;
   white-space: nowrap;
 }
-
 
 .rounding-header {
   display: flex;
@@ -296,7 +291,7 @@ body {
 .rounding-value {
   font-size: 13px;
   font-weight: 600;
-  color: #0A84FF;
+  color: #0a84ff;
   font-variant-numeric: tabular-nums;
 }
 
@@ -314,7 +309,7 @@ body {
   background: rgba(255, 255, 255, 0.15);
   outline: none;
   cursor: pointer;
-  accent-color: #0A84FF;
+  accent-color: #0a84ff;
 }
 
 .rounding-slider::-webkit-slider-thumb {
@@ -323,7 +318,7 @@ body {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: #0A84FF;
+  background: #0a84ff;
   cursor: pointer;
   box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
   transition: box-shadow 0.2s;
@@ -356,9 +351,8 @@ body {
 }
 
 .slider-tick--active {
-  color: #0A84FF;
+  color: #0a84ff;
 }
-
 
 .gradient-picker {
   display: flex;
@@ -374,7 +368,9 @@ body {
   border-radius: 50%;
   border: none;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -386,7 +382,9 @@ body {
 }
 
 .gradient-swatch--active {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px rgba(255, 255, 255, 0.3);
   transform: scale(1.08);
 }
 
@@ -395,7 +393,9 @@ body {
 }
 
 .gradient-swatch--none.gradient-swatch--active {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 4px rgba(255, 255, 255, 0.3);
 }
 
 .gradient-swatch__x {
@@ -437,8 +437,14 @@ body {
 }
 
 @keyframes fadeSlideIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .gradient-editor__preview {
@@ -471,7 +477,9 @@ body {
   border-radius: 50%;
   position: relative;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
@@ -517,7 +525,7 @@ body {
 .gradient-editor__angle-value {
   font-size: 11px;
   font-weight: 600;
-  color: #0A84FF;
+  color: #0a84ff;
   font-variant-numeric: tabular-nums;
 }
 
@@ -543,13 +551,13 @@ body {
 }
 
 .gradient-editor__angle-btn--active {
-  color: #0A84FF;
+  color: #0a84ff;
 }
 
 .gradient-editor__apply {
   background: rgba(10, 132, 255, 0.12);
   border: none;
-  color: #0A84FF;
+  color: #0a84ff;
   font-size: 13px;
   font-weight: 600;
   padding: 7px 18px;
@@ -563,7 +571,6 @@ body {
 .gradient-editor__apply:hover {
   background: rgba(10, 132, 255, 0.22);
 }
-
 
 @keyframes pulse {
   0% {
@@ -612,7 +619,19 @@ body {
 }
 
 .settings-tab--active {
-  color: #0A84FF;
+  color: #0a84ff;
   background: rgba(10, 132, 255, 0.15);
 }
-@property --spin-angle { syntax: "<angle>"; inherits: true; initial-value: 0deg; } @keyframes spinBorder { 0% { --spin-angle: 0deg; } 100% { --spin-angle: 360deg; } }
+@property --spin-angle {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+@keyframes spinBorder {
+  0% {
+    --spin-angle: 0deg;
+  }
+  100% {
+    --spin-angle: 360deg;
+  }
+}

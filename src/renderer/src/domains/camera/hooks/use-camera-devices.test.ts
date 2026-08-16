@@ -62,7 +62,9 @@ describe('useCameraDevices', () => {
   })
   it('setSelectedDeviceId updates device selection', async () => {
     mockGetUserMedia.mockResolvedValue(mockStream)
-    mockEnumerateDevices.mockResolvedValue([{ kind: 'videoinput', deviceId: 'cam1', label: 'Camera 1' }])
+    mockEnumerateDevices.mockResolvedValue([
+      { kind: 'videoinput', deviceId: 'cam1', label: 'Camera 1' }
+    ])
     const { result } = renderHook(() => useCameraDevices())
     await waitFor(() => expect(result.current.selectedDeviceId).toBe('cam1'))
     act(() => {

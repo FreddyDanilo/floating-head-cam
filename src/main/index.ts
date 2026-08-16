@@ -1,5 +1,13 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, globalShortcut, ipcMain, session, systemPreferences, desktopCapturer } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  globalShortcut,
+  ipcMain,
+  session,
+  systemPreferences,
+  desktopCapturer
+} from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { getIsCameraOn, setIsCameraOn } from './domains/camera/camera.service'
 import { t } from '../shared/i18n'
@@ -40,7 +48,7 @@ app.whenReady().then(() => {
     setIsCameraOn(true)
   }
   loadSettings()
-  currentState.isRecording = false 
+  currentState.isRecording = false
   saveSettings()
   if (process.platform === 'darwin') {
     app.dock?.hide()
@@ -51,11 +59,14 @@ app.whenReady().then(() => {
   )
   session.defaultSession.setPermissionCheckHandler(() => true)
   session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-    desktopCapturer.getSources({ types: ['screen'] }).then((sources) => { 
-      callback({ video: sources[0], audio: 'loopback' })
-    }).catch(err => {
-      console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
-    })
+    desktopCapturer
+      .getSources({ types: ['screen'] })
+      .then((sources) => {
+        callback({ video: sources[0], audio: 'loopback' })
+      })
+      .catch((err) => {
+        console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
+      })
   })
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
@@ -81,7 +92,10 @@ app.whenReady().then(() => {
       }
       BrowserWindow.getAllWindows().forEach((win) => {
         if (win !== getSettingsWindow() && win.webContents) {
-          win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps })
+          win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', {
+            resolution: currentState.recordingResolution,
+            fps: currentState.recordingFps
+          })
         }
       })
     })
@@ -100,14 +114,14 @@ app.whenReady().then(() => {
       sw.setTitle(t('tray.preferences', state.language).replace('...', ''))
     }
   })
-  
+
   ipcMain.on('update-setting', (_, { key, value }) => {
     currentState[key] = value
     saveSettings()
     buildTrayMenu(currentState)
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('sync-setting', { key, value })
-      
+
       if (key === 'shape') {
         win.webContents.send('tray-action', { type: 'set-shape', payload: value })
       } else if (key === 'rounding') {
@@ -166,7 +180,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle('get-screen-sources', async () => {
     const sources = await desktopCapturer.getSources({ types: ['screen'] })
-    return sources.map(s => ({ id: s.id, name: s.name, display_id: s.display_id }))
+    return sources.map((s) => ({ id: s.id, name: s.name, display_id: s.display_id }))
   })
 
   ipcMain.on('update-shortcut', (_, key, value) => {
@@ -187,7 +201,16 @@ app.whenReady().then(() => {
           }
           BrowserWindow.getAllWindows().forEach((win) => {
             if (win !== getSettingsWindow() && win.webContents) {
-              win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps, systemAudioVolume: currentState.systemAudioVolume ?? 50, microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100, selectedMicrophoneId: currentState.selectedMicrophoneId || 'default' })
+              win.webContents.send(
+                currentState.isRecording ? 'stop-recording' : 'start-recording',
+                {
+                  resolution: currentState.recordingResolution,
+                  fps: currentState.recordingFps,
+                  systemAudioVolume: currentState.systemAudioVolume ?? 50,
+                  microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100,
+                  selectedMicrophoneId: currentState.selectedMicrophoneId || 'default'
+                }
+              )
             }
           })
         })
@@ -209,7 +232,7 @@ app.whenReady().then(() => {
   ipcMain.on('resize-window', (_, sizeObj) => {
     resizeWindow(sizeObj)
   })
-  
+
   setupRecordingIPC()
 
   createWindow(windowCallbacks)

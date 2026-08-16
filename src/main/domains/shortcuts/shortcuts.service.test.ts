@@ -10,11 +10,22 @@ vi.mock('electron', () => ({
 }))
 vi.mock('../settings/settings.service', () => ({
   shortcuts: {
-    topLeft: 'Alt+Q', topRight: 'Alt+E', leftMiddle: 'Alt+A',
-    center: 'Alt+S', rightMiddle: 'Alt+D', bottomLeft: 'Alt+Z',
-    bottomRight: 'Alt+C', sizeSmall: '1', sizeMedium: '2', sizeLarge: '3',
-    mirror: 'Alt+M', alwaysOnTop: 'Alt+T',
-    shapeCircle: '', shapeSquare: '', shapeVertical: '', shapeHorizontal: ''
+    topLeft: 'Alt+Q',
+    topRight: 'Alt+E',
+    leftMiddle: 'Alt+A',
+    center: 'Alt+S',
+    rightMiddle: 'Alt+D',
+    bottomLeft: 'Alt+Z',
+    bottomRight: 'Alt+C',
+    sizeSmall: '1',
+    sizeMedium: '2',
+    sizeLarge: '3',
+    mirror: 'Alt+M',
+    alwaysOnTop: 'Alt+T',
+    shapeCircle: '',
+    shapeSquare: '',
+    shapeVertical: '',
+    shapeHorizontal: ''
   },
   currentState: { isMirrored: false, alwaysOnTop: true }
 }))
@@ -51,7 +62,9 @@ describe('shortcuts.service', () => {
     expect(mockSetWindowPosition).toHaveBeenCalledWith('top-left')
   })
   it('does not crash when a shortcut fails to register', () => {
-    mockRegister.mockImplementationOnce(() => { throw new Error('already registered') })
+    mockRegister.mockImplementationOnce(() => {
+      throw new Error('already registered')
+    })
     expect(() => registerGlobalShortcuts(mockWin)).not.toThrow()
   })
   it('mirror shortcut sends set-mirror action', () => {

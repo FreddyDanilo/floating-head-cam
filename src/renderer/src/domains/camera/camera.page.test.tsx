@@ -7,7 +7,12 @@ const mockRemoveAllListeners = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
   ;(window as any).electron = {
-    ipcRenderer: { invoke: mockInvoke, send: mockSend, on: mockOn, removeAllListeners: mockRemoveAllListeners }
+    ipcRenderer: {
+      invoke: mockInvoke,
+      send: mockSend,
+      on: mockOn,
+      removeAllListeners: mockRemoveAllListeners
+    }
   }
   Object.defineProperty(global.navigator, 'mediaDevices', {
     writable: true,
@@ -29,8 +34,12 @@ describe('CameraPage', () => {
   })
   it('renders video element after receiving initial state', async () => {
     mockInvoke.mockResolvedValue({
-      isMirrored: false, shape: 'circle', sizeIndex: 0,
-      rounding: 24, alwaysOnTop: true, isCameraOn: true
+      isMirrored: false,
+      shape: 'circle',
+      sizeIndex: 0,
+      rounding: 24,
+      alwaysOnTop: true,
+      isCameraOn: true
     })
     const { container } = render(<CameraPage />)
     await waitFor(() => {
@@ -39,8 +48,12 @@ describe('CameraPage', () => {
   })
   it('applies 50% border-radius when shape is circle', async () => {
     mockInvoke.mockResolvedValue({
-      isMirrored: false, shape: 'circle', sizeIndex: 0,
-      rounding: 24, alwaysOnTop: true, isCameraOn: false
+      isMirrored: false,
+      shape: 'circle',
+      sizeIndex: 0,
+      rounding: 24,
+      alwaysOnTop: true,
+      isCameraOn: false
     })
     const { container } = render(<CameraPage />)
     await waitFor(() => {
@@ -50,8 +63,12 @@ describe('CameraPage', () => {
   })
   it('applies rounding border-radius when shape is square', async () => {
     mockInvoke.mockResolvedValue({
-      isMirrored: false, shape: 'square', sizeIndex: 0,
-      rounding: 16, alwaysOnTop: true, isCameraOn: false
+      isMirrored: false,
+      shape: 'square',
+      sizeIndex: 0,
+      rounding: 16,
+      alwaysOnTop: true,
+      isCameraOn: false
     })
     const { container } = render(<CameraPage />)
     await waitFor(() => {
@@ -61,8 +78,12 @@ describe('CameraPage', () => {
   })
   it('applies scaleX(-1) transform when mirrored', async () => {
     mockInvoke.mockResolvedValue({
-      isMirrored: true, shape: 'circle', sizeIndex: 0,
-      rounding: 24, alwaysOnTop: true, isCameraOn: false
+      isMirrored: true,
+      shape: 'circle',
+      sizeIndex: 0,
+      rounding: 24,
+      alwaysOnTop: true,
+      isCameraOn: false
     })
     const { container } = render(<CameraPage />)
     await waitFor(() => {
@@ -72,8 +93,12 @@ describe('CameraPage', () => {
   })
   it('applies scaleX(1) when not mirrored', async () => {
     mockInvoke.mockResolvedValue({
-      isMirrored: false, shape: 'circle', sizeIndex: 0,
-      rounding: 24, alwaysOnTop: true, isCameraOn: false
+      isMirrored: false,
+      shape: 'circle',
+      sizeIndex: 0,
+      rounding: 24,
+      alwaysOnTop: true,
+      isCameraOn: false
     })
     const { container } = render(<CameraPage />)
     await waitFor(() => {

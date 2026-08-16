@@ -9,7 +9,12 @@ import { useScreenRecorder } from './hooks/use-screen-recorder'
 const SIZES = [300, 450, 600]
 
 export function CameraPage(): React.JSX.Element {
-  const { devices, selectedDeviceId, setSelectedDeviceId, permissionError: devicesError } = useCameraDevices()
+  const {
+    devices,
+    selectedDeviceId,
+    setSelectedDeviceId,
+    permissionError: devicesError
+  } = useCameraDevices()
   const [isMirrored, setIsMirrored] = useState(true)
   const [shape, setShape] = useState<'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'>(
     'circle'
@@ -174,19 +179,19 @@ export function CameraPage(): React.JSX.Element {
         zIndex: 1
       }}
     >
-      <div 
+      <div
         style={{
           position: 'absolute',
           inset: 0,
           background: getGradient(prevGradient, isBorderAnimated),
           borderRadius: 'inherit',
-          opacity: (fade || currentGradient !== 'none') ? 1 : 0,
+          opacity: fade || currentGradient !== 'none' ? 1 : 0,
           transition: fade ? 'none' : 'opacity 0.4s ease',
           animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
           zIndex: -2
         }}
       />
-      <div 
+      <div
         style={{
           position: 'absolute',
           inset: 0,

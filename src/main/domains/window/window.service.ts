@@ -30,7 +30,8 @@ export function createSettingsWindow(): void {
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      autoplayPolicy: 'no-user-gesture-required'
     }
   })
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -122,7 +123,8 @@ export function createWindow(callbacks: WindowCallbacks): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      autoplayPolicy: 'no-user-gesture-required'
     }
   })
   mainWindow.setAlwaysOnTop(true, 'screen-saver')

@@ -34,17 +34,11 @@ export function PermissionErrorOverlay({ language = 'en' }: { language?: string 
       <div className="bg-red-500/20 p-4 rounded-full mb-4">
         <CameraOff size={48} className="text-red-400" />
       </div>
-      <h2 className="text-xl font-bold mb-2">
-        {t('camera.error.title', lang)}
-      </h2>
-      <p className="text-sm text-gray-300 mb-4 max-w-xs">
-        {t('camera.error.message', lang)}
-      </p>
-      <p className="text-xs text-gray-400 mb-6 max-w-[250px]">
-        {getInstructions()}
-      </p>
-      
-      <button 
+      <h2 className="text-xl font-bold mb-2">{t('camera.error.title', lang)}</h2>
+      <p className="text-sm text-gray-300 mb-4 max-w-xs">{t('camera.error.message', lang)}</p>
+      <p className="text-xs text-gray-400 mb-6 max-w-[250px]">{getInstructions()}</p>
+
+      <button
         onClick={handleRetry}
         className="px-5 py-2 bg-white/10 hover:bg-white/20 transition-colors rounded-lg text-sm font-medium border border-white/10"
       >

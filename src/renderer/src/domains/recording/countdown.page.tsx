@@ -13,15 +13,17 @@ export function CountdownPage(): React.JSX.Element {
   }, [])
 
   return (
-    <div style={{
-      width: '100vw',
-      height: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'transparent',
-      overflow: 'hidden'
-    }}>
+    <div
+      style={{
+        width: '100vw',
+        height: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+        overflow: 'hidden'
+      }}
+    >
       <style>
         {`
           @keyframes pulseFade {

@@ -21,30 +21,45 @@ describe('useScreenRecorder', () => {
       }
     })
 
-    vi.stubGlobal('AudioContext', class {
-      createMediaStreamDestination = vi.fn().mockReturnValue({ stream: { getAudioTracks: () => [{ stop: vi.fn() }] } })
-      createMediaStreamSource = vi.fn().mockReturnValue({ connect: vi.fn().mockReturnValue({ connect: vi.fn() }) })
-      createGain = vi.fn().mockReturnValue({ gain: { value: 1 }, connect: vi.fn().mockReturnValue({ connect: vi.fn() }) })
-      close = vi.fn()
-    })
-
-    vi.stubGlobal('MediaStream', class {
-      constructor(tracks: any[]) {
-        this.getTracks = () => tracks || []
-        this.getAudioTracks = () => tracks ? tracks.filter(t => !t.video) : []
-        this.getVideoTracks = () => tracks ? tracks.filter(t => t.video) : []
+    vi.stubGlobal(
+      'AudioContext',
+      class {
+        createMediaStreamDestination = vi
+          .fn()
+          .mockReturnValue({ stream: { getAudioTracks: () => [{ stop: vi.fn() }] } })
+        createMediaStreamSource = vi
+          .fn()
+          .mockReturnValue({ connect: vi.fn().mockReturnValue({ connect: vi.fn() }) })
+        createGain = vi.fn().mockReturnValue({
+          gain: { value: 1 },
+          connect: vi.fn().mockReturnValue({ connect: vi.fn() })
+        })
+        close = vi.fn()
       }
-      getTracks: () => any[]
-      getAudioTracks: () => any[]
-      getVideoTracks: () => any[]
-    })
+    )
+
+    vi.stubGlobal(
+      'MediaStream',
+      class {
+        constructor(tracks: any[]) {
+          this.getTracks = () => tracks || []
+          this.getAudioTracks = () => (tracks ? tracks.filter((t) => !t.video) : [])
+          this.getVideoTracks = () => (tracks ? tracks.filter((t) => t.video) : [])
+        }
+        getTracks: () => any[]
+        getAudioTracks: () => any[]
+        getVideoTracks: () => any[]
+      }
+    )
 
     const mockIpcRenderer = {
       invoke: vi.fn((channel) => {
         if (channel === 'check-screen-permission') return Promise.resolve('granted')
         if (channel === 'check-media-permission') return Promise.resolve('granted')
-        if (channel === 'get-screen-sources') return Promise.resolve([{ id: 'screen:1', name: 'Screen 1' }])
-        if (channel === 'recording-stop') return Promise.resolve({ success: true, filePath: 'test.mp4' })
+        if (channel === 'get-screen-sources')
+          return Promise.resolve([{ id: 'screen:1', name: 'Screen 1' }])
+        if (channel === 'recording-stop')
+          return Promise.resolve({ success: true, filePath: 'test.mp4' })
         return Promise.resolve()
       }),
       send: vi.fn(),
@@ -90,7 +105,7 @@ describe('useScreenRecorder', () => {
     await act(async () => {
       await Promise.resolve()
     })
-    
+
     expect(window.electron?.ipcRenderer.send).toHaveBeenCalledWith('recording-started')
   })
 

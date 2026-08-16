@@ -54,7 +54,7 @@ export function setupRecordingIPC() {
     return new Promise((resolve, reject) => {
       currentResolve = resolve
       currentReject = reject
-      recordingStream!.end() // Ends the stream, telling ffmpeg to finish processing
+      recordingStream!.end()
     })
   })
 }

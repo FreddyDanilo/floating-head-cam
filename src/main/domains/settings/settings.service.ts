@@ -19,16 +19,19 @@ export const defaultShortcuts = {
   shapeSquare: '',
   shapeVertical: '',
   shapeHorizontal: '',
-  startRecording: 'Alt+R'
+  startRecording: 'F10'
 }
 
 function getBestEncoderDefault(): string {
   if (process.platform === 'darwin') return 'h264_videotoolbox'
-  
+
   if (process.platform === 'win32') {
     try {
       const { execSync } = require('child_process')
-      const gpuInfo = execSync('wmic path win32_VideoController get name', { encoding: 'utf8', stdio: 'pipe' }).toLowerCase()
+      const gpuInfo = execSync('wmic path win32_VideoController get name', {
+        encoding: 'utf8',
+        stdio: 'pipe'
+      }).toLowerCase()
       if (gpuInfo.includes('nvidia')) return 'h264_nvenc'
       if (gpuInfo.includes('amd') || gpuInfo.includes('radeon')) return 'h264_amf'
       if (gpuInfo.includes('intel')) return 'h264_qsv'
@@ -40,7 +43,7 @@ function getBestEncoderDefault(): string {
       } catch (err) {}
     }
   }
-  
+
   return 'libx264'
 }
 
@@ -82,15 +85,23 @@ export function saveSettings(): void {
   const p = join(app.getPath('userData'), 'settings.json')
   fs.writeFileSync(p, JSON.stringify({ shortcuts, state: currentState }, null, 2))
 }
-export type SettingsTab = 'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording' | undefined
+export type SettingsTab =
+  'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording' | undefined
 
 export function resetToDefaults(tab?: SettingsTab | unknown): void {
-  const targetTab = (typeof tab === 'string' && ['visuals', 'positioning', 'cameraControl', 'sizing', 'recording'].includes(tab)) ? tab as SettingsTab : undefined;
-  
+  const targetTab =
+    typeof tab === 'string' &&
+    ['visuals', 'positioning', 'cameraControl', 'sizing', 'recording'].includes(tab)
+      ? (tab as SettingsTab)
+      : undefined
+
   if (!targetTab || targetTab === 'recording') {
     currentState.recordingResolution = defaultState.recordingResolution
     currentState.recordingFps = defaultState.recordingFps
     currentState.recordingEncoder = defaultState.recordingEncoder
+    currentState.systemAudioVolume = defaultState.systemAudioVolume
+    currentState.microphoneAudioVolume = defaultState.microphoneAudioVolume
+    currentState.selectedMicrophoneId = defaultState.selectedMicrophoneId
     shortcuts['startRecording'] = defaultShortcuts.startRecording
   }
 
@@ -101,19 +112,27 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
     currentState.borderGradient = defaultState.borderGradient
     currentState.isBorderAnimated = defaultState.isBorderAnimated
   }
-  
+
   if (!targetTab || targetTab === 'positioning') {
-    const posKeys = ['topLeft', 'topRight', 'leftMiddle', 'center', 'rightMiddle', 'bottomLeft', 'bottomRight']
+    const posKeys = [
+      'topLeft',
+      'topRight',
+      'leftMiddle',
+      'center',
+      'rightMiddle',
+      'bottomLeft',
+      'bottomRight'
+    ]
     posKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
   }
-  
+
   if (!targetTab || targetTab === 'cameraControl') {
     const camKeys = ['mirror', 'alwaysOnTop', 'toggleCamera']
     camKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
     currentState.isMirrored = defaultState.isMirrored
     currentState.alwaysOnTop = defaultState.alwaysOnTop
   }
-  
+
   if (!targetTab || targetTab === 'sizing') {
     const sizeKeys = ['sizeSmall', 'sizeMedium', 'sizeLarge']
     sizeKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))

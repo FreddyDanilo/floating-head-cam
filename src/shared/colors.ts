@@ -1,6 +1,7 @@
 export const GRADIENTS = {
   none: 'transparent',
-  gradient_01: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
+  gradient_01:
+    'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)',
   gradient_02: 'linear-gradient(45deg, #25F4EE 0%, #FE2C55 50%, #25F4EE 100%)',
   gradient_03: 'linear-gradient(45deg, #25D366 0%, #128C7E 100%)',
   gradient_04: 'linear-gradient(45deg, #00C6FF 0%, #0072FF 100%)',
@@ -17,7 +18,7 @@ export function getGradient(key: string, isAnimated = false): string {
   if (key in GRADIENTS) {
     val = GRADIENTS[key as GradientKey]
   }
-  
+
   if (isAnimated && val.startsWith('linear-gradient')) {
     const match = val.match(/^linear-gradient\([^,]+,\s*(.*)\)$/)
     if (match && match[1]) {
@@ -31,6 +32,6 @@ export function getGradient(key: string, isAnimated = false): string {
       }
     }
   }
-  
+
   return val
 }

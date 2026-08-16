@@ -20,7 +20,8 @@ function makeHandlers() {
     setPowerOn: vi.fn(),
     applySize: vi.fn(),
     setBorderGradient: vi.fn(),
-    setBorderWidth: vi.fn(), setIsBorderAnimated: vi.fn(),
+    setBorderWidth: vi.fn(),
+    setIsBorderAnimated: vi.fn(),
     sizeIndex: 0,
     shape: 'circle'
   }
@@ -95,7 +96,12 @@ describe('useTrayEvents', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
     const [, resetHandler] = mockOn.mock.calls.find(([ch]) => ch === 'settings-reset')!
-    resetHandler({}, { state: { isMirrored: true, shape: 'square', sizeIndex: 1, rounding: 16, alwaysOnTop: false } })
+    resetHandler(
+      {},
+      {
+        state: { isMirrored: true, shape: 'square', sizeIndex: 1, rounding: 16, alwaysOnTop: false }
+      }
+    )
     expect(handlers.setIsMirrored).toHaveBeenCalledWith(true)
     expect(handlers.setShape).toHaveBeenCalledWith('square')
     expect(handlers.setSizeIndex).toHaveBeenCalledWith(1)

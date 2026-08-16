@@ -126,7 +126,10 @@ const translations: Translations = {
     'settings.encoder.intel': 'Intel (QuickSync)',
     'settings.encoder.amd': 'AMD (AMF)',
     'settings.startRecording': 'Start / Stop Recording',
-    
+
+    'settings.recordingMicrophone': 'Microphone',
+    'settings.recordingMicrophoneDefault': 'System Default',
+
     'tray.startRecording': 'Start Recording',
     'tray.stopRecording': 'Stop Recording'
   },
@@ -227,9 +230,11 @@ const translations: Translations = {
     'tray.alwaysOnTop': 'Sempre no Topo',
     'tray.quit': 'Sair',
 
-    'camera.error.mac': 'Abra Ajustes do Sistema > Privacidade e Segurança > Câmera e permita o acesso.',
+    'camera.error.mac':
+      'Abra Ajustes do Sistema > Privacidade e Segurança > Câmera e permita o acesso.',
     'camera.error.win': 'Abra Configurações > Privacidade > Câmera e permita o acesso.',
-    'camera.error.default': 'Verifique as configurações de privacidade do seu sistema para liberar a câmera.',
+    'camera.error.default':
+      'Verifique as configurações de privacidade do seu sistema para liberar a câmera.',
     'camera.error.title': 'Câmera Bloqueada',
     'camera.error.message': 'O aplicativo precisa de permissão para usar a câmera.',
     'camera.error.tryAgain': 'Tentar Novamente',
@@ -254,6 +259,9 @@ const translations: Translations = {
     'settings.encoder.intel': 'Intel (QuickSync)',
     'settings.encoder.amd': 'AMD (AMF)',
     'settings.startRecording': 'Iniciar / Parar Gravação',
+
+    'settings.recordingMicrophone': 'Microfone',
+    'settings.recordingMicrophoneDefault': 'Padrão do Sistema',
 
     'tray.startRecording': 'Iniciar Gravação',
     'tray.stopRecording': 'Parar Gravação'

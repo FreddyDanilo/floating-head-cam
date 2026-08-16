@@ -49,10 +49,13 @@ export function buildTrayMenu(state: any): void {
   } = state
 
   const defaultIcon = nativeImage.createFromPath(icon).resize({ width: 16, height: 16 })
-  
-  const recordingIconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVUlEQVR4nGNgGGjAiEviv6vVfwzFu49hqGciVjMucSZiNeOSZyJFMzZ1TKRqRlfPxEAhYBpGBjBiSST4AEw9EzZBYjVjGECMIejyWMMAlyGkepMoAAB46CQabkYFpwAAAABJRU5ErkJggg=='
-  const recordingIcon = nativeImage.createFromDataURL(recordingIconBase64).resize({ width: 16, height: 16 })
-  
+
+  const recordingIconBase64 =
+    'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVUlEQVR4nGNgGGjAiEviv6vVfwzFu49hqGciVjMucSZiNeOSZyJFMzZ1TKRqRlfPxEAhYBpGBjBiSST4AEw9EzZBYjVjGECMIejyWMMAlyGkepMoAAB46CQabkYFpwAAAABJRU5ErkJggg=='
+  const recordingIcon = nativeImage
+    .createFromDataURL(recordingIconBase64)
+    .resize({ width: 16, height: 16 })
+
   tray.setImage(isRecording ? recordingIcon : defaultIcon)
 
   const sw = getSettingsWindow()
@@ -65,7 +68,9 @@ export function buildTrayMenu(state: any): void {
 
   const lang = state.language || 'en'
   const cameraItems = devices.map((device: any) => ({
-    label: device.label || t('tray.cameraFallback', lang).replace('{id}', device.deviceId.substring(0, 5)),
+    label:
+      device.label ||
+      t('tray.cameraFallback', lang).replace('{id}', device.deviceId.substring(0, 5)),
     type: 'radio' as const,
     checked: device.deviceId === selectedDeviceId,
     click: () => {
@@ -79,7 +84,7 @@ export function buildTrayMenu(state: any): void {
   const menu = Menu.buildFromTemplate([
     {
       label: getIsCameraOn() ? t('tray.turnOff', lang) : t('tray.turnOn', lang),
-      accelerator: 'F9',
+      accelerator: shortcuts.toggleCamera,
       registerAccelerator: false,
       click: () => toggleCamera(state)
     },
@@ -98,10 +103,16 @@ export function buildTrayMenu(state: any): void {
         if (!state.isRecording) {
           await showCountdown()
         }
-        
+
         BrowserWindow.getAllWindows().forEach((win) => {
           if (win !== sw) {
-            win.webContents.send(state.isRecording ? 'stop-recording' : 'start-recording', { resolution: state.recordingResolution, fps: state.recordingFps, systemAudioVolume: state.systemAudioVolume ?? 50, microphoneAudioVolume: state.microphoneAudioVolume ?? 100, selectedMicrophoneId: state.selectedMicrophoneId || 'default' })
+            win.webContents.send(state.isRecording ? 'stop-recording' : 'start-recording', {
+              resolution: state.recordingResolution,
+              fps: state.recordingFps,
+              systemAudioVolume: state.systemAudioVolume ?? 50,
+              microphoneAudioVolume: state.microphoneAudioVolume ?? 100,
+              selectedMicrophoneId: state.selectedMicrophoneId || 'default'
+            })
           }
         })
       }

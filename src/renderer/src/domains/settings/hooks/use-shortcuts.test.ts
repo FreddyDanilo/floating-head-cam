@@ -8,7 +8,12 @@ const mockRemoveAllListeners = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
   ;(window as any).electron = {
-    ipcRenderer: { invoke: mockInvoke, send: mockSend, on: mockOn, removeAllListeners: mockRemoveAllListeners }
+    ipcRenderer: {
+      invoke: mockInvoke,
+      send: mockSend,
+      on: mockOn,
+      removeAllListeners: mockRemoveAllListeners
+    }
   }
 })
 describe('formatMacShortcut', () => {
@@ -59,7 +64,9 @@ describe('useShortcuts', () => {
     const { result } = renderHook(() => useShortcuts())
     act(() => result.current.setListeningKey('topLeft'))
     act(() => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyQ', altKey: true, bubbles: true }))
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', { code: 'KeyQ', altKey: true, bubbles: true })
+      )
     })
     expect(mockSend).toHaveBeenCalledWith('update-shortcut', 'topLeft', 'Alt+Q')
   })
@@ -68,7 +75,9 @@ describe('useShortcuts', () => {
     const { result } = renderHook(() => useShortcuts())
     act(() => result.current.setListeningKey('topLeft'))
     act(() => {
-      window.dispatchEvent(new KeyboardEvent('keydown', { code: 'KeyQ', altKey: true, bubbles: true }))
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', { code: 'KeyQ', altKey: true, bubbles: true })
+      )
     })
     expect(result.current.listeningKey).toBeNull()
   })

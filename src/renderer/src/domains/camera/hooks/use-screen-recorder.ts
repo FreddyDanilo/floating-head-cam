@@ -11,107 +11,155 @@ export function useScreenRecorder() {
     }
   }, [])
 
-  const startRecording = useCallback(async (resolution: string, fps: string, systemAudioVolume: number, microphoneAudioVolume: number, selectedMicrophoneId: string) => {
-    try {
-      const ipc = window.electron?.ipcRenderer
-      if (!ipc) throw new Error('No IPC found')
+  const startRecording = useCallback(
+    async (
+      resolution: string,
+      fps: string,
+      systemAudioVolume: number,
+      microphoneAudioVolume: number,
+      selectedMicrophoneId: string
+    ) => {
+      try {
+        const ipc = window.electron?.ipcRenderer
+        if (!ipc) throw new Error('No IPC found')
 
-      const permission = await ipc.invoke('check-screen-permission')
-      if (permission !== 'granted') throw new Error('Screen permission denied')
+        const permission = await ipc.invoke('check-screen-permission')
+        if (permission !== 'granted') throw new Error('Screen permission denied')
 
-      const micPermission = await ipc.invoke('check-media-permission', 'microphone')
-      if (micPermission !== 'granted') throw new Error('Microphone permission denied')
+        const micPermission = await ipc.invoke('check-media-permission', 'microphone')
+        if (micPermission !== 'granted') throw new Error('Microphone permission denied')
 
-      const parsedFps = parseInt(fps, 10) || 30
-      let width = 1280
-      let height = 720
-      if (resolution === '1080p') { width = 1920; height = 1080 }
-      else if (resolution === '1440p') { width = 2560; height = 1440 }
-      else if (resolution === '2160p') { width = 3840; height = 2160 }
-
-      const desktopStream = await navigator.mediaDevices.getDisplayMedia({
-        video: { width: { ideal: width }, height: { ideal: height }, frameRate: { ideal: parsedFps } },
-        audio: true
-      })
-
-      const micStream = await navigator.mediaDevices.getUserMedia({
-        video: false,
-        audio: selectedMicrophoneId && selectedMicrophoneId !== 'default' ? { deviceId: { exact: selectedMicrophoneId } } : true
-      })
-
-      const audioCtx = new AudioContext()
-      audioContextRef.current = audioCtx
-      const dest = audioCtx.createMediaStreamDestination()
-
-      if (desktopStream.getAudioTracks().length > 0) {
-        const systemSource = audioCtx.createMediaStreamSource(new MediaStream([desktopStream.getAudioTracks()[0]]))
-        const systemGain = audioCtx.createGain()
-        systemGain.gain.value = systemAudioVolume / 100
-        systemSource.connect(systemGain).connect(dest)
-      }
-
-      // Mic Audio routing
-      if (micStream.getAudioTracks().length > 0) {
-        const micSource = audioCtx.createMediaStreamSource(new MediaStream([micStream.getAudioTracks()[0]]))
-        const micGain = audioCtx.createGain()
-        micGain.gain.value = microphoneAudioVolume / 100
-        micSource.connect(micGain).connect(dest)
-      }
-
-      // 4. Combine Video and Mixed Audio
-      const mixedStream = new MediaStream([
-        ...desktopStream.getVideoTracks(),
-        ...dest.stream.getAudioTracks()
-      ])
-
-      const mediaRecorder = new MediaRecorder(mixedStream, { 
-        mimeType: 'video/webm; codecs=vp9',
-        videoBitsPerSecond: 16000000 // 16 Mbps
-      })
-      
-      mediaRecorder.ondataavailable = async (e) => {
-        if (e.data.size > 0) {
-          const buffer = await e.data.arrayBuffer()
-          ipc.send('recording-chunk', buffer)
+        const parsedFps = parseInt(fps, 10) || 30
+        let width = 1280
+        let height = 720
+        if (resolution === '1080p') {
+          width = 1920
+          height = 1080
+        } else if (resolution === '1440p') {
+          width = 2560
+          height = 1440
+        } else if (resolution === '2160p') {
+          width = 3840
+          height = 2160
         }
-      }
 
-      mediaRecorder.onstop = async () => {
-        desktopStream.getTracks().forEach(track => track.stop())
-        micStream.getTracks().forEach(track => track.stop())
-        mixedStream.getTracks().forEach(track => track.stop())
-        if (audioContextRef.current) {
-          audioContextRef.current.close()
-          audioContextRef.current = null
+        const desktopStream = await navigator.mediaDevices.getDisplayMedia({
+          video: {
+            width: { ideal: width },
+            height: { ideal: height },
+            frameRate: { ideal: parsedFps }
+          },
+          audio: true
+        })
+
+        const micStream = await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio:
+            selectedMicrophoneId && selectedMicrophoneId !== 'default'
+              ? { deviceId: { exact: selectedMicrophoneId } }
+              : true
+        })
+
+        const audioCtx = new AudioContext()
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume()
         }
-        ipc.send('recording-stopped')
-        await ipc.invoke('recording-stop')
+        audioContextRef.current = audioCtx
+        const dest = audioCtx.createMediaStreamDestination()
+
+        if (desktopStream.getAudioTracks().length > 0) {
+          const systemSource = audioCtx.createMediaStreamSource(
+            new MediaStream([desktopStream.getAudioTracks()[0]])
+          )
+          const systemGain = audioCtx.createGain()
+          systemGain.gain.value = Number(systemAudioVolume ?? 50) / 100
+          systemSource.connect(systemGain).connect(dest)
+        }
+
+        if (micStream.getAudioTracks().length > 0) {
+          const micSource = audioCtx.createMediaStreamSource(
+            new MediaStream([micStream.getAudioTracks()[0]])
+          )
+          const micGain = audioCtx.createGain()
+          micGain.gain.value = Number(microphoneAudioVolume ?? 100) / 100
+          micSource.connect(micGain).connect(dest)
+        }
+
+        const mixedStream = new MediaStream([
+          ...desktopStream.getVideoTracks(),
+          ...dest.stream.getAudioTracks()
+        ])
+
+        const mediaRecorder = new MediaRecorder(mixedStream, {
+          mimeType: 'video/webm; codecs=vp9,opus',
+          videoBitsPerSecond: 16000000
+        })
+
+        mediaRecorder.ondataavailable = async (e) => {
+          if (e.data.size > 0) {
+            const buffer = await e.data.arrayBuffer()
+            ipc.send('recording-chunk', buffer)
+          }
+        }
+
+        mediaRecorder.onstop = async () => {
+          desktopStream.getTracks().forEach((track) => track.stop())
+          micStream.getTracks().forEach((track) => track.stop())
+          mixedStream.getTracks().forEach((track) => track.stop())
+          if (audioContextRef.current) {
+            audioContextRef.current.close()
+            audioContextRef.current = null
+          }
+          ipc.send('recording-stopped')
+          await ipc.invoke('recording-stop')
+        }
+
+        ipc.send('recording-start')
+        mediaRecorder.start(1000)
+        mediaRecorderRef.current = mediaRecorder
+
+        ipc.send('recording-started')
+      } catch (e) {
+        console.error('Failed to start recording', e)
       }
-
-      ipc.send('recording-start')
-      mediaRecorder.start(1000)
-      mediaRecorderRef.current = mediaRecorder
-      
-      ipc.send('recording-started')
-
-    } catch (e) {
-      console.error('Failed to start recording', e)
-    }
-  }, [])
+    },
+    []
+  )
 
   useEffect(() => {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
 
-    const handleStartRecording = (_e: any, { resolution, fps, systemAudioVolume, microphoneAudioVolume, selectedMicrophoneId }: { resolution: string, fps: string, systemAudioVolume: number, microphoneAudioVolume: number, selectedMicrophoneId: string }) => {
-      startRecording(resolution, fps, systemAudioVolume, microphoneAudioVolume, selectedMicrophoneId)
+    const handleStartRecording = (
+      _e: any,
+      {
+        resolution,
+        fps,
+        systemAudioVolume,
+        microphoneAudioVolume,
+        selectedMicrophoneId
+      }: {
+        resolution: string
+        fps: string
+        systemAudioVolume: number
+        microphoneAudioVolume: number
+        selectedMicrophoneId: string
+      }
+    ) => {
+      startRecording(
+        resolution,
+        fps,
+        systemAudioVolume,
+        microphoneAudioVolume,
+        selectedMicrophoneId
+      )
     }
 
     const handleStopRecording = () => {
       stopRecording()
     }
-    
-    const handleSyncSetting = (_e: any, { key, value }: { key: string, value: any }) => {
+
+    const handleSyncSetting = (_e: any, { key, value }: { key: string; value: any }) => {
       if (key === 'isRecording') {
         setIsRecording(value)
       }
@@ -120,7 +168,7 @@ export function useScreenRecorder() {
     ipc.on('start-recording', handleStartRecording)
     ipc.on('stop-recording', handleStopRecording)
     ipc.on('sync-setting', handleSyncSetting)
-    
+
     return () => {
       ipc.removeAllListeners('start-recording')
       ipc.removeAllListeners('stop-recording')

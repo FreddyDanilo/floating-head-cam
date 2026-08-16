@@ -1,7 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 const {
-  mockSetContextMenu, mockSend, mockShow, mockHide,
-  mockSetAlwaysOnTop, mockSetVisibleOnAllWorkspaces, MockTray
+  mockSetContextMenu,
+  mockSend,
+  mockShow,
+  mockHide,
+  mockSetAlwaysOnTop,
+  mockSetVisibleOnAllWorkspaces,
+  MockTray
 } = vi.hoisted(() => {
   const mockSetContextMenu = vi.fn()
   const mockSend = vi.fn()
@@ -10,14 +15,23 @@ const {
   const mockSetAlwaysOnTop = vi.fn()
   const mockSetVisibleOnAllWorkspaces = vi.fn()
   const mockSetImage = vi.fn()
-  const MockTray = vi.fn().mockImplementation(function() {
+  const MockTray = vi.fn().mockImplementation(function () {
     return { setToolTip: vi.fn(), setContextMenu: mockSetContextMenu, setImage: mockSetImage }
   })
-  return { mockSetContextMenu, mockSend, mockShow, mockHide, mockSetAlwaysOnTop, mockSetVisibleOnAllWorkspaces, MockTray }
+  return {
+    mockSetContextMenu,
+    mockSend,
+    mockShow,
+    mockHide,
+    mockSetAlwaysOnTop,
+    mockSetVisibleOnAllWorkspaces,
+    MockTray
+  }
 })
 const fakeWin = {
   webContents: { send: mockSend },
-  show: mockShow, hide: mockHide,
+  show: mockShow,
+  hide: mockHide,
   setAlwaysOnTop: mockSetAlwaysOnTop,
   setVisibleOnAllWorkspaces: mockSetVisibleOnAllWorkspaces
 }
@@ -51,18 +65,34 @@ vi.mock('../recording/countdown.service', () => ({
 }))
 vi.mock('../settings/settings.service', () => ({
   shortcuts: {
-    topLeft: 'Alt+Q', topRight: 'Alt+E', leftMiddle: 'Alt+A',
-    center: 'Alt+S', rightMiddle: 'Alt+D', bottomLeft: 'Alt+Z',
-    bottomRight: 'Alt+C', sizeSmall: '1', sizeMedium: '2', sizeLarge: '3',
-    mirror: 'Alt+M', alwaysOnTop: 'Alt+T',
-    shapeCircle: '', shapeSquare: '', shapeVertical: '', shapeHorizontal: ''
+    topLeft: 'Alt+Q',
+    topRight: 'Alt+E',
+    leftMiddle: 'Alt+A',
+    center: 'Alt+S',
+    rightMiddle: 'Alt+D',
+    bottomLeft: 'Alt+Z',
+    bottomRight: 'Alt+C',
+    sizeSmall: '1',
+    sizeMedium: '2',
+    sizeLarge: '3',
+    mirror: 'Alt+M',
+    alwaysOnTop: 'Alt+T',
+    shapeCircle: '',
+    shapeSquare: '',
+    shapeVertical: '',
+    shapeHorizontal: ''
   }
 }))
 import { initTray, buildTrayMenu, toggleCamera, setUpdateReady } from './tray.service'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
 const state = {
-  devices: [], selectedDeviceId: '', isMirrored: false,
-  shape: 'circle', sizeIndex: 0, rounding: 24, alwaysOnTop: true
+  devices: [],
+  selectedDeviceId: '',
+  isMirrored: false,
+  shape: 'circle',
+  sizeIndex: 0,
+  rounding: 24,
+  alwaysOnTop: true
 }
 describe('tray.service', () => {
   beforeEach(() => {

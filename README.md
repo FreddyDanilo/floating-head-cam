@@ -1,18 +1,18 @@
 <div align="center">
   <img src="resources/icon.png" width="128" alt="Floating Head Cam Logo" />
-  
-  # Floating Head Cam
-  
-  **Version 1.0.1** | **Created by Freddy Danilo**
-  
-  *Minimalist picture-in-picture (PiP) webcam application.*
+
+# Floating Head Cam
+
+**Version 1.0.1** | **Created by Freddy Danilo**
+
+_Minimalist picture-in-picture (PiP) webcam application._
 </div>
 
 ---
 
 ## Sobre
 
-**Floating Head Cam** é um aplicativo de câmera "picture-in-picture" construído com Electron, React e TypeScript. Ele permite exibir a imagem da tua webcam em uma janela flutuante que fica **sempre no topo** das outras janelas. 
+**Floating Head Cam** é um aplicativo de câmera "picture-in-picture" construído com Electron, React e TypeScript. Ele permite exibir a imagem da tua webcam em uma janela flutuante que fica **sempre no topo** das outras janelas.
 
 É a ferramenta perfeita para quem grava tutoriais, faz transmissões ao vivo (streams), apresentações ou reuniões online, e quer manter seu rosto visível na tela sem complicação.
 

@@ -22,7 +22,8 @@ describe('settings.service', () => {
   describe('loadSettings', () => {
     it('does nothing when settings file does not exist', async () => {
       vi.mocked(fs.existsSync).mockReturnValue(false)
-      const { loadSettings, shortcuts, currentState, defaultShortcuts, defaultState } = await import('./settings.service')
+      const { loadSettings, shortcuts, currentState, defaultShortcuts, defaultState } =
+        await import('./settings.service')
       loadSettings()
       expect(shortcuts.topLeft).toBe(defaultShortcuts.topLeft)
       expect(currentState.shape).toBe(defaultState.shape)
@@ -78,7 +79,8 @@ describe('settings.service', () => {
       vi.mocked(fs.readFileSync).mockReturnValue(
         JSON.stringify({ shortcuts: { topLeft: 'Ctrl+1' }, state: {} })
       )
-      const { loadSettings, resetToDefaults, shortcuts, defaultShortcuts } = await import('./settings.service')
+      const { loadSettings, resetToDefaults, shortcuts, defaultShortcuts } =
+        await import('./settings.service')
       loadSettings()
       resetToDefaults()
       expect(shortcuts.topLeft).toBe(defaultShortcuts.topLeft)

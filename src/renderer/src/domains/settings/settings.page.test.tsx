@@ -23,7 +23,12 @@ vi.mock('lucide-react', () => ({
 beforeEach(() => {
   vi.clearAllMocks()
   ;(window as any).electron = {
-    ipcRenderer: { invoke: mockInvoke, send: mockSend, on: mockOn, removeAllListeners: mockRemoveAllListeners }
+    ipcRenderer: {
+      invoke: mockInvoke,
+      send: mockSend,
+      on: mockOn,
+      removeAllListeners: mockRemoveAllListeners
+    }
   }
   Object.defineProperty(window.navigator, 'mediaDevices', {
     writable: true,
@@ -35,11 +40,22 @@ beforeEach(() => {
     }
   })
   mockInvoke.mockResolvedValue({
-    topLeft: 'Alt+Q', topRight: 'Alt+E', leftMiddle: 'Alt+A',
-    center: 'Alt+S', rightMiddle: 'Alt+D', bottomLeft: 'Alt+Z',
-    bottomRight: 'Alt+C', mirror: 'Alt+M', alwaysOnTop: 'Alt+T',
-    shapeCircle: '', shapeSquare: '', shapeVertical: '', shapeHorizontal: '',
-    sizeSmall: '1', sizeMedium: '2', sizeLarge: '3'
+    topLeft: 'Alt+Q',
+    topRight: 'Alt+E',
+    leftMiddle: 'Alt+A',
+    center: 'Alt+S',
+    rightMiddle: 'Alt+D',
+    bottomLeft: 'Alt+Z',
+    bottomRight: 'Alt+C',
+    mirror: 'Alt+M',
+    alwaysOnTop: 'Alt+T',
+    shapeCircle: '',
+    shapeSquare: '',
+    shapeVertical: '',
+    shapeHorizontal: '',
+    sizeSmall: '1',
+    sizeMedium: '2',
+    sizeLarge: '3'
   })
 })
 import { SettingsPage } from './settings.page'
@@ -92,7 +108,10 @@ describe('SettingsPage', () => {
   })
   it('shows Unbound for empty shortcut values', async () => {
     mockInvoke.mockResolvedValue({
-      topLeft: '', shapeSquare: '', shapeVertical: '', shapeHorizontal: ''
+      topLeft: '',
+      shapeSquare: '',
+      shapeVertical: '',
+      shapeHorizontal: ''
     })
     const { container } = render(<SettingsPage />)
     fireEvent.click(screen.getByText('Positioning'))
