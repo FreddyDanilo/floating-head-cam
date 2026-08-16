@@ -1,12 +1,14 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export function useCameraStream(
   selectedDeviceId: string,
   powerOn: boolean
 ): {
   videoRef: React.RefObject<HTMLVideoElement | null>
+  permissionError: boolean
 } {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const [permissionError, setPermissionError] = useState(false)
 
   useEffect(() => {
     const videoElement = videoRef.current
@@ -44,7 +46,11 @@ export function useCameraStream(
         if (videoElement) {
           videoElement.srcObject = stream
         }
-      } catch (err) {
+        setPermissionError(false)
+      } catch (err: any) {
+        if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
+          setPermissionError(true)
+        }
         console.error('Error starting video stream:', err)
       }
     }
@@ -64,5 +70,5 @@ export function useCameraStream(
     }
   }, [selectedDeviceId, powerOn])
 
-  return { videoRef }
+  return { videoRef, permissionError }
 }

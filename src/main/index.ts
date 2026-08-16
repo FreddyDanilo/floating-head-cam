@@ -41,7 +41,6 @@ app.whenReady().then(() => {
   if (process.platform === 'darwin') {
     app.dock?.hide()
     app.setLoginItemSettings({ openAtLogin: true, openAsHidden: true })
-    systemPreferences.askForMediaAccess('camera')
   }
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) =>
     callback(true)
@@ -96,6 +95,17 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))
   ipcMain.handle('get-shortcuts', () => shortcuts)
+  ipcMain.handle('check-media-permission', async (_, mediaType: 'camera' | 'microphone') => {
+    if (process.platform === 'darwin') {
+      const status = systemPreferences.getMediaAccessStatus(mediaType)
+      if (status === 'not-determined') {
+        const success = await systemPreferences.askForMediaAccess(mediaType)
+        return success ? 'granted' : 'denied'
+      }
+      return status
+    }
+    return 'granted'
+  })
   ipcMain.on('update-shortcut', (_, key, value) => {
     shortcuts[key] = value
     saveSettings()

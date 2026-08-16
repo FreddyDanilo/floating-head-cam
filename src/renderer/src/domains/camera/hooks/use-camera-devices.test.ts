@@ -24,6 +24,7 @@ describe('useCameraDevices', () => {
     const { result } = renderHook(() => useCameraDevices())
     expect(result.current.devices).toEqual([])
     expect(result.current.selectedDeviceId).toBe('')
+    expect(result.current.permissionError).toBe(false)
   })
   it('loads only video devices on mount', async () => {
     mockGetUserMedia.mockResolvedValue(mockStream)
@@ -51,10 +52,13 @@ describe('useCameraDevices', () => {
     await waitFor(() => expect(result.current.devices).toHaveLength(0))
     expect(result.current.selectedDeviceId).toBe('')
   })
-  it('handles getUserMedia error gracefully', async () => {
-    mockGetUserMedia.mockRejectedValue(new Error('Permission denied'))
+  it('handles getUserMedia error gracefully and sets permissionError', async () => {
+    const error = new Error('NotAllowedError')
+    error.name = 'NotAllowedError'
+    mockGetUserMedia.mockRejectedValue(error)
     const { result } = renderHook(() => useCameraDevices())
     await vi.waitFor(() => expect(result.current.devices).toEqual([]))
+    await vi.waitFor(() => expect(result.current.permissionError).toBe(true))
   })
   it('setSelectedDeviceId updates device selection', async () => {
     mockGetUserMedia.mockResolvedValue(mockStream)

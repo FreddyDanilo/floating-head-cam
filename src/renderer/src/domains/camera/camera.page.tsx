@@ -3,11 +3,12 @@ import { getGradient } from '../../../../shared/colors'
 import { useCameraDevices } from './hooks/use-camera-devices'
 import { useCameraStream } from './hooks/use-camera-stream'
 import { useTrayEvents } from './hooks/use-tray-events'
+import { PermissionErrorOverlay } from './components/permission-error-overlay'
 
 const SIZES = [300, 450, 600]
 
 export function CameraPage(): React.JSX.Element {
-  const { devices, selectedDeviceId, setSelectedDeviceId } = useCameraDevices()
+  const { devices, selectedDeviceId, setSelectedDeviceId, permissionError: devicesError } = useCameraDevices()
   const [isMirrored, setIsMirrored] = useState(true)
   const [shape, setShape] = useState<'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'>(
     'circle'
@@ -26,7 +27,8 @@ export function CameraPage(): React.JSX.Element {
   const [currentGradient, setCurrentGradient] = useState<string>('none')
   const [fade, setFade] = useState(false)
 
-  const { videoRef } = useCameraStream(selectedDeviceId, powerOn)
+  const { videoRef, permissionError: streamError } = useCameraStream(selectedDeviceId, powerOn)
+  const hasPermissionError = devicesError || streamError
 
   const applySize = useCallback((index: number, currentShape: string) => {
     const size = SIZES[index]
@@ -204,9 +206,11 @@ export function CameraPage(): React.JSX.Element {
           height: '100%',
           objectFit: 'cover',
           borderRadius: shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
-          transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)'
+          transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
+          display: hasPermissionError ? 'none' : 'block'
         }}
       />
+      {hasPermissionError && <PermissionErrorOverlay />}
     </div>
   )
 }

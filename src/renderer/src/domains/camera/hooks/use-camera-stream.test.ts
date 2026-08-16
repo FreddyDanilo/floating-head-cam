@@ -12,10 +12,11 @@ beforeEach(() => {
   })
 })
 describe('useCameraStream', () => {
-  it('returns a videoRef', () => {
+  it('returns a videoRef and permissionError', () => {
     const { result } = renderHook(() => useCameraStream('', false))
     expect(result.current.videoRef).toBeDefined()
     expect(result.current.videoRef.current).toBeNull()
+    expect(result.current.permissionError).toBe(false)
   })
   it('does not call getUserMedia when powerOn is false', () => {
     renderHook(() => useCameraStream('cam1', false))
@@ -46,8 +47,12 @@ describe('useCameraStream', () => {
     await vi.waitFor(() => expect(mockGetUserMedia).toHaveBeenCalled())
     unmount()
   })
-  it('handles getUserMedia error without crashing', async () => {
-    mockGetUserMedia.mockRejectedValue(new Error('NotAllowedError'))
-    expect(() => renderHook(() => useCameraStream('cam1', true))).not.toThrow()
+  it('handles getUserMedia error without crashing and sets permissionError', async () => {
+    const error = new Error('NotAllowedError')
+    error.name = 'NotAllowedError'
+    mockGetUserMedia.mockRejectedValue(error)
+    const { result } = renderHook(() => useCameraStream('cam1', true))
+    await vi.waitFor(() => expect(mockGetUserMedia).toHaveBeenCalled())
+    await vi.waitFor(() => expect(result.current.permissionError).toBe(true))
   })
 })

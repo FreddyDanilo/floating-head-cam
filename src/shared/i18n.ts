@@ -97,7 +97,14 @@ const translations: Translations = {
     'tray.size.large': 'Large',
     'tray.mirror': 'Mirror Camera',
     'tray.alwaysOnTop': 'Always on Top',
-    'tray.quit': 'Quit'
+    'tray.quit': 'Quit',
+
+    'camera.error.mac': 'Open System Settings > Privacy & Security > Camera and allow access.',
+    'camera.error.win': 'Open Settings > Privacy > Camera and allow access.',
+    'camera.error.default': 'Check your system privacy settings to allow camera access.',
+    'camera.error.title': 'Camera Blocked',
+    'camera.error.message': 'The application needs permission to use the camera.',
+    'camera.error.tryAgain': 'Try Again'
   },
   pt: {
     'settings.title': 'Floating Head Cam',
@@ -194,7 +201,14 @@ const translations: Translations = {
     'tray.size.large': 'Grande',
     'tray.mirror': 'Espelhar Câmera',
     'tray.alwaysOnTop': 'Sempre no Topo',
-    'tray.quit': 'Sair'
+    'tray.quit': 'Sair',
+
+    'camera.error.mac': 'Abra Ajustes do Sistema > Privacidade e Segurança > Câmera e permita o acesso.',
+    'camera.error.win': 'Abra Configurações > Privacidade > Câmera e permita o acesso.',
+    'camera.error.default': 'Verifique as configurações de privacidade do seu sistema para liberar a câmera.',
+    'camera.error.title': 'Câmera Bloqueada',
+    'camera.error.message': 'O aplicativo precisa de permissão para usar a câmera.',
+    'camera.error.tryAgain': 'Tentar Novamente'
   }
 }
 

@@ -4,9 +4,11 @@ export function useCameraDevices(): {
   devices: MediaDeviceInfo[]
   selectedDeviceId: string
   setSelectedDeviceId: React.Dispatch<React.SetStateAction<string>>
+  permissionError: boolean
 } {
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>('')
+  const [permissionError, setPermissionError] = useState<boolean>(false)
 
   useEffect(() => {
     let isMounted = true
@@ -28,7 +30,11 @@ export function useCameraDevices(): {
           if (stillExists && prev !== '') return prev
           return videoDevices[0]?.deviceId || ''
         })
-      } catch (err) {
+        setPermissionError(false)
+      } catch (err: any) {
+        if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
+          setPermissionError(true)
+        }
         console.error('Error getting media devices:', err)
       }
     }
@@ -43,5 +49,5 @@ export function useCameraDevices(): {
     }
   }, [])
 
-  return { devices, selectedDeviceId, setSelectedDeviceId }
+  return { devices, selectedDeviceId, setSelectedDeviceId, permissionError }
 }
