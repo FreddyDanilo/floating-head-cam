@@ -40,7 +40,7 @@ app.whenReady().then(() => {
     setIsCameraOn(true)
   }
   loadSettings()
-  currentState.isRecording = false // Ensure we don't start in recording state if previously crashed
+  currentState.isRecording = false 
   saveSettings()
   if (process.platform === 'darwin') {
     app.dock?.hide()
@@ -51,8 +51,7 @@ app.whenReady().then(() => {
   )
   session.defaultSession.setPermissionCheckHandler(() => true)
   session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-    desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
-      // Return the first screen and specify 'loopback' for system audio capture
+    desktopCapturer.getSources({ types: ['screen'] }).then((sources) => { 
       callback({ video: sources[0], audio: 'loopback' })
     }).catch(err => {
       console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
@@ -188,7 +187,7 @@ app.whenReady().then(() => {
           }
           BrowserWindow.getAllWindows().forEach((win) => {
             if (win !== getSettingsWindow() && win.webContents) {
-              win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps, systemAudioVolume: currentState.systemAudioVolume ?? 50, microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100 })
+              win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps, systemAudioVolume: currentState.systemAudioVolume ?? 50, microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100, selectedMicrophoneId: currentState.selectedMicrophoneId || 'default' })
             }
           })
         })

@@ -3,6 +3,7 @@ import React, { useState } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
 import { t } from '../../../../shared/i18n'
 import { useShortcuts } from './hooks/use-shortcuts'
+import { useAudioDevices } from '../camera/hooks/use-audio-devices'
 
 const SHAPE_KEYS = [
   {
@@ -70,6 +71,7 @@ function parseCustomGradient(grad: string): { color1: string; color2: string; an
 export function SettingsPage(): React.JSX.Element {
   const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, visualState, updateVisualState } =
     useShortcuts()
+  const { devices: audioDevices } = useAudioDevices()
 
   const [activeTab, setActiveTab] = useState<'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'>('visuals')
 
@@ -536,6 +538,24 @@ export function SettingsPage(): React.JSX.Element {
                       </button>
                     </>
                   )}
+                </div>
+              </div>
+
+              <div className="settings-row settings-row--column">
+                <span className="settings-label">{t('settings.recordingMicrophone', language) || 'Microphone'}</span>
+                <div className="select-wrap">
+                  <select
+                    className="settings-select"
+                    value={visualState.selectedMicrophoneId ?? 'default'}
+                    onChange={(e) => updateVisualState('selectedMicrophoneId', e.target.value)}
+                  >
+                    <option value="default">{t('settings.recordingMicrophoneDefault', language) || 'System Default'}</option>
+                    {audioDevices.map((device) => (
+                      <option key={device.deviceId} value={device.deviceId}>
+                        {device.label || `Microphone (${device.deviceId.substring(0, 5)})`}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
 

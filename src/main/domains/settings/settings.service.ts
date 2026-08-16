@@ -63,7 +63,8 @@ export const defaultState = {
   recordingEncoder: getBestEncoderDefault(),
   isRecording: false,
   systemAudioVolume: 50,
-  microphoneAudioVolume: 100
+  microphoneAudioVolume: 100,
+  selectedMicrophoneId: 'default'
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
 export const currentState: typeof defaultState & { [key: string]: any } = { ...defaultState }

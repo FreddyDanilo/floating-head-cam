@@ -11,7 +11,7 @@ export function useScreenRecorder() {
     }
   }, [])
 
-  const startRecording = useCallback(async (resolution: string, fps: string, systemAudioVolume: number, microphoneAudioVolume: number) => {
+  const startRecording = useCallback(async (resolution: string, fps: string, systemAudioVolume: number, microphoneAudioVolume: number, selectedMicrophoneId: string) => {
     try {
       const ipc = window.electron?.ipcRenderer
       if (!ipc) throw new Error('No IPC found')
@@ -29,24 +29,20 @@ export function useScreenRecorder() {
       else if (resolution === '1440p') { width = 2560; height = 1440 }
       else if (resolution === '2160p') { width = 3840; height = 2160 }
 
-      // 1. Get Desktop Stream (Screen + System Audio) natively via getDisplayMedia
       const desktopStream = await navigator.mediaDevices.getDisplayMedia({
         video: { width: { ideal: width }, height: { ideal: height }, frameRate: { ideal: parsedFps } },
         audio: true
       })
 
-      // 2. Get Microphone Stream
       const micStream = await navigator.mediaDevices.getUserMedia({
         video: false,
-        audio: true
+        audio: selectedMicrophoneId && selectedMicrophoneId !== 'default' ? { deviceId: { exact: selectedMicrophoneId } } : true
       })
 
-      // 3. Setup Audio Mixing
       const audioCtx = new AudioContext()
       audioContextRef.current = audioCtx
       const dest = audioCtx.createMediaStreamDestination()
 
-      // System Audio routing
       if (desktopStream.getAudioTracks().length > 0) {
         const systemSource = audioCtx.createMediaStreamSource(new MediaStream([desktopStream.getAudioTracks()[0]]))
         const systemGain = audioCtx.createGain()
@@ -107,8 +103,8 @@ export function useScreenRecorder() {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
 
-    const handleStartRecording = (_e: any, { resolution, fps, systemAudioVolume, microphoneAudioVolume }: { resolution: string, fps: string, systemAudioVolume: number, microphoneAudioVolume: number }) => {
-      startRecording(resolution, fps, systemAudioVolume, microphoneAudioVolume)
+    const handleStartRecording = (_e: any, { resolution, fps, systemAudioVolume, microphoneAudioVolume, selectedMicrophoneId }: { resolution: string, fps: string, systemAudioVolume: number, microphoneAudioVolume: number, selectedMicrophoneId: string }) => {
+      startRecording(resolution, fps, systemAudioVolume, microphoneAudioVolume, selectedMicrophoneId)
     }
 
     const handleStopRecording = () => {

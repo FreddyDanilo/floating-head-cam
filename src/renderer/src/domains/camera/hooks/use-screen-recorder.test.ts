@@ -84,7 +84,7 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('1080p', '60', 50, 100)
+      result.current.startRecording('1080p', '60', 50, 100, 'default')
     })
 
     await act(async () => {
@@ -98,7 +98,7 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('720p', '30', 50, 100)
+      result.current.startRecording('720p', '30', 50, 100, 'default')
     })
 
     await act(async () => {

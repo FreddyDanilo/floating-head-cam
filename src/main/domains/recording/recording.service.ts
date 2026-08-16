@@ -25,6 +25,7 @@ export function setupRecordingIPC() {
     ffmpegProcess = ffmpeg(recordingStream)
       .inputFormat('webm')
       .videoCodec(currentState.recordingEncoder || 'libx264')
+      .audioCodec('aac')
       .outputOptions(['-b:v 12M', '-maxrate 16M', '-bufsize 24M', '-pix_fmt yuv420p'])
       .output(filePath)
       .on('end', () => {

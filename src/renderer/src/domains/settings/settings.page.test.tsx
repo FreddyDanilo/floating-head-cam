@@ -25,6 +25,15 @@ beforeEach(() => {
   ;(window as any).electron = {
     ipcRenderer: { invoke: mockInvoke, send: mockSend, on: mockOn, removeAllListeners: mockRemoveAllListeners }
   }
+  Object.defineProperty(window.navigator, 'mediaDevices', {
+    writable: true,
+    value: {
+      getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [{ stop: vi.fn() }] }),
+      enumerateDevices: vi.fn().mockResolvedValue([]),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn()
+    }
+  })
   mockInvoke.mockResolvedValue({
     topLeft: 'Alt+Q', topRight: 'Alt+E', leftMiddle: 'Alt+A',
     center: 'Alt+S', rightMiddle: 'Alt+D', bottomLeft: 'Alt+Z',

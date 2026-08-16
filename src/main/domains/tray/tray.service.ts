@@ -101,7 +101,7 @@ export function buildTrayMenu(state: any): void {
         
         BrowserWindow.getAllWindows().forEach((win) => {
           if (win !== sw) {
-            win.webContents.send(state.isRecording ? 'stop-recording' : 'start-recording', { resolution: state.recordingResolution, fps: state.recordingFps, systemAudioVolume: state.systemAudioVolume ?? 50, microphoneAudioVolume: state.microphoneAudioVolume ?? 100 })
+            win.webContents.send(state.isRecording ? 'stop-recording' : 'start-recording', { resolution: state.recordingResolution, fps: state.recordingFps, systemAudioVolume: state.systemAudioVolume ?? 50, microphoneAudioVolume: state.microphoneAudioVolume ?? 100, selectedMicrophoneId: state.selectedMicrophoneId || 'default' })
           }
         })
       }
