@@ -43,8 +43,16 @@ export function buildTrayMenu(state: any): void {
     selectedDeviceId = '',
     isMirrored = false,
     sizeIndex = 0,
-    alwaysOnTop = true
+    alwaysOnTop = true,
+    isRecording = false
   } = state
+
+  const defaultIcon = nativeImage.createFromPath(icon).resize({ width: 16, height: 16 })
+  
+  const recordingIconBase64 = 'data:image/svg+xml;base64,' + Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#ff453a"/></svg>').toString('base64')
+  const recordingIcon = nativeImage.createFromDataURL(recordingIconBase64).resize({ width: 16, height: 16 })
+  
+  tray.setImage(isRecording ? recordingIcon : defaultIcon)
 
   const sw = getSettingsWindow()
   BrowserWindow.getAllWindows().forEach((win) => {
@@ -80,6 +88,17 @@ export function buildTrayMenu(state: any): void {
           { label: t('tray.startUpdate', lang), click: () => autoUpdater.quitAndInstall() }
         ]
       : []),
+    { type: 'separator' },
+    {
+      label: state.isRecording ? t('tray.stopRecording', lang) : t('tray.startRecording', lang),
+      click: () => {
+        BrowserWindow.getAllWindows().forEach((win) => {
+          if (win !== sw) {
+            win.webContents.send('toggle-recording', { resolution: state.recordingResolution, fps: state.recordingFps })
+          }
+        })
+      }
+    },
     { type: 'separator' },
     { label: t('tray.preferences', lang), click: () => createSettingsWindow() },
     { type: 'separator' },

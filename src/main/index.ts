@@ -1,5 +1,5 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, globalShortcut, ipcMain, session, systemPreferences } from 'electron'
+import { app, BrowserWindow, globalShortcut, ipcMain, session, systemPreferences, desktopCapturer } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { getIsCameraOn, setIsCameraOn } from './domains/camera/camera.service'
 import { t } from '../shared/i18n'
@@ -21,6 +21,7 @@ import {
   resizeWindow,
   setWindowPosition
 } from './domains/window/window.service'
+import { setupRecordingIPC } from './domains/recording/recording.service'
 
 const windowCallbacks = {
   onFocus: (win: BrowserWindow) => {
@@ -46,6 +47,14 @@ app.whenReady().then(() => {
     callback(true)
   )
   session.defaultSession.setPermissionCheckHandler(() => true)
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': ["script-src 'self' 'unsafe-inline' 'unsafe-eval'"]
+      }
+    })
+  })
   electronApp.setAppUserModelId('com.electron')
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
@@ -106,6 +115,26 @@ app.whenReady().then(() => {
     }
     return 'granted'
   })
+
+  ipcMain.handle('check-screen-permission', async () => {
+    if (process.platform === 'darwin') {
+      const status = systemPreferences.getMediaAccessStatus('screen')
+      if (status !== 'granted') {
+        try {
+          await desktopCapturer.getSources({ types: ['screen'] })
+        } catch (e) {}
+        return systemPreferences.getMediaAccessStatus('screen')
+      }
+      return status
+    }
+    return 'granted'
+  })
+
+  ipcMain.handle('get-screen-sources', async () => {
+    const sources = await desktopCapturer.getSources({ types: ['screen'] })
+    return sources.map(s => ({ id: s.id, name: s.name, display_id: s.display_id }))
+  })
+
   ipcMain.on('update-shortcut', (_, key, value) => {
     shortcuts[key] = value
     saveSettings()
@@ -134,6 +163,9 @@ app.whenReady().then(() => {
   ipcMain.on('resize-window', (_, sizeObj) => {
     resizeWindow(sizeObj)
   })
+  
+  setupRecordingIPC()
+
   createWindow(windowCallbacks)
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

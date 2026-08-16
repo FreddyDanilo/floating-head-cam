@@ -18,7 +18,8 @@ export const defaultShortcuts = {
   shapeCircle: '',
   shapeSquare: '',
   shapeVertical: '',
-  shapeHorizontal: ''
+  shapeHorizontal: '',
+  startRecording: 'Alt+R'
 }
 export const defaultState = {
   devices: [] as any[],
@@ -33,7 +34,10 @@ export const defaultState = {
   isBorderAnimated: false,
   x: undefined as number | undefined,
   y: undefined as number | undefined,
-  language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt')
+  language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt'),
+  recordingResolution: '1080p',
+  recordingFps: '60',
+  isRecording: false
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
 export const currentState: typeof defaultState & { [key: string]: any } = { ...defaultState }
@@ -51,12 +55,17 @@ export function saveSettings(): void {
   const p = join(app.getPath('userData'), 'settings.json')
   fs.writeFileSync(p, JSON.stringify({ shortcuts, state: currentState }, null, 2))
 }
-export type SettingsTab = 'visuals' | 'positioning' | 'cameraControl' | 'sizing' | undefined
+export type SettingsTab = 'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording' | undefined
 
 export function resetToDefaults(tab?: SettingsTab | unknown): void {
-  // If the parameter passed is an IPC event object or unknown string, we default to full reset (undefined)
-  const targetTab = (typeof tab === 'string' && ['visuals', 'positioning', 'cameraControl', 'sizing'].includes(tab)) ? tab as SettingsTab : undefined;
+  const targetTab = (typeof tab === 'string' && ['visuals', 'positioning', 'cameraControl', 'sizing', 'recording'].includes(tab)) ? tab as SettingsTab : undefined;
   
+  if (!targetTab || targetTab === 'recording') {
+    currentState.recordingResolution = defaultState.recordingResolution
+    currentState.recordingFps = defaultState.recordingFps
+    shortcuts['startRecording'] = defaultShortcuts.startRecording
+  }
+
   if (!targetTab || targetTab === 'visuals') {
     currentState.shape = defaultState.shape
     currentState.rounding = defaultState.rounding

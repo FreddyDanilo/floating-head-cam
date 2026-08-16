@@ -47,28 +47,18 @@ const GRADIENT_ENTRIES = Object.entries(GRADIENTS).filter(([k]) => k !== 'none')
 
 const PRESET_ANGLES = [0, 45, 90, 135]
 
-/**
- * Maps a rounding value to a 0-100 slider position.
- * Values >= 9999 represent "full circle" and map to 100.
- */
 function roundingToSlider(rounding: number): number {
   return rounding >= 9999 ? 100 : Math.min(rounding, 99)
 }
 
-/**
- * Maps a slider position (0-100) back to a rounding value.
- * Position 100 maps to 9999 (full circle).
- */
 function sliderToRounding(val: number): number {
   return val >= 100 ? 9999 : val
 }
 
-/** Checks whether a CSS string looks like a linear-gradient (custom). */
 function isLinearGradient(val: string): boolean {
   return val.startsWith('linear-gradient')
 }
 
-/** Parses color1, color2 and angle from a simple two-stop linear-gradient string. */
 function parseCustomGradient(grad: string): { color1: string; color2: string; angle: number } {
   const match = grad.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/)
   if (match) {
@@ -81,7 +71,7 @@ export function SettingsPage(): React.JSX.Element {
   const { shortcuts, listeningKey, setListeningKey, resetSettings, formatMacShortcut, language, visualState, updateVisualState } =
     useShortcuts()
 
-  const [activeTab, setActiveTab] = useState<'visuals' | 'positioning' | 'cameraControl' | 'sizing'>('visuals')
+  const [activeTab, setActiveTab] = useState<'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'>('visuals')
 
   const [showGradientEditor, setShowGradientEditor] = useState(false)
   const [gradColor1, setGradColor1] = useState('#ff6b6b')
@@ -145,6 +135,13 @@ export function SettingsPage(): React.JSX.Element {
         { key: 'sizeMedium', label: t('settings.sizeMedium', language) },
         { key: 'sizeLarge', label: t('settings.sizeLarge', language) }
       ]
+    },
+    {
+      key: 'recording',
+      title: t('settings.recording', language),
+      actions: [
+        { key: 'startRecording', label: t('settings.startRecording', language), icon: <Clapperboard size={16} /> }
+      ]
     }
   ]
 
@@ -188,6 +185,12 @@ export function SettingsPage(): React.JSX.Element {
           onClick={() => setActiveTab('sizing')}
         >
           {t('settings.sizing', language)}
+        </button>
+        <button
+          className={`settings-tab ${activeTab === 'recording' ? 'settings-tab--active' : ''}`}
+          onClick={() => setActiveTab('recording')}
+        >
+          {t('settings.recording', language)}
         </button>
       </div>
 
@@ -442,6 +445,28 @@ export function SettingsPage(): React.JSX.Element {
                         {action.icon}
                         {action.label}
                       </span>
+                      
+                      {section.key === 'recording' && action.key === 'startRecording' && (
+                        <div style={{ display: 'flex', gap: '16px', marginRight: 'auto', marginLeft: '24px' }}>
+                          <select
+                            value={visualState.recordingResolution}
+                            onChange={(e) => updateVisualState('recordingResolution', e.target.value)}
+                            className="bg-black/20 text-white border border-white/10 rounded px-2 py-1 text-sm outline-none"
+                          >
+                            <option value="720p">{t('settings.recording.720p', language)}</option>
+                            <option value="1080p">{t('settings.recording.1080p', language)}</option>
+                          </select>
+                          <select
+                            value={visualState.recordingFps}
+                            onChange={(e) => updateVisualState('recordingFps', e.target.value)}
+                            className="bg-black/20 text-white border border-white/10 rounded px-2 py-1 text-sm outline-none"
+                          >
+                            <option value="30">{t('settings.recording.30fps', language)}</option>
+                            <option value="60">{t('settings.recording.60fps', language)}</option>
+                          </select>
+                        </div>
+                      )}
+
                       <div
                         className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
                         onClick={() => setListeningKey(action.key)}

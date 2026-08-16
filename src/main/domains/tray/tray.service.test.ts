@@ -9,8 +9,9 @@ const {
   const mockHide = vi.fn()
   const mockSetAlwaysOnTop = vi.fn()
   const mockSetVisibleOnAllWorkspaces = vi.fn()
+  const mockSetImage = vi.fn()
   const MockTray = vi.fn().mockImplementation(function() {
-    return { setToolTip: vi.fn(), setContextMenu: mockSetContextMenu }
+    return { setToolTip: vi.fn(), setContextMenu: mockSetContextMenu, setImage: mockSetImage }
   })
   return { mockSetContextMenu, mockSend, mockShow, mockHide, mockSetAlwaysOnTop, mockSetVisibleOnAllWorkspaces, MockTray }
 })
@@ -25,7 +26,14 @@ vi.mock('electron', () => ({
   BrowserWindow: { getAllWindows: vi.fn(() => [fakeWin]) },
   Menu: { buildFromTemplate: vi.fn((tmpl) => ({ _template: tmpl })) },
   Tray: MockTray,
-  nativeImage: { createFromPath: vi.fn(() => ({ resize: vi.fn(() => 'icon') })) }
+  nativeImage: {
+    createFromPath: vi.fn().mockReturnValue({
+      resize: vi.fn().mockReturnThis()
+    }),
+    createFromDataURL: vi.fn().mockReturnValue({
+      resize: vi.fn().mockReturnThis()
+    })
+  }
 }))
 vi.mock('electron-updater', () => ({ autoUpdater: { quitAndInstall: vi.fn() } }))
 vi.mock('../../../../resources/icon.png?asset', () => ({ default: '/mock/icon.png' }))

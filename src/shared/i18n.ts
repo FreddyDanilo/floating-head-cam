@@ -104,7 +104,21 @@ const translations: Translations = {
     'camera.error.default': 'Check your system privacy settings to allow camera access.',
     'camera.error.title': 'Camera Blocked',
     'camera.error.message': 'The application needs permission to use the camera.',
-    'camera.error.tryAgain': 'Try Again'
+    'camera.error.tryAgain': 'Try Again',
+    'camera.off': 'Camera Off',
+    'camera.status.denied': 'Status: Denied by OS',
+
+    'settings.recording': 'Screen Recording',
+    'settings.recordingResolution': 'Resolution',
+    'settings.recordingFps': 'Framerate',
+    'settings.recording.720p': '720p (HD)',
+    'settings.recording.1080p': '1080p (Full HD)',
+    'settings.recording.30fps': '30 FPS',
+    'settings.recording.60fps': '60 FPS',
+    'settings.startRecording': 'Start / Stop Recording',
+    
+    'tray.startRecording': 'Start Recording',
+    'tray.stopRecording': 'Stop Recording'
   },
   pt: {
     'settings.title': 'Floating Head Cam',
@@ -208,7 +222,21 @@ const translations: Translations = {
     'camera.error.default': 'Verifique as configurações de privacidade do seu sistema para liberar a câmera.',
     'camera.error.title': 'Câmera Bloqueada',
     'camera.error.message': 'O aplicativo precisa de permissão para usar a câmera.',
-    'camera.error.tryAgain': 'Tentar Novamente'
+    'camera.error.tryAgain': 'Tentar Novamente',
+    'camera.off': 'Câmera Desligada',
+    'camera.status.denied': 'Status: Negado pelo SO',
+
+    'settings.recording': 'Gravação de Tela',
+    'settings.recordingResolution': 'Resolução',
+    'settings.recordingFps': 'Taxa de Quadros',
+    'settings.recording.720p': '720p (HD)',
+    'settings.recording.1080p': '1080p (Full HD)',
+    'settings.recording.30fps': '30 FPS',
+    'settings.recording.60fps': '60 FPS',
+    'settings.startRecording': 'Iniciar / Parar Gravação',
+
+    'tray.startRecording': 'Iniciar Gravação',
+    'tray.stopRecording': 'Parar Gravação'
   }
 }
 

@@ -53,7 +53,7 @@ export function PermissionErrorOverlay({ language = 'en' }: { language?: string 
 
       {cameraPermission === 'denied' && (
         <div className="absolute bottom-4 text-[10px] text-red-400/50">
-          Status: Denied by OS
+          {t('camera.status.denied', lang)}
         </div>
       )}
     </div>

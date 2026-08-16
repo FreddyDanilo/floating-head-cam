@@ -48,6 +48,9 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
   register(shortcuts.shapeHorizontal, () =>
     win.webContents.send('tray-action', { type: 'set-shape', payload: 'horizontal-rect' })
   )
+  register(shortcuts.startRecording, () =>
+    win.webContents.send('toggle-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps })
+  )
 }
 export function unregisterGlobalShortcuts(): void {
   const keys = Object.values(shortcuts)

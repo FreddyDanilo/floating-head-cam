@@ -29,12 +29,16 @@ export function useShortcuts() {
     borderGradient: string
     borderWidth: number
     isBorderAnimated: boolean
+    recordingResolution: string
+    recordingFps: string
   }>({
     shape: 'circle',
     rounding: 24,
     borderGradient: 'none',
     borderWidth: 4,
-    isBorderAnimated: false
+    isBorderAnimated: false,
+    recordingResolution: '1080p',
+    recordingFps: '60'
   })
 
   useEffect(() => {
@@ -50,7 +54,9 @@ export function useShortcuts() {
         rounding: data.rounding ?? 24,
         borderGradient: data.borderGradient || 'none',
         borderWidth: data.borderWidth ?? 4,
-        isBorderAnimated: data.isBorderAnimated || false
+        isBorderAnimated: data.isBorderAnimated || false,
+        recordingResolution: data.recordingResolution || '1080p',
+        recordingFps: data.recordingFps || '60'
       })
     })
     const handleReset = (_e: any, payload: any) => {
@@ -62,13 +68,14 @@ export function useShortcuts() {
           rounding: payload.state.rounding ?? 24,
           borderGradient: payload.state.borderGradient || 'none',
           borderWidth: payload.state.borderWidth ?? 4,
-          isBorderAnimated: payload.state.isBorderAnimated || false
+          isBorderAnimated: payload.state.isBorderAnimated || false,
+          recordingResolution: payload.state.recordingResolution || '1080p',
+          recordingFps: payload.state.recordingFps || '60'
         })
       }
     }
     const handleSyncLanguage = (_e: any, lang: 'en' | 'pt') => setLanguage(lang)
     
-    // Add handler for setting sync if updated elsewhere
     const handleSyncSetting = (_e: any, { key, value }: { key: string, value: any }) => {
       setVisualState(prev => ({ ...prev, [key]: value }))
     }
