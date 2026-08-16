@@ -15,6 +15,7 @@ import {
   unregisterGlobalShortcuts
 } from './domains/shortcuts/shortcuts.service'
 import { buildTrayMenu, initTray, setUpdateReady, toggleCamera } from './domains/tray/tray.service'
+import { showCountdown } from './domains/recording/countdown.service'
 import {
   createWindow,
   getSettingsWindow,
@@ -39,6 +40,8 @@ app.whenReady().then(() => {
     setIsCameraOn(true)
   }
   loadSettings()
+  currentState.isRecording = false // Ensure we don't start in recording state if previously crashed
+  saveSettings()
   if (process.platform === 'darwin') {
     app.dock?.hide()
     app.setLoginItemSettings({ openAtLogin: true, openAsHidden: true })
@@ -63,6 +66,18 @@ app.whenReady().then(() => {
   buildTrayMenu(currentState)
   if (shortcuts.toggleCamera) {
     globalShortcut.register(shortcuts.toggleCamera, () => toggleCamera(currentState))
+  }
+  if (shortcuts.startRecording) {
+    globalShortcut.register(shortcuts.startRecording, async () => {
+      if (!currentState.isRecording) {
+        await showCountdown()
+      }
+      BrowserWindow.getAllWindows().forEach((win) => {
+        if (win !== getSettingsWindow() && win.webContents) {
+          win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps })
+        }
+      })
+    })
   }
   autoUpdater.on('update-downloaded', () => {
     setUpdateReady(true)
@@ -102,6 +117,18 @@ app.whenReady().then(() => {
   ipcMain.on('set-window-position', (_, pos) => {
     setWindowPosition(pos)
   })
+  ipcMain.on('recording-started', () => {
+    currentState.isRecording = true
+    saveSettings()
+    buildTrayMenu(currentState)
+  })
+
+  ipcMain.on('recording-stopped', () => {
+    currentState.isRecording = false
+    saveSettings()
+    buildTrayMenu(currentState)
+  })
+
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))
   ipcMain.handle('get-shortcuts', () => shortcuts)
   ipcMain.handle('check-media-permission', async (_, mediaType: 'camera' | 'microphone') => {
@@ -145,6 +172,18 @@ app.whenReady().then(() => {
       globalShortcut.unregisterAll()
       if (shortcuts.toggleCamera) {
         globalShortcut.register(shortcuts.toggleCamera, () => toggleCamera(currentState))
+      }
+      if (shortcuts.startRecording) {
+        globalShortcut.register(shortcuts.startRecording, async () => {
+          if (!currentState.isRecording) {
+            await showCountdown()
+          }
+          BrowserWindow.getAllWindows().forEach((win) => {
+            if (win !== getSettingsWindow() && win.webContents) {
+              win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps })
+            }
+          })
+        })
       }
       if (floatingHead.isFocused()) {
         registerGlobalShortcuts(floatingHead)

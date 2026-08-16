@@ -433,6 +433,115 @@ export function SettingsPage(): React.JSX.Element {
           </div>
         )}
 
+        {activeTab === 'recording' && (
+          <div className="settings-section">
+            <div className="settings-list">
+              <div className="settings-row settings-row--column">
+                <span className="settings-label">{t('settings.recordingResolution', language)}</span>
+                <div className="shape-picker" style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                  <button
+                    className={`shape-btn ${visualState.recordingResolution === '720p' ? 'shape-btn--active' : ''}`}
+                    onClick={() => updateVisualState('recordingResolution', '720p')}
+                    style={{ flex: 1 }}
+                  >
+                    <span className="shape-label">{t('settings.recording.720p', language)}</span>
+                  </button>
+                  <button
+                    className={`shape-btn ${visualState.recordingResolution === '1080p' ? 'shape-btn--active' : ''}`}
+                    onClick={() => updateVisualState('recordingResolution', '1080p')}
+                    style={{ flex: 1 }}
+                  >
+                    <span className="shape-label">{t('settings.recording.1080p', language)}</span>
+                  </button>
+                  <button
+                    className={`shape-btn ${visualState.recordingResolution === '1440p' ? 'shape-btn--active' : ''}`}
+                    onClick={() => updateVisualState('recordingResolution', '1440p')}
+                    style={{ flex: 1 }}
+                  >
+                    <span className="shape-label">{t('settings.recording.1440p', language)}</span>
+                  </button>
+                  <button
+                    className={`shape-btn ${visualState.recordingResolution === '2160p' ? 'shape-btn--active' : ''}`}
+                    onClick={() => updateVisualState('recordingResolution', '2160p')}
+                    style={{ flex: 1 }}
+                  >
+                    <span className="shape-label">{t('settings.recording.2160p', language)}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-row settings-row--column">
+                <span className="settings-label">{t('settings.recordingFps', language)}</span>
+                <div className="shape-picker" style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                  <button
+                    className={`shape-btn ${visualState.recordingFps === '30' ? 'shape-btn--active' : ''}`}
+                    onClick={() => updateVisualState('recordingFps', '30')}
+                    style={{ flex: 1 }}
+                  >
+                    <span className="shape-label">{t('settings.recording.30fps', language)}</span>
+                  </button>
+                  <button
+                    className={`shape-btn ${visualState.recordingFps === '60' ? 'shape-btn--active' : ''}`}
+                    onClick={() => updateVisualState('recordingFps', '60')}
+                    style={{ flex: 1 }}
+                  >
+                    <span className="shape-label">{t('settings.recording.60fps', language)}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="settings-row settings-row--column">
+                <span className="settings-label">{t('settings.recordingEncoder', language)}</span>
+                <div className="shape-picker" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' }}>
+                  <button
+                    className={`shape-btn ${visualState.recordingEncoder === 'libx264' ? 'shape-btn--active' : ''}`}
+                    onClick={() => updateVisualState('recordingEncoder', 'libx264')}
+                    style={{ flex: '1 1 45%' }}
+                  >
+                    <span className="shape-label">{t('settings.encoder.cpu', language)}</span>
+                  </button>
+
+                  {window.electron?.process.platform === 'darwin' && (
+                    <button
+                      className={`shape-btn ${visualState.recordingEncoder === 'h264_videotoolbox' ? 'shape-btn--active' : ''}`}
+                      onClick={() => updateVisualState('recordingEncoder', 'h264_videotoolbox')}
+                      style={{ flex: '1 1 45%' }}
+                    >
+                      <span className="shape-label">{t('settings.encoder.mac', language)}</span>
+                    </button>
+                  )}
+
+                  {window.electron?.process.platform === 'win32' && (
+                    <>
+                      <button
+                        className={`shape-btn ${visualState.recordingEncoder === 'h264_nvenc' ? 'shape-btn--active' : ''}`}
+                        onClick={() => updateVisualState('recordingEncoder', 'h264_nvenc')}
+                        style={{ flex: '1 1 45%' }}
+                      >
+                        <span className="shape-label">{t('settings.encoder.nvidia', language)}</span>
+                      </button>
+                      <button
+                        className={`shape-btn ${visualState.recordingEncoder === 'h264_qsv' ? 'shape-btn--active' : ''}`}
+                        onClick={() => updateVisualState('recordingEncoder', 'h264_qsv')}
+                        style={{ flex: '1 1 45%' }}
+                      >
+                        <span className="shape-label">{t('settings.encoder.intel', language)}</span>
+                      </button>
+                      <button
+                        className={`shape-btn ${visualState.recordingEncoder === 'h264_amf' ? 'shape-btn--active' : ''}`}
+                        onClick={() => updateVisualState('recordingEncoder', 'h264_amf')}
+                        style={{ flex: '1 1 45%' }}
+                      >
+                        <span className="shape-label">{t('settings.encoder.amd', language)}</span>
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {sections
           .filter((section) => section.key === activeTab)
           .map((section) => (
@@ -445,28 +554,6 @@ export function SettingsPage(): React.JSX.Element {
                         {action.icon}
                         {action.label}
                       </span>
-                      
-                      {section.key === 'recording' && action.key === 'startRecording' && (
-                        <div style={{ display: 'flex', gap: '16px', marginRight: 'auto', marginLeft: '24px' }}>
-                          <select
-                            value={visualState.recordingResolution}
-                            onChange={(e) => updateVisualState('recordingResolution', e.target.value)}
-                            className="bg-black/20 text-white border border-white/10 rounded px-2 py-1 text-sm outline-none"
-                          >
-                            <option value="720p">{t('settings.recording.720p', language)}</option>
-                            <option value="1080p">{t('settings.recording.1080p', language)}</option>
-                          </select>
-                          <select
-                            value={visualState.recordingFps}
-                            onChange={(e) => updateVisualState('recordingFps', e.target.value)}
-                            className="bg-black/20 text-white border border-white/10 rounded px-2 py-1 text-sm outline-none"
-                          >
-                            <option value="30">{t('settings.recording.30fps', language)}</option>
-                            <option value="60">{t('settings.recording.60fps', language)}</option>
-                          </select>
-                        </div>
-                      )}
-
                       <div
                         className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
                         onClick={() => setListeningKey(action.key)}

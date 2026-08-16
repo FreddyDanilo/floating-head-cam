@@ -1,72 +1,66 @@
-import { ipcMain, dialog, BrowserWindow } from 'electron'
+import { ipcMain, app } from 'electron'
 import ffmpeg from 'fluent-ffmpeg'
 import ffmpegStatic from 'ffmpeg-static'
-import fs from 'fs'
 import path from 'path'
-import os from 'os'
+import { PassThrough } from 'stream'
+import { currentState } from '../settings/settings.service'
 
 if (ffmpegStatic) {
   ffmpeg.setFfmpegPath(ffmpegStatic)
 }
 
-let activeTempFile: string | null = null
-let writeStream: fs.WriteStream | null = null
+let recordingStream: PassThrough | null = null
+let ffmpegProcess: ffmpeg.FfmpegCommand | null = null
+let currentResolve: ((value: any) => void) | null = null
+let currentReject: ((reason?: any) => void) | null = null
 
 export function setupRecordingIPC() {
   ipcMain.on('recording-start', () => {
-    activeTempFile = path.join(os.tmpdir(), `floating-head-recording-${Date.now()}.webm`)
-    writeStream = fs.createWriteStream(activeTempFile)
+    recordingStream = new PassThrough()
+
+    const videosFolder = app.getPath('videos')
+    const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mkv`
+    const filePath = path.join(videosFolder, fileName)
+
+    ffmpegProcess = ffmpeg(recordingStream)
+      .inputFormat('webm')
+      .videoCodec(currentState.recordingEncoder || 'libx264')
+      .outputOptions(['-b:v 12M', '-maxrate 16M', '-bufsize 24M', '-pix_fmt yuv420p'])
+      .output(filePath)
+      .on('end', () => {
+        if (currentResolve) currentResolve({ success: true, filePath })
+        cleanup()
+      })
+      .on('error', (err) => {
+        if (currentReject) currentReject(err)
+        cleanup()
+      })
+
+    ffmpegProcess.run()
   })
 
   ipcMain.on('recording-chunk', (_, chunk: ArrayBuffer) => {
-    if (writeStream) {
-      writeStream.write(Buffer.from(chunk))
+    if (recordingStream) {
+      recordingStream.write(Buffer.from(chunk))
     }
   })
 
-  ipcMain.handle('recording-stop', async (event) => {
-    if (writeStream) {
-      writeStream.end()
-      writeStream = null
-    }
-
-    if (!activeTempFile || !fs.existsSync(activeTempFile)) {
-      return { success: false, error: 'No recording found' }
-    }
-
-    const window = BrowserWindow.fromWebContents(event.sender)
-    const { canceled, filePath } = await dialog.showSaveDialog(window || BrowserWindow.getAllWindows()[0], {
-      title: 'Save Screen Recording',
-      defaultPath: `Recording-${new Date().toISOString().replace(/:/g, '-')}.mp4`,
-      filters: [{ name: 'Movies', extensions: ['mp4'] }]
-    })
-
-    if (canceled || !filePath) {
-      try {
-        fs.unlinkSync(activeTempFile)
-      } catch(e) {}
-      activeTempFile = null
-      return { success: false, canceled: true }
+  ipcMain.handle('recording-stop', async () => {
+    if (!recordingStream || !ffmpegProcess) {
+      return { success: false, error: 'No recording in progress' }
     }
 
     return new Promise((resolve, reject) => {
-      ffmpeg(activeTempFile!)
-        .output(filePath)
-        .videoCodec('libx264')
-        .outputOptions(['-preset veryfast', '-crf 23', '-pix_fmt yuv420p'])
-        .on('end', () => {
-          if (activeTempFile) {
-            try {
-              fs.unlinkSync(activeTempFile)
-            } catch(e) {}
-            activeTempFile = null
-          }
-          resolve({ success: true, filePath })
-        })
-        .on('error', (err) => {
-          reject(err)
-        })
-        .run()
+      currentResolve = resolve
+      currentReject = reject
+      recordingStream!.end() // Ends the stream, telling ffmpeg to finish processing
     })
   })
+}
+
+function cleanup() {
+  recordingStream = null
+  ffmpegProcess = null
+  currentResolve = null
+  currentReject = null
 }

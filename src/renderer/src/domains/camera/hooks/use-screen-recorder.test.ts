@@ -52,11 +52,9 @@ describe('useScreenRecorder', () => {
   it('initializes with default values', () => {
     const { result } = renderHook(() => useScreenRecorder())
     expect(result.current.isRecording).toBe(false)
-    expect(result.current.countdown).toBe(null)
   })
 
-  it('starts recording after countdown', async () => {
-    vi.useFakeTimers()
+  it('starts recording correctly', async () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
@@ -66,29 +64,11 @@ describe('useScreenRecorder', () => {
     await act(async () => {
       await Promise.resolve()
     })
-    expect(result.current.countdown).toBe(3)
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000)
-    })
-    expect(result.current.countdown).toBe(2)
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000)
-    })
-    expect(result.current.countdown).toBe(1)
-
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(1000)
-    })
     
-    expect(result.current.isRecording).toBe(true)
-
-    vi.useRealTimers()
+    expect(window.electron?.ipcRenderer.send).toHaveBeenCalledWith('recording-started')
   })
 
   it('stops recording correctly', async () => {
-    vi.useFakeTimers()
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
@@ -96,17 +76,13 @@ describe('useScreenRecorder', () => {
     })
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(4000)
+      await Promise.resolve()
     })
-
-    expect(result.current.isRecording).toBe(true)
 
     act(() => {
       result.current.stopRecording()
     })
 
-    expect(result.current.isRecording).toBe(false)
-    
-    vi.useRealTimers()
+    expect(window.electron?.ipcRenderer.invoke).toHaveBeenCalledWith('recording-stop')
   })
 })

@@ -2,13 +2,11 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 
 export function useScreenRecorder() {
   const [isRecording, setIsRecording] = useState(false)
-  const [countdown, setCountdown] = useState<number | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
       mediaRecorderRef.current.stop()
-      setIsRecording(false)
     }
   }, [])
 
@@ -25,17 +23,14 @@ export function useScreenRecorder() {
       const sources = await ipc.invoke('get-screen-sources')
       if (sources.length === 0) throw new Error('No screen sources found')
 
-      const primarySource = sources[0] 
-
-      for (let i = 3; i > 0; i--) {
-        setCountdown(i)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-      }
-      setCountdown(null)
+      const primarySource = sources[0]
 
       const parsedFps = parseInt(fps, 10) || 30
-      const height = resolution === '1080p' ? 1080 : 720
-      const width = resolution === '1080p' ? 1920 : 1280
+      let width = 1280
+      let height = 720
+      if (resolution === '1080p') { width = 1920; height = 1080 }
+      else if (resolution === '1440p') { width = 2560; height = 1440 }
+      else if (resolution === '2160p') { width = 3840; height = 2160 }
 
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
@@ -53,7 +48,10 @@ export function useScreenRecorder() {
         } as any
       })
 
-      const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' })
+      const mediaRecorder = new MediaRecorder(stream, { 
+        mimeType: 'video/webm; codecs=vp9',
+        videoBitsPerSecond: 16000000 // 16 Mbps for high quality capture
+      })
       
       mediaRecorder.ondataavailable = async (e) => {
         if (e.data.size > 0) {
@@ -64,17 +62,18 @@ export function useScreenRecorder() {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach(track => track.stop())
+        ipc.send('recording-stopped')
         await ipc.invoke('recording-stop')
       }
 
       ipc.send('recording-start')
       mediaRecorder.start(1000)
       mediaRecorderRef.current = mediaRecorder
-      setIsRecording(true)
+      
+      ipc.send('recording-started')
 
     } catch (e) {
       console.error('Failed to start recording', e)
-      setCountdown(null)
     }
   }, [])
 
@@ -82,22 +81,30 @@ export function useScreenRecorder() {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
 
-    const handleToggleRecording = (_e: any, { resolution, fps }: { resolution: string, fps: string }) => {
-      setIsRecording((prev) => {
-        if (prev) {
-          stopRecording()
-        } else {
-          startRecording(resolution, fps)
-        }
-        return !prev 
-      })
+    const handleStartRecording = (_e: any, { resolution, fps }: { resolution: string, fps: string }) => {
+      startRecording(resolution, fps)
     }
 
-    ipc.on('toggle-recording', handleToggleRecording)
+    const handleStopRecording = () => {
+      stopRecording()
+    }
+    
+    const handleSyncSetting = (_e: any, { key, value }: { key: string, value: any }) => {
+      if (key === 'isRecording') {
+        setIsRecording(value)
+      }
+    }
+
+    ipc.on('start-recording', handleStartRecording)
+    ipc.on('stop-recording', handleStopRecording)
+    ipc.on('sync-setting', handleSyncSetting)
+    
     return () => {
-      ipc.removeAllListeners('toggle-recording')
+      ipc.removeAllListeners('start-recording')
+      ipc.removeAllListeners('stop-recording')
+      ipc.removeAllListeners('sync-setting')
     }
   }, [startRecording, stopRecording])
 
-  return { isRecording, countdown, startRecording, stopRecording }
+  return { isRecording, startRecording, stopRecording }
 }

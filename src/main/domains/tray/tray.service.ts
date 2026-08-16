@@ -2,6 +2,7 @@ import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../../../resources/icon.png?asset'
 import { t } from '../../../shared/i18n'
+import { showCountdown } from '../recording/countdown.service'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
 import { saveSettings, shortcuts } from '../settings/settings.service'
 import {
@@ -49,7 +50,7 @@ export function buildTrayMenu(state: any): void {
 
   const defaultIcon = nativeImage.createFromPath(icon).resize({ width: 16, height: 16 })
   
-  const recordingIconBase64 = 'data:image/svg+xml;base64,' + Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="#ff453a"/></svg>').toString('base64')
+  const recordingIconBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAVUlEQVR4nGNgGGjAiEviv6vVfwzFu49hqGciVjMucSZiNeOSZyJFMzZ1TKRqRlfPxEAhYBpGBjBiSST4AEw9EzZBYjVjGECMIejyWMMAlyGkepMoAAB46CQabkYFpwAAAABJRU5ErkJggg=='
   const recordingIcon = nativeImage.createFromDataURL(recordingIconBase64).resize({ width: 16, height: 16 })
   
   tray.setImage(isRecording ? recordingIcon : defaultIcon)
@@ -91,10 +92,16 @@ export function buildTrayMenu(state: any): void {
     { type: 'separator' },
     {
       label: state.isRecording ? t('tray.stopRecording', lang) : t('tray.startRecording', lang),
-      click: () => {
+      accelerator: shortcuts.startRecording,
+      registerAccelerator: false,
+      click: async () => {
+        if (!state.isRecording) {
+          await showCountdown()
+        }
+        
         BrowserWindow.getAllWindows().forEach((win) => {
           if (win !== sw) {
-            win.webContents.send('toggle-recording', { resolution: state.recordingResolution, fps: state.recordingFps })
+            win.webContents.send(state.isRecording ? 'stop-recording' : 'start-recording', { resolution: state.recordingResolution, fps: state.recordingFps })
           }
         })
       }

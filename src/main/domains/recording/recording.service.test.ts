@@ -3,6 +3,9 @@ import { setupRecordingIPC } from './recording.service'
 import { ipcMain } from 'electron'
 
 vi.mock('electron', () => ({
+  app: {
+    getLocale: vi.fn().mockReturnValue('en-US')
+  },
   ipcMain: {
     on: vi.fn(),
     handle: vi.fn()

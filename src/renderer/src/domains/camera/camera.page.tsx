@@ -28,7 +28,7 @@ export function CameraPage(): React.JSX.Element {
   const [currentGradient, setCurrentGradient] = useState<string>('none')
   const [fade, setFade] = useState(false)
 
-  const { isRecording, countdown } = useScreenRecorder()
+  useScreenRecorder()
 
   const { videoRef, permissionError: streamError } = useCameraStream(selectedDeviceId, powerOn)
   const hasPermissionError = devicesError || streamError
@@ -198,31 +198,6 @@ export function CameraPage(): React.JSX.Element {
           zIndex: -1
         }}
       />
-      {isRecording && (
-        <div 
-          className="animate-pulse"
-          style={{ 
-            position: 'absolute', 
-            top: '16px', 
-            right: '16px', 
-            width: '12px', 
-            height: '12px', 
-            borderRadius: '50%', 
-            backgroundColor: '#ff453a', 
-            boxShadow: '0 0 8px rgba(255, 69, 58, 0.8)',
-            zIndex: 10
-          }} 
-        />
-      )}
-      
-      {countdown !== null && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 bg-black/40 backdrop-blur-sm rounded-[inherit]">
-          <span className="text-white text-6xl font-bold animate-pulse drop-shadow-lg">
-            {countdown}
-          </span>
-        </div>
-      )}
-
       <video
         ref={videoRef}
         autoPlay

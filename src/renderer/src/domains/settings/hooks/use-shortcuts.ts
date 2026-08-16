@@ -31,6 +31,7 @@ export function useShortcuts() {
     isBorderAnimated: boolean
     recordingResolution: string
     recordingFps: string
+    recordingEncoder: string
   }>({
     shape: 'circle',
     rounding: 24,
@@ -38,7 +39,8 @@ export function useShortcuts() {
     borderWidth: 4,
     isBorderAnimated: false,
     recordingResolution: '1080p',
-    recordingFps: '60'
+    recordingFps: '60',
+    recordingEncoder: 'libx264'
   })
 
   useEffect(() => {
@@ -56,7 +58,8 @@ export function useShortcuts() {
         borderWidth: data.borderWidth ?? 4,
         isBorderAnimated: data.isBorderAnimated || false,
         recordingResolution: data.recordingResolution || '1080p',
-        recordingFps: data.recordingFps || '60'
+        recordingFps: data.recordingFps || '60',
+        recordingEncoder: data.recordingEncoder || 'libx264'
       })
     })
     const handleReset = (_e: any, payload: any) => {
@@ -70,7 +73,8 @@ export function useShortcuts() {
           borderWidth: payload.state.borderWidth ?? 4,
           isBorderAnimated: payload.state.isBorderAnimated || false,
           recordingResolution: payload.state.recordingResolution || '1080p',
-          recordingFps: payload.state.recordingFps || '60'
+          recordingFps: payload.state.recordingFps || '60',
+          recordingEncoder: payload.state.recordingEncoder || 'libx264'
         })
       }
     }

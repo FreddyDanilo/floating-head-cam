@@ -21,6 +21,29 @@ export const defaultShortcuts = {
   shapeHorizontal: '',
   startRecording: 'Alt+R'
 }
+
+function getBestEncoderDefault(): string {
+  if (process.platform === 'darwin') return 'h264_videotoolbox'
+  
+  if (process.platform === 'win32') {
+    try {
+      const { execSync } = require('child_process')
+      const gpuInfo = execSync('wmic path win32_VideoController get name', { encoding: 'utf8', stdio: 'pipe' }).toLowerCase()
+      if (gpuInfo.includes('nvidia')) return 'h264_nvenc'
+      if (gpuInfo.includes('amd') || gpuInfo.includes('radeon')) return 'h264_amf'
+      if (gpuInfo.includes('intel')) return 'h264_qsv'
+    } catch (e) {
+      try {
+        const cpuModel = require('os').cpus()[0]?.model?.toLowerCase() || ''
+        if (cpuModel.includes('intel')) return 'h264_qsv'
+        if (cpuModel.includes('amd')) return 'h264_amf'
+      } catch (err) {}
+    }
+  }
+  
+  return 'libx264'
+}
+
 export const defaultState = {
   devices: [] as any[],
   selectedDeviceId: '',
@@ -37,6 +60,7 @@ export const defaultState = {
   language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt'),
   recordingResolution: '1080p',
   recordingFps: '60',
+  recordingEncoder: getBestEncoderDefault(),
   isRecording: false
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
@@ -63,6 +87,7 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
   if (!targetTab || targetTab === 'recording') {
     currentState.recordingResolution = defaultState.recordingResolution
     currentState.recordingFps = defaultState.recordingFps
+    currentState.recordingEncoder = defaultState.recordingEncoder
     shortcuts['startRecording'] = defaultShortcuts.startRecording
   }
 

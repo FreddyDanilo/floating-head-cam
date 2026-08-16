@@ -46,6 +46,9 @@ vi.mock('../window/window.service', () => ({
   createSettingsWindow: vi.fn(),
   setWindowPosition: vi.fn()
 }))
+vi.mock('../recording/countdown.service', () => ({
+  showCountdown: vi.fn(() => Promise.resolve())
+}))
 vi.mock('../settings/settings.service', () => ({
   shortcuts: {
     topLeft: 'Alt+Q', topRight: 'Alt+E', leftMiddle: 'Alt+A',
