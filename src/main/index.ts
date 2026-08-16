@@ -50,6 +50,14 @@ app.whenReady().then(() => {
     callback(true)
   )
   session.defaultSession.setPermissionCheckHandler(() => true)
+  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
+    desktopCapturer.getSources({ types: ['screen'] }).then((sources) => {
+      // Return the first screen and specify 'loopback' for system audio capture
+      callback({ video: sources[0], audio: 'loopback' })
+    }).catch(err => {
+      console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
+    })
+  })
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
@@ -180,7 +188,7 @@ app.whenReady().then(() => {
           }
           BrowserWindow.getAllWindows().forEach((win) => {
             if (win !== getSettingsWindow() && win.webContents) {
-              win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps })
+              win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', { resolution: currentState.recordingResolution, fps: currentState.recordingFps, systemAudioVolume: currentState.systemAudioVolume ?? 50, microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100 })
             }
           })
         })

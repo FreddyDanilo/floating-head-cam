@@ -9,14 +9,40 @@ describe('useScreenRecorder', () => {
     vi.stubGlobal('navigator', {
       mediaDevices: {
         getUserMedia: vi.fn().mockResolvedValue({
-          getTracks: () => [{ stop: vi.fn() }]
+          getTracks: () => [{ stop: vi.fn() }],
+          getAudioTracks: () => [{ stop: vi.fn() }],
+          getVideoTracks: () => [{ stop: vi.fn() }]
+        }),
+        getDisplayMedia: vi.fn().mockResolvedValue({
+          getTracks: () => [{ stop: vi.fn() }],
+          getAudioTracks: () => [{ stop: vi.fn() }],
+          getVideoTracks: () => [{ stop: vi.fn() }]
         })
       }
+    })
+
+    vi.stubGlobal('AudioContext', class {
+      createMediaStreamDestination = vi.fn().mockReturnValue({ stream: { getAudioTracks: () => [{ stop: vi.fn() }] } })
+      createMediaStreamSource = vi.fn().mockReturnValue({ connect: vi.fn().mockReturnValue({ connect: vi.fn() }) })
+      createGain = vi.fn().mockReturnValue({ gain: { value: 1 }, connect: vi.fn().mockReturnValue({ connect: vi.fn() }) })
+      close = vi.fn()
+    })
+
+    vi.stubGlobal('MediaStream', class {
+      constructor(tracks: any[]) {
+        this.getTracks = () => tracks || []
+        this.getAudioTracks = () => tracks ? tracks.filter(t => !t.video) : []
+        this.getVideoTracks = () => tracks ? tracks.filter(t => t.video) : []
+      }
+      getTracks: () => any[]
+      getAudioTracks: () => any[]
+      getVideoTracks: () => any[]
     })
 
     const mockIpcRenderer = {
       invoke: vi.fn((channel) => {
         if (channel === 'check-screen-permission') return Promise.resolve('granted')
+        if (channel === 'check-media-permission') return Promise.resolve('granted')
         if (channel === 'get-screen-sources') return Promise.resolve([{ id: 'screen:1', name: 'Screen 1' }])
         if (channel === 'recording-stop') return Promise.resolve({ success: true, filePath: 'test.mp4' })
         return Promise.resolve()
@@ -58,7 +84,7 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('1080p', '60')
+      result.current.startRecording('1080p', '60', 50, 100)
     })
 
     await act(async () => {
@@ -72,7 +98,7 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('720p', '30')
+      result.current.startRecording('720p', '30', 50, 100)
     })
 
     await act(async () => {

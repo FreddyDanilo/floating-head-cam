@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import '../../assets/main.css' // Import global styles
+import '../../assets/main.css'
 
 export function CountdownPage(): React.JSX.Element {
   const [countdown, setCountdown] = useState<number>(3)
@@ -8,7 +8,7 @@ export function CountdownPage(): React.JSX.Element {
     const timer = setInterval(() => {
       setCountdown((prev) => prev - 1)
     }, 1000)
-    
+
     return () => clearInterval(timer)
   }, [])
 
@@ -22,14 +22,27 @@ export function CountdownPage(): React.JSX.Element {
       backgroundColor: 'transparent',
       overflow: 'hidden'
     }}>
+      <style>
+        {`
+          @keyframes pulseFade {
+            0% { transform: scale(0.5); opacity: 0; }
+            20% { transform: scale(1.1); opacity: 1; }
+            40% { transform: scale(1); opacity: 1; }
+            80% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0; }
+          }
+        `}
+      </style>
       {countdown > 0 && (
-        <span style={{
-          color: '#ffffff',
-          fontSize: '120px',
-          fontWeight: 'bold',
-          textShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
-          animation: 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-        }}>
+        <span
+          key={countdown}
+          style={{
+            color: '#ffffff',
+            fontSize: '162px',
+            fontWeight: 'bold',
+            animation: 'pulseFade 1s ease-in-out forwards'
+          }}
+        >
           {countdown}
         </span>
       )}

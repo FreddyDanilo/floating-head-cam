@@ -538,6 +538,42 @@ export function SettingsPage(): React.JSX.Element {
                   )}
                 </div>
               </div>
+
+              <div className="settings-row settings-row--column">
+                <div className="rounding-header">
+                  <span className="settings-label">{t('settings.recordingSystemAudio', language)}</span>
+                  <span className="rounding-value">{visualState.systemAudioVolume ?? 50}%</span>
+                </div>
+                <div className="slider-wrap">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={visualState.systemAudioVolume ?? 50}
+                    className="rounding-slider"
+                    onChange={(e) => updateVisualState('systemAudioVolume', Number(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              <div className="settings-row settings-row--column">
+                <div className="rounding-header">
+                  <span className="settings-label">{t('settings.recordingMicAudio', language)}</span>
+                  <span className="rounding-value">{visualState.microphoneAudioVolume ?? 100}%</span>
+                </div>
+                <div className="slider-wrap">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={visualState.microphoneAudioVolume ?? 100}
+                    className="rounding-slider"
+                    onChange={(e) => updateVisualState('microphoneAudioVolume', Number(e.target.value))}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         )}

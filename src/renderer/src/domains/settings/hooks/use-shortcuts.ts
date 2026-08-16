@@ -32,15 +32,19 @@ export function useShortcuts() {
     recordingResolution: string
     recordingFps: string
     recordingEncoder: string
+    systemAudioVolume: number
+    microphoneAudioVolume: number
   }>({
     shape: 'circle',
     rounding: 24,
     borderGradient: 'none',
-    borderWidth: 4,
+    borderWidth: 6,
     isBorderAnimated: false,
     recordingResolution: '1080p',
     recordingFps: '60',
-    recordingEncoder: 'libx264'
+    recordingEncoder: 'libx264',
+    systemAudioVolume: 50,
+    microphoneAudioVolume: 100
   })
 
   useEffect(() => {
@@ -59,7 +63,9 @@ export function useShortcuts() {
         isBorderAnimated: data.isBorderAnimated || false,
         recordingResolution: data.recordingResolution || '1080p',
         recordingFps: data.recordingFps || '60',
-        recordingEncoder: data.recordingEncoder || 'libx264'
+        recordingEncoder: data.recordingEncoder || 'libx264',
+        systemAudioVolume: data.systemAudioVolume ?? 50,
+        microphoneAudioVolume: data.microphoneAudioVolume ?? 100
       })
     })
     const handleReset = (_e: any, payload: any) => {
@@ -74,7 +80,9 @@ export function useShortcuts() {
           isBorderAnimated: payload.state.isBorderAnimated || false,
           recordingResolution: payload.state.recordingResolution || '1080p',
           recordingFps: payload.state.recordingFps || '60',
-          recordingEncoder: payload.state.recordingEncoder || 'libx264'
+          recordingEncoder: payload.state.recordingEncoder || 'libx264',
+          systemAudioVolume: payload.state.systemAudioVolume ?? 50,
+          microphoneAudioVolume: payload.state.microphoneAudioVolume ?? 100
         })
       }
     }
