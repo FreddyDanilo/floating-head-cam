@@ -3,7 +3,7 @@
 
 # Floating Head Cam
 
-**Version 1.0.1** | **Created by Freddy Danilo**
+**Version 1.0.2** | **Created by Freddy Danilo**
 
 _Minimalist picture-in-picture (PiP) webcam application._
 </div>
