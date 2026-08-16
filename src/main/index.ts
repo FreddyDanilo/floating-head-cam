@@ -40,6 +40,7 @@ const windowCallbacks = {
     unregisterGlobalShortcuts()
   }
 }
+app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
 app.whenReady().then(() => {
   const loginSettings = app.getLoginItemSettings()
   if (loginSettings.wasOpenedAtLogin) {
@@ -58,16 +59,20 @@ app.whenReady().then(() => {
     callback(true)
   )
   session.defaultSession.setPermissionCheckHandler(() => true)
-  session.defaultSession.setDisplayMediaRequestHandler((_request, callback) => {
-    desktopCapturer
-      .getSources({ types: ['screen'] })
-      .then((sources) => {
-        callback({ video: sources[0], audio: 'loopback' })
-      })
-      .catch((err) => {
-        console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
-      })
-  })
+  session.defaultSession.setDisplayMediaRequestHandler(
+    (_request, callback) => {
+      desktopCapturer
+        .getSources({ types: ['screen'] })
+        .then((sources) => {
+          callback({ video: sources[0], audio: 'loopback' })
+        })
+        .catch((err) => {
+          console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
+        })
+    },
+    { useSystemPicker: true }
+  )
+
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
       responseHeaders: {
@@ -206,6 +211,7 @@ app.whenReady().then(() => {
                 {
                   resolution: currentState.recordingResolution,
                   fps: currentState.recordingFps,
+                  encoder: currentState.recordingEncoder || 'libx264',
                   systemAudioVolume: currentState.systemAudioVolume ?? 50,
                   microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100,
                   selectedMicrophoneId: currentState.selectedMicrophoneId || 'default'

@@ -19,14 +19,13 @@ export function setupRecordingIPC() {
     recordingStream = new PassThrough()
 
     const videosFolder = app.getPath('videos')
-    const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mkv`
+    const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mp4`
     const filePath = path.join(videosFolder, fileName)
 
     ffmpegProcess = ffmpeg(recordingStream)
       .inputFormat('webm')
-      .videoCodec(currentState.recordingEncoder || 'libx264')
+      .videoCodec('copy')
       .audioCodec('aac')
-      .outputOptions(['-b:v 12M', '-maxrate 16M', '-bufsize 24M', '-pix_fmt yuv420p'])
       .output(filePath)
       .on('end', () => {
         if (currentResolve) currentResolve({ success: true, filePath })

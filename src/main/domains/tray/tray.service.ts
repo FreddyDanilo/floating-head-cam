@@ -109,6 +109,7 @@ export function buildTrayMenu(state: any): void {
             win.webContents.send(state.isRecording ? 'stop-recording' : 'start-recording', {
               resolution: state.recordingResolution,
               fps: state.recordingFps,
+              encoder: state.recordingEncoder || 'libx264',
               systemAudioVolume: state.systemAudioVolume ?? 50,
               microphoneAudioVolume: state.microphoneAudioVolume ?? 100,
               selectedMicrophoneId: state.selectedMicrophoneId || 'default'

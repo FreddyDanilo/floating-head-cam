@@ -4,6 +4,7 @@ export function useScreenRecorder() {
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
+  const audioNodesRef = useRef<any[]>([])
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -15,6 +16,7 @@ export function useScreenRecorder() {
     async (
       resolution: string,
       fps: string,
+      encoder: string,
       systemAudioVolume: number,
       microphoneAudioVolume: number,
       selectedMicrophoneId: string
@@ -54,10 +56,14 @@ export function useScreenRecorder() {
 
         const micStream = await navigator.mediaDevices.getUserMedia({
           video: false,
-          audio:
-            selectedMicrophoneId && selectedMicrophoneId !== 'default'
+          audio: {
+            ...(selectedMicrophoneId && selectedMicrophoneId !== 'default'
               ? { deviceId: { exact: selectedMicrophoneId } }
-              : true
+              : {}),
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
         })
 
         const audioCtx = new AudioContext()
@@ -67,6 +73,13 @@ export function useScreenRecorder() {
         audioContextRef.current = audioCtx
         const dest = audioCtx.createMediaStreamDestination()
 
+        const dummyGain = audioCtx.createGain()
+        dummyGain.gain.value = 0
+        dummyGain.connect(audioCtx.destination)
+
+        audioNodesRef.current = []
+        audioNodesRef.current.push(dest, dummyGain)
+
         if (desktopStream.getAudioTracks().length > 0) {
           const systemSource = audioCtx.createMediaStreamSource(
             new MediaStream([desktopStream.getAudioTracks()[0]])
@@ -74,6 +87,10 @@ export function useScreenRecorder() {
           const systemGain = audioCtx.createGain()
           systemGain.gain.value = Number(systemAudioVolume ?? 50) / 100
           systemSource.connect(systemGain).connect(dest)
+          systemGain.connect(dummyGain)
+          audioNodesRef.current.push(systemSource, systemGain)
+        } else {
+          console.warn('No system audio track found in desktopStream')
         }
 
         if (micStream.getAudioTracks().length > 0) {
@@ -83,6 +100,10 @@ export function useScreenRecorder() {
           const micGain = audioCtx.createGain()
           micGain.gain.value = Number(microphoneAudioVolume ?? 100) / 100
           micSource.connect(micGain).connect(dest)
+          micGain.connect(dummyGain)
+          audioNodesRef.current.push(micSource, micGain)
+        } else {
+          console.warn('No microphone audio track found in micStream')
         }
 
         const mixedStream = new MediaStream([
@@ -90,15 +111,35 @@ export function useScreenRecorder() {
           ...dest.stream.getAudioTracks()
         ])
 
+        let mimeType = 'video/webm; codecs=vp9,opus'
+        if (encoder === 'libx264' || encoder === 'h264_videotoolbox') {
+          // In Chromium, h264 is requested via avc1 codec
+          mimeType = 'video/webm; codecs=avc1,opus'
+          if (!MediaRecorder.isTypeSupported(mimeType)) {
+            mimeType = 'video/webm; codecs=h264,opus'
+          }
+        } else if (encoder === 'libvpx') {
+          mimeType = 'video/webm; codecs=vp8,opus'
+        }
+
+        if (!MediaRecorder.isTypeSupported(mimeType)) {
+          console.warn(`MimeType ${mimeType} not supported, falling back to default webm`)
+          mimeType = 'video/webm'
+        }
+
         const mediaRecorder = new MediaRecorder(mixedStream, {
-          mimeType: 'video/webm; codecs=vp9,opus',
-          videoBitsPerSecond: 16000000
+          mimeType,
+          videoBitsPerSecond: 8000000
         })
 
-        mediaRecorder.ondataavailable = async (e) => {
+        let chunkPromiseChain = Promise.resolve()
+
+        mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
-            const buffer = await e.data.arrayBuffer()
-            ipc.send('recording-chunk', buffer)
+            chunkPromiseChain = chunkPromiseChain.then(async () => {
+              const buffer = await e.data.arrayBuffer()
+              ipc.send('recording-chunk', buffer)
+            })
           }
         }
 
@@ -110,6 +151,7 @@ export function useScreenRecorder() {
             audioContextRef.current.close()
             audioContextRef.current = null
           }
+          await chunkPromiseChain
           ipc.send('recording-stopped')
           await ipc.invoke('recording-stop')
         }
@@ -135,12 +177,14 @@ export function useScreenRecorder() {
       {
         resolution,
         fps,
+        encoder,
         systemAudioVolume,
         microphoneAudioVolume,
         selectedMicrophoneId
       }: {
         resolution: string
         fps: string
+        encoder: string
         systemAudioVolume: number
         microphoneAudioVolume: number
         selectedMicrophoneId: string
@@ -149,6 +193,7 @@ export function useScreenRecorder() {
       startRecording(
         resolution,
         fps,
+        encoder,
         systemAudioVolume,
         microphoneAudioVolume,
         selectedMicrophoneId

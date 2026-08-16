@@ -74,6 +74,7 @@ describe('useScreenRecorder', () => {
     })
 
     class MockMediaRecorder {
+      static isTypeSupported = vi.fn().mockReturnValue(true)
       state = 'inactive'
       start = vi.fn().mockImplementation(() => {
         this.state = 'recording'
@@ -99,7 +100,7 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('1080p', '60', 50, 100, 'default')
+      result.current.startRecording('1080p', '60', 'libx264', 50, 100, 'default')
     })
 
     await act(async () => {
@@ -113,7 +114,7 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('720p', '30', 50, 100, 'default')
+      result.current.startRecording('720p', '30', 'libx264', 50, 100, 'default')
     })
 
     await act(async () => {
