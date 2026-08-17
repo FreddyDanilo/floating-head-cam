@@ -125,6 +125,12 @@ describe('useScreenRecorder', () => {
       result.current.stopRecording()
     })
 
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
     expect(window.electron?.ipcRenderer.invoke).toHaveBeenCalledWith('recording-stop')
   })
 })

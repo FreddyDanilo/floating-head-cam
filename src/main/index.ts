@@ -99,7 +99,11 @@ app.whenReady().then(() => {
         if (win !== getSettingsWindow() && win.webContents) {
           win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', {
             resolution: currentState.recordingResolution,
-            fps: currentState.recordingFps
+            fps: currentState.recordingFps,
+            encoder: currentState.recordingEncoder || 'libx264',
+            systemAudioVolume: currentState.systemAudioVolume ?? 50,
+            microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100,
+            selectedMicrophoneId: currentState.selectedMicrophoneId || 'default'
           })
         }
       })
@@ -147,12 +151,14 @@ app.whenReady().then(() => {
     currentState.isRecording = true
     saveSettings()
     buildTrayMenu(currentState)
+    BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('sync-setting', { key: 'isRecording', value: true }))
   })
 
   ipcMain.on('recording-stopped', () => {
     currentState.isRecording = false
     saveSettings()
     buildTrayMenu(currentState)
+    BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('sync-setting', { key: 'isRecording', value: false }))
   })
 
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))

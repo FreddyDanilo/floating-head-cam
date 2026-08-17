@@ -39,8 +39,17 @@ export function CameraPage(): React.JSX.Element {
   const hasPermissionError = devicesError || streamError
 
   const applySize = useCallback((index: number, currentShape: string) => {
+    if (!window.electron) return
+    if (index === 3) {
+      const screenWidth = window.screen.availWidth || window.screen.width
+      const screenHeight = window.screen.availHeight || window.screen.height
+      const width = Math.round(screenWidth * 0.2)
+      const height = screenHeight
+      window.electron.ipcRenderer.send('resize-window', { width, height, position: 'right' })
+      return
+    }
     const size = SIZES[index]
-    if (!size || !window.electron) return
+    if (!size) return
     let width = size
     let height = size
     if (currentShape === 'vertical-rect') {
@@ -151,6 +160,10 @@ export function CameraPage(): React.JSX.Element {
       if (e.key === '3') {
         setSizeIndex(2)
         applySize(2, shape)
+      }
+      if (e.key === '4') {
+        setSizeIndex(3)
+        applySize(3, shape)
       }
     }
     window.addEventListener('keydown', handleKeyDown)

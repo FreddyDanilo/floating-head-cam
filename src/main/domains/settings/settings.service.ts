@@ -12,6 +12,7 @@ export const defaultShortcuts = {
   sizeSmall: '1',
   sizeMedium: '2',
   sizeLarge: '3',
+  sizeSidebar: '4',
   mirror: 'Alt+M',
   alwaysOnTop: 'Alt+T',
   toggleCamera: 'F9',
@@ -134,7 +135,7 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
   }
 
   if (!targetTab || targetTab === 'sizing') {
-    const sizeKeys = ['sizeSmall', 'sizeMedium', 'sizeLarge']
+    const sizeKeys = ['sizeSmall', 'sizeMedium', 'sizeLarge', 'sizeSidebar']
     sizeKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
     currentState.sizeIndex = defaultState.sizeIndex
   }

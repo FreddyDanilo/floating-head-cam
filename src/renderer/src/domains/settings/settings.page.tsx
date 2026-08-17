@@ -12,14 +12,12 @@ import {
   PowerOff,
   FlipHorizontal,
   Pin,
-  TriangleAlert,
-  ChevronDown
+  TriangleAlert
 } from 'lucide-react'
 import React, { useState } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
 import { t } from '../../../../shared/i18n'
 import { useShortcuts } from './hooks/use-shortcuts'
-import { useAudioDevices } from '../camera/hooks/use-audio-devices'
 
 const SHAPE_KEYS = [
   {
@@ -98,14 +96,11 @@ export function SettingsPage(): React.JSX.Element {
     visualState,
     updateVisualState
   } = useShortcuts()
-  const { devices: audioDevices } = useAudioDevices()
-
   const [activeTab, setActiveTab] = useState<
-    'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'
+    'visuals' | 'positioning' | 'cameraControl' | 'sizing'
   >('visuals')
 
   const [showGradientEditor, setShowGradientEditor] = useState(false)
-  const [isMicSelectOpen, setIsMicSelectOpen] = useState(false)
   const [gradColor1, setGradColor1] = useState('#ff6b6b')
   const [gradColor2, setGradColor2] = useState('#7c3aed')
   const [gradAngle, setGradAngle] = useState(45)
@@ -249,12 +244,6 @@ export function SettingsPage(): React.JSX.Element {
           onClick={() => setActiveTab('sizing')}
         >
           {t('settings.sizing', language)}
-        </button>
-        <button
-          className={`settings-tab ${activeTab === 'recording' ? 'settings-tab--active' : ''}`}
-          onClick={() => setActiveTab('recording')}
-        >
-          {t('settings.recording', language)}
         </button>
       </div>
 
@@ -537,309 +526,7 @@ export function SettingsPage(): React.JSX.Element {
           .map((section) => (
             <div key={section.title} className="settings-section">
               <div className="settings-list">
-                {activeTab === 'recording' && (
-                  <React.Fragment>
-                    <div className="settings-row settings-row--column">
-                      <span className="settings-label">
-                        {t('settings.recordingResolution', language)}
-                      </span>
-                      <div
-                        className="shape-picker"
-                        style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' }}
-                      >
-                        <button
-                          className={`shape-btn ${visualState.recordingResolution === '720p' ? 'shape-btn--active' : ''}`}
-                          onClick={() => updateVisualState('recordingResolution', '720p')}
-                          style={{ flex: '1 1 45%' }}
-                        >
-                          <span className="shape-label">
-                            {t('settings.recording.720p', language)}
-                          </span>
-                        </button>
-                        <button
-                          className={`shape-btn ${visualState.recordingResolution === '1080p' ? 'shape-btn--active' : ''}`}
-                          onClick={() => updateVisualState('recordingResolution', '1080p')}
-                          style={{ flex: '1 1 45%' }}
-                        >
-                          <span className="shape-label">
-                            {t('settings.recording.1080p', language)}
-                          </span>
-                        </button>
-                        <button
-                          className={`shape-btn ${visualState.recordingResolution === '1440p' ? 'shape-btn--active' : ''}`}
-                          onClick={() => updateVisualState('recordingResolution', '1440p')}
-                          style={{ flex: '1 1 45%' }}
-                        >
-                          <span className="shape-label">
-                            {t('settings.recording.1440p', language)}
-                          </span>
-                        </button>
-                        <button
-                          className={`shape-btn ${visualState.recordingResolution === '2160p' ? 'shape-btn--active' : ''}`}
-                          onClick={() => updateVisualState('recordingResolution', '2160p')}
-                          style={{ flex: '1 1 45%' }}
-                        >
-                          <span className="shape-label">
-                            {t('settings.recording.2160p', language)}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
 
-                    <div className="settings-row settings-row--column">
-                      <span className="settings-label">{t('settings.recordingFps', language)}</span>
-                      <div
-                        className="shape-picker"
-                        style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' }}
-                      >
-                        <button
-                          className={`shape-btn ${visualState.recordingFps === '30' ? 'shape-btn--active' : ''}`}
-                          onClick={() => updateVisualState('recordingFps', '30')}
-                          style={{ flex: '1 1 45%' }}
-                        >
-                          <span className="shape-label">
-                            {t('settings.recording.30fps', language)}
-                          </span>
-                        </button>
-                        <button
-                          className={`shape-btn ${visualState.recordingFps === '60' ? 'shape-btn--active' : ''}`}
-                          onClick={() => updateVisualState('recordingFps', '60')}
-                          style={{ flex: '1 1 45%' }}
-                        >
-                          <span className="shape-label">
-                            {t('settings.recording.60fps', language)}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="settings-row settings-row--column">
-                      <span className="settings-label">
-                        {t('settings.recordingEncoder', language)}
-                      </span>
-                      <div
-                        className="shape-picker"
-                        style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', width: '100%' }}
-                      >
-                        <button
-                          className={`shape-btn ${visualState.recordingEncoder === 'libx264' ? 'shape-btn--active' : ''}`}
-                          onClick={() => updateVisualState('recordingEncoder', 'libx264')}
-                          style={{ flex: '1 1 45%' }}
-                        >
-                          <span className="shape-label">{t('settings.encoder.cpu', language)}</span>
-                        </button>
-
-                        {window.electron?.process.platform === 'darwin' && (
-                          <button
-                            className={`shape-btn ${visualState.recordingEncoder === 'h264_videotoolbox' ? 'shape-btn--active' : ''}`}
-                            onClick={() =>
-                              updateVisualState('recordingEncoder', 'h264_videotoolbox')
-                            }
-                            style={{ flex: '1 1 45%' }}
-                          >
-                            <span className="shape-label">
-                              {t('settings.encoder.mac', language)}
-                            </span>
-                          </button>
-                        )}
-
-                        {window.electron?.process.platform === 'win32' && (
-                          <>
-                            <button
-                              className={`shape-btn ${visualState.recordingEncoder === 'h264_nvenc' ? 'shape-btn--active' : ''}`}
-                              onClick={() => updateVisualState('recordingEncoder', 'h264_nvenc')}
-                              style={{ flex: '1 1 45%' }}
-                            >
-                              <span className="shape-label">
-                                {t('settings.encoder.nvidia', language)}
-                              </span>
-                            </button>
-                            <button
-                              className={`shape-btn ${visualState.recordingEncoder === 'h264_qsv' ? 'shape-btn--active' : ''}`}
-                              onClick={() => updateVisualState('recordingEncoder', 'h264_qsv')}
-                              style={{ flex: '1 1 45%' }}
-                            >
-                              <span className="shape-label">
-                                {t('settings.encoder.intel', language)}
-                              </span>
-                            </button>
-                            <button
-                              className={`shape-btn ${visualState.recordingEncoder === 'h264_amf' ? 'shape-btn--active' : ''}`}
-                              onClick={() => updateVisualState('recordingEncoder', 'h264_amf')}
-                              style={{ flex: '1 1 45%' }}
-                            >
-                              <span className="shape-label">
-                                {t('settings.encoder.amd', language)}
-                              </span>
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="settings-row settings-row--column" style={{ zIndex: 10 }}>
-                      <span className="settings-label">
-                        {t('settings.recordingMicrophone', language) || 'Microphone'}
-                      </span>
-                      <div style={{ position: 'relative', width: '100%', marginTop: '6px' }}>
-                        <button
-                          className="settings-shortcut-btn"
-                          style={{
-                            width: '100%',
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            padding: '10px 14px',
-                            background: 'rgba(0, 0, 0, 0.2)',
-                            border: '1px solid rgba(255, 255, 255, 0.05)',
-                            borderRadius: '8px'
-                          }}
-                          onClick={() => setIsMicSelectOpen(!isMicSelectOpen)}
-                        >
-                          <span
-                            style={{
-                              fontSize: '13px',
-                              color: 'rgba(255, 255, 255, 0.8)',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
-                            }}
-                          >
-                            {visualState.selectedMicrophoneId &&
-                            visualState.selectedMicrophoneId !== 'default'
-                              ? audioDevices.find(
-                                  (d) => d.deviceId === visualState.selectedMicrophoneId
-                                )?.label ||
-                                `Microphone (${visualState.selectedMicrophoneId.substring(0, 5)})`
-                              : t('settings.recordingMicrophoneDefault', language) ||
-                                'System Default'}
-                          </span>
-                          <ChevronDown
-                            style={{
-                              width: 16,
-                              height: 16,
-                              color: 'rgba(255, 255, 255, 0.9)',
-                              flexShrink: 0
-                            }}
-                          />
-                        </button>
-                        {isMicSelectOpen && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: '100%',
-                              left: 0,
-                              right: 0,
-                              marginTop: '4px',
-                              background: 'rgba(30, 30, 30, 0.95)',
-                              backdropFilter: 'blur(10px)',
-                              border: '1px solid rgba(255, 255, 255, 0.1)',
-                              borderRadius: '8px',
-                              padding: '4px',
-                              display: 'flex',
-                              flexDirection: 'column',
-                              gap: '2px',
-                              maxHeight: '180px',
-                              overflowY: 'auto'
-                            }}
-                          >
-                            <button
-                              className={`slider-tick ${visualState.selectedMicrophoneId === 'default' ? 'slider-tick--active' : ''}`}
-                              style={{
-                                width: '100%',
-                                textAlign: 'left',
-                                padding: '8px',
-                                fontSize: '13px',
-                                display: 'block'
-                              }}
-                              onClick={() => {
-                                updateVisualState('selectedMicrophoneId', 'default')
-                                setIsMicSelectOpen(false)
-                              }}
-                            >
-                              {t('settings.recordingMicrophoneDefault', language) ||
-                                'System Default'}
-                            </button>
-                            {audioDevices.map((device) => (
-                              <button
-                                key={device.deviceId}
-                                className={`slider-tick ${visualState.selectedMicrophoneId === device.deviceId ? 'slider-tick--active' : ''}`}
-                                style={{
-                                  width: '100%',
-                                  textAlign: 'left',
-                                  padding: '8px',
-                                  fontSize: '13px',
-                                  display: 'block'
-                                }}
-                                onClick={() => {
-                                  updateVisualState('selectedMicrophoneId', device.deviceId)
-                                  setIsMicSelectOpen(false)
-                                }}
-                              >
-                                {device.label || `Microphone (${device.deviceId.substring(0, 5)})`}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '16px', width: '100%', flexWrap: 'wrap' }}>
-                      <div
-                        className="settings-row settings-row--column"
-                        style={{ flex: '1 1 200px' }}
-                      >
-                        <div className="rounding-header">
-                          <span className="settings-label">
-                            {t('settings.recordingSystemAudio', language)}
-                          </span>
-                          <span className="rounding-value">
-                            {visualState.systemAudioVolume ?? 50}%
-                          </span>
-                        </div>
-                        <div className="slider-wrap">
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            step={5}
-                            value={visualState.systemAudioVolume ?? 50}
-                            className="rounding-slider"
-                            onChange={(e) =>
-                              updateVisualState('systemAudioVolume', Number(e.target.value))
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div
-                        className="settings-row settings-row--column"
-                        style={{ flex: '1 1 200px' }}
-                      >
-                        <div className="rounding-header">
-                          <span className="settings-label">
-                            {t('settings.recordingMicAudio', language)}
-                          </span>
-                          <span className="rounding-value">
-                            {visualState.microphoneAudioVolume ?? 100}%
-                          </span>
-                        </div>
-                        <div className="slider-wrap">
-                          <input
-                            type="range"
-                            min={0}
-                            max={100}
-                            step={5}
-                            value={visualState.microphoneAudioVolume ?? 100}
-                            className="rounding-slider"
-                            onChange={(e) =>
-                              updateVisualState('microphoneAudioVolume', Number(e.target.value))
-                            }
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </React.Fragment>
-                )}
                 {section.actions.map((action) => (
                   <React.Fragment key={action.key}>
                     <div className="settings-row">

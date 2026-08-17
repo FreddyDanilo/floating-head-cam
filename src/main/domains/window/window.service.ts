@@ -87,7 +87,7 @@ export function setWindowPosition(pos: string): void {
     win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
   })
 }
-export function resizeWindow(sizeObj: { width: number; height: number }): void {
+export function resizeWindow(sizeObj: { width: number; height: number; position?: 'right' }): void {
   const sw = _settingsWindow
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win === sw) return
@@ -96,11 +96,16 @@ export function resizeWindow(sizeObj: { width: number; height: number }): void {
     const { workArea } = display
     let newX = bounds.x
     let newY = bounds.y
-    const { width, height } = sizeObj
-    if (newX + width > workArea.x + workArea.width) newX = workArea.x + workArea.width - width
-    if (newX < workArea.x) newX = workArea.x
-    if (newY + height > workArea.y + workArea.height) newY = workArea.y + workArea.height - height
-    if (newY < workArea.y) newY = workArea.y
+    const { width, height, position } = sizeObj
+    if (position === 'right') {
+      newX = workArea.x + workArea.width - width
+      newY = workArea.y
+    } else {
+      if (newX + width > workArea.x + workArea.width) newX = workArea.x + workArea.width - width
+      if (newX < workArea.x) newX = workArea.x
+      if (newY + height > workArea.y + workArea.height) newY = workArea.y + workArea.height - height
+      if (newY < workArea.y) newY = workArea.y
+    }
     win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
   })
 }

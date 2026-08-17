@@ -27,6 +27,9 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
   register(shortcuts.sizeLarge, () =>
     win.webContents.send('tray-action', { type: 'set-size-index', payload: 2 })
   )
+  register(shortcuts.sizeSidebar, () =>
+    win.webContents.send('tray-action', { type: 'set-size-index', payload: 3 })
+  )
   register(shortcuts.mirror, () =>
     win.webContents.send('tray-action', { type: 'set-mirror', payload: !currentState.isMirrored })
   )
@@ -50,8 +53,11 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
   )
 }
 export function unregisterGlobalShortcuts(): void {
-  const keys = Object.values(shortcuts)
-  for (const key of keys) {
+  const keysToUnregister = Object.entries(shortcuts)
+    .filter(([key]) => key !== 'toggleCamera' && key !== 'startRecording')
+    .map(([_, value]) => value)
+
+  for (const key of keysToUnregister) {
     if (key && typeof key === 'string') {
       try {
         globalShortcut.unregister(key)

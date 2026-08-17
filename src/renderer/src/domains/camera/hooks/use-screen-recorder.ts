@@ -156,7 +156,7 @@ export function useScreenRecorder() {
           await ipc.invoke('recording-stop')
         }
 
-        ipc.send('recording-start')
+        ipc.send('recording-start', { encoder })
         mediaRecorder.start(1000)
         mediaRecorderRef.current = mediaRecorder
 

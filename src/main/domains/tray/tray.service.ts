@@ -2,7 +2,6 @@ import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../../../resources/icon.png?asset'
 import { t } from '../../../shared/i18n'
-import { showCountdown } from '../recording/countdown.service'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
 import { saveSettings, shortcuts } from '../settings/settings.service'
 import {
@@ -94,30 +93,6 @@ export function buildTrayMenu(state: any): void {
           { label: t('tray.startUpdate', lang), click: () => autoUpdater.quitAndInstall() }
         ]
       : []),
-    { type: 'separator' },
-    {
-      label: state.isRecording ? t('tray.stopRecording', lang) : t('tray.startRecording', lang),
-      accelerator: shortcuts.startRecording,
-      registerAccelerator: false,
-      click: async () => {
-        if (!state.isRecording) {
-          await showCountdown()
-        }
-
-        BrowserWindow.getAllWindows().forEach((win) => {
-          if (win !== sw) {
-            win.webContents.send(state.isRecording ? 'stop-recording' : 'start-recording', {
-              resolution: state.recordingResolution,
-              fps: state.recordingFps,
-              encoder: state.recordingEncoder || 'libx264',
-              systemAudioVolume: state.systemAudioVolume ?? 50,
-              microphoneAudioVolume: state.microphoneAudioVolume ?? 100,
-              selectedMicrophoneId: state.selectedMicrophoneId || 'default'
-            })
-          }
-        })
-      }
-    },
     { type: 'separator' },
     { label: t('tray.preferences', lang), click: () => createSettingsWindow() },
     { type: 'separator' },
@@ -214,6 +189,18 @@ export function buildTrayMenu(state: any): void {
             BrowserWindow.getAllWindows().forEach((w) => {
               if (w !== sw)
                 w.webContents.send('tray-action', { type: 'set-size-index', payload: 2 })
+            })
+        },
+        {
+          label: t('tray.size.sidebar', lang),
+          type: 'radio' as const,
+          accelerator: shortcuts.sizeSidebar,
+          registerAccelerator: false,
+          checked: sizeIndex === 3,
+          click: () =>
+            BrowserWindow.getAllWindows().forEach((w) => {
+              if (w !== sw)
+                w.webContents.send('tray-action', { type: 'set-size-index', payload: 3 })
             })
         }
       ]

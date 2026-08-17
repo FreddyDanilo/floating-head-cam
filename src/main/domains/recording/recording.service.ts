@@ -3,7 +3,7 @@ import ffmpeg from 'fluent-ffmpeg'
 import ffmpegStatic from 'ffmpeg-static'
 import path from 'path'
 import { PassThrough } from 'stream'
-import { currentState } from '../settings/settings.service'
+
 
 if (ffmpegStatic) {
   ffmpeg.setFfmpegPath(ffmpegStatic)
@@ -15,7 +15,7 @@ let currentResolve: ((value: any) => void) | null = null
 let currentReject: ((reason?: any) => void) | null = null
 
 export function setupRecordingIPC() {
-  ipcMain.on('recording-start', () => {
+  ipcMain.on('recording-start', (_, { encoder }: { encoder?: string } = {}) => {
     recordingStream = new PassThrough()
 
     const videosFolder = app.getPath('videos')
@@ -24,14 +24,16 @@ export function setupRecordingIPC() {
 
     ffmpegProcess = ffmpeg(recordingStream)
       .inputFormat('webm')
-      .videoCodec('copy')
+      .videoCodec(encoder || 'libx264')
+      .outputOptions(['-pix_fmt yuv420p'])
       .audioCodec('aac')
       .output(filePath)
       .on('end', () => {
         if (currentResolve) currentResolve({ success: true, filePath })
         cleanup()
       })
-      .on('error', (err) => {
+      .on('error', (err, _stdout, stderr) => {
+        console.error('FFmpeg encoding error:', err, stderr)
         if (currentReject) currentReject(err)
         cleanup()
       })
