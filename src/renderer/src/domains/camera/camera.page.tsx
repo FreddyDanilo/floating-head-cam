@@ -43,7 +43,7 @@ export function CameraPage(): React.JSX.Element {
     if (index === 3) {
       const screenWidth = window.screen.availWidth || window.screen.width
       const screenHeight = window.screen.availHeight || window.screen.height
-      const width = Math.round(screenWidth * 0.2)
+      const width = Math.round(screenWidth * 0.25)
       const height = screenHeight
       window.electron.ipcRenderer.send('resize-window', { width, height, position: 'right' })
       return
