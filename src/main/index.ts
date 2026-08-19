@@ -53,7 +53,7 @@ app.whenReady().then(() => {
   saveSettings()
   if (process.platform === 'darwin') {
     app.dock?.hide()
-    app.setLoginItemSettings({ openAtLogin: true, openAsHidden: true })
+    app.setLoginItemSettings({ openAtLogin: false, openAsHidden: false })
   }
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) =>
     callback(true)
