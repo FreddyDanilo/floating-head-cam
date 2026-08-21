@@ -6,3 +6,4 @@ out
 *.log*
 .env
 
+diff.patch
