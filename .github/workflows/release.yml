@@ -24,6 +24,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node scripts/extract-release-notes.mjs
       - run: npm run build
       - run: npx electron-builder --mac --arm64 --win --x64 --publish always
 
@@ -38,6 +39,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: node scripts/extract-release-notes.mjs
       - run: npm run build
       # Snap is built manually via `npm run build:linux` (requires snapcraft/docker)
       - run: npx electron-builder --linux APPIMAGE --linux deb --publish always

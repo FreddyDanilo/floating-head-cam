@@ -57,6 +57,7 @@ snap:
 appImage:
   artifactName: ${productName}-${version}.${ext}
 npmRebuild: false
+releaseNotesFile: build/release-notes.md
 publish:
   provider: github
   owner: FreddyDanilo
