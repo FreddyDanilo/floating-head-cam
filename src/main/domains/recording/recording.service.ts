@@ -4,18 +4,27 @@ import ffmpegStatic from 'ffmpeg-static'
 import path from 'path'
 import { PassThrough } from 'stream'
 
-
 if (ffmpegStatic) {
   ffmpeg.setFfmpegPath(ffmpegStatic)
 }
 
+export interface RecordingResult {
+  success: boolean
+  filePath?: string
+  error?: string
+}
+
 let recordingStream: PassThrough | null = null
 let ffmpegProcess: ffmpeg.FfmpegCommand | null = null
-let currentResolve: ((value: any) => void) | null = null
-let currentReject: ((reason?: any) => void) | null = null
+let currentResolve: ((value: RecordingResult) => void) | null = null
+let currentReject: ((reason?: Error) => void) | null = null
 
-export function setupRecordingIPC() {
+export function setupRecordingIPC(): void {
   ipcMain.on('recording-start', (_, { encoder }: { encoder?: string } = {}) => {
+    if (recordingStream || ffmpegProcess) {
+      console.warn('recording-start ignored: a recording is already in progress')
+      return
+    }
     recordingStream = new PassThrough()
 
     const videosFolder = app.getPath('videos')
@@ -52,7 +61,7 @@ export function setupRecordingIPC() {
       return { success: false, error: 'No recording in progress' }
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise<RecordingResult>((resolve, reject) => {
       currentResolve = resolve
       currentReject = reject
       recordingStream!.end()
@@ -60,7 +69,7 @@ export function setupRecordingIPC() {
   })
 }
 
-function cleanup() {
+function cleanup(): void {
   recordingStream = null
   ffmpegProcess = null
   currentResolve = null

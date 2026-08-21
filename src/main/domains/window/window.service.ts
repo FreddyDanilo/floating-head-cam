@@ -6,6 +6,7 @@ import { t } from '../../../shared/i18n'
 import { getIsCameraOn } from '../camera/camera.service'
 import { currentState, saveSettings } from '../settings/settings.service'
 let _settingsWindow: BrowserWindow | null = null
+let positionSaveTimer: ReturnType<typeof setTimeout> | null = null
 export function getSettingsWindow(): BrowserWindow | null {
   return _settingsWindow
 }
@@ -125,7 +126,7 @@ export function createWindow(callbacks: WindowCallbacks): void {
     hasShadow: false,
     resizable: false,
     roundedCorners: false,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === 'linux' ? { icon, skipTaskbar: true } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -148,7 +149,11 @@ export function createWindow(callbacks: WindowCallbacks): void {
     const [x, y] = mainWindow.getPosition()
     currentState.x = x
     currentState.y = y
-    saveSettings()
+    if (positionSaveTimer) clearTimeout(positionSaveTimer)
+    positionSaveTimer = setTimeout(() => {
+      positionSaveTimer = null
+      saveSettings()
+    }, 300)
   })
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
