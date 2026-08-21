@@ -17,7 +17,8 @@ import {
 import React, { useState } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
 import { t } from '../../../../shared/i18n'
-import { useShortcuts } from './hooks/use-shortcuts'
+import { useShortcuts, VisualState } from './hooks/use-shortcuts'
+import { useAudioDevices } from '../camera/hooks/use-audio-devices'
 
 const SHAPE_KEYS = [
   {
@@ -77,6 +78,142 @@ function isLinearGradient(val: string): boolean {
   return val.startsWith('linear-gradient')
 }
 
+const RESOLUTIONS = ['720p', '1080p', '1440p', '2160p'] as const
+const FPS_OPTIONS = ['30', '60'] as const
+
+function getEncoderOptions(): { value: string; labelKey: string }[] {
+  const options = [{ value: 'libx264', labelKey: 'settings.encoder.cpu' }]
+  const ua = navigator.userAgent
+  if (ua.indexOf('Mac') !== -1) {
+    options.push({ value: 'h264_videotoolbox', labelKey: 'settings.encoder.mac' })
+  } else if (ua.indexOf('Win') !== -1) {
+    options.push(
+      { value: 'h264_nvenc', labelKey: 'settings.encoder.nvidia' },
+      { value: 'h264_qsv', labelKey: 'settings.encoder.intel' },
+      { value: 'h264_amf', labelKey: 'settings.encoder.amd' }
+    )
+  }
+  return options
+}
+
+type RecordingSettingsProps = {
+  language: 'en' | 'pt'
+  visualState: VisualState
+  updateVisualState: (key: keyof VisualState, value: string | number | boolean) => void
+}
+
+function RecordingSettings({
+  language,
+  visualState,
+  updateVisualState
+}: RecordingSettingsProps): React.JSX.Element {
+  const { devices } = useAudioDevices()
+  const encoderOptions = getEncoderOptions()
+
+  return (
+    <div className="settings-section">
+      <div className="settings-list">
+        <div className="settings-row settings-row--column">
+          <span className="settings-label">{t('settings.recordingResolution', language)}</span>
+          <div className="option-pills">
+            {RESOLUTIONS.map((r) => (
+              <button
+                key={r}
+                className={`option-pill ${visualState.recordingResolution === r ? 'option-pill--active' : ''}`}
+                onClick={() => updateVisualState('recordingResolution', r)}
+              >
+                {t(`settings.recording.${r}`, language)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-row settings-row--column">
+          <span className="settings-label">{t('settings.recordingFps', language)}</span>
+          <div className="option-pills">
+            {FPS_OPTIONS.map((f) => (
+              <button
+                key={f}
+                className={`option-pill ${visualState.recordingFps === f ? 'option-pill--active' : ''}`}
+                onClick={() => updateVisualState('recordingFps', f)}
+              >
+                {t(`settings.recording.${f}fps`, language)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-row settings-row--column">
+          <span className="settings-label">{t('settings.recordingEncoder', language)}</span>
+          <div className="option-pills">
+            {encoderOptions.map((enc) => (
+              <button
+                key={enc.value}
+                className={`option-pill ${visualState.recordingEncoder === enc.value ? 'option-pill--active' : ''}`}
+                onClick={() => updateVisualState('recordingEncoder', enc.value)}
+              >
+                {t(enc.labelKey, language)}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="settings-row settings-row--column">
+          <div className="rounding-header">
+            <span className="settings-label">{t('settings.recordingSystemAudio', language)}</span>
+            <span className="rounding-value">{visualState.systemAudioVolume}%</span>
+          </div>
+          <div className="slider-wrap">
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={visualState.systemAudioVolume}
+              className="rounding-slider"
+              onChange={(e) => updateVisualState('systemAudioVolume', Number(e.target.value))}
+            />
+          </div>
+        </div>
+
+        <div className="settings-row settings-row--column">
+          <div className="rounding-header">
+            <span className="settings-label">{t('settings.recordingMicAudio', language)}</span>
+            <span className="rounding-value">{visualState.microphoneAudioVolume}%</span>
+          </div>
+          <div className="slider-wrap">
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={visualState.microphoneAudioVolume}
+              className="rounding-slider"
+              onChange={(e) => updateVisualState('microphoneAudioVolume', Number(e.target.value))}
+            />
+          </div>
+        </div>
+
+        <div className="settings-row settings-row--column">
+          <span className="settings-label">{t('settings.recordingMicrophone', language)}</span>
+          <select
+            className="settings-select"
+            value={visualState.selectedMicrophoneId}
+            onChange={(e) => updateVisualState('selectedMicrophoneId', e.target.value)}
+          >
+            <option value="default">{t('settings.recordingMicrophoneDefault', language)}</option>
+            {devices.map((d) => (
+              <option key={d.deviceId} value={d.deviceId}>
+                {d.label || d.deviceId.substring(0, 8)}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function parseCustomGradient(grad: string): { color1: string; color2: string; angle: number } {
   const match = grad.match(/linear-gradient\((\d+)deg,\s*([^,]+),\s*([^)]+)\)/)
   if (match) {
@@ -97,7 +234,7 @@ export function SettingsPage(): React.JSX.Element {
     updateVisualState
   } = useShortcuts()
   const [activeTab, setActiveTab] = useState<
-    'visuals' | 'positioning' | 'cameraControl' | 'sizing'
+    'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'
   >('visuals')
 
   const [showGradientEditor, setShowGradientEditor] = useState(false)
@@ -109,7 +246,7 @@ export function SettingsPage(): React.JSX.Element {
 
   const isCustom = isLinearGradient(visualState.borderGradient)
 
-  const handleOpenGradientEditor = () => {
+  const handleOpenGradientEditor = (): void => {
     if (isCustom) {
       const parsed = parseCustomGradient(visualState.borderGradient)
       setGradColor1(parsed.color1)
@@ -119,7 +256,7 @@ export function SettingsPage(): React.JSX.Element {
     setShowGradientEditor((v) => !v)
   }
 
-  const handleApplyGradient = () => {
+  const handleApplyGradient = (): void => {
     updateVisualState('borderGradient', customGradientValue)
     setShowGradientEditor(false)
   }
@@ -244,6 +381,12 @@ export function SettingsPage(): React.JSX.Element {
           onClick={() => setActiveTab('sizing')}
         >
           {t('settings.sizing', language)}
+        </button>
+        <button
+          className={`settings-tab ${activeTab === 'recording' ? 'settings-tab--active' : ''}`}
+          onClick={() => setActiveTab('recording')}
+        >
+          {t('settings.recording', language)}
         </button>
       </div>
 
@@ -521,12 +664,19 @@ export function SettingsPage(): React.JSX.Element {
           </div>
         )}
 
+        {activeTab === 'recording' && (
+          <RecordingSettings
+            language={language}
+            visualState={visualState}
+            updateVisualState={updateVisualState}
+          />
+        )}
+
         {sections
           .filter((section) => section.key === activeTab)
           .map((section) => (
             <div key={section.title} className="settings-section">
               <div className="settings-list">
-
                 {section.actions.map((action) => (
                   <React.Fragment key={action.key}>
                     <div className="settings-row">

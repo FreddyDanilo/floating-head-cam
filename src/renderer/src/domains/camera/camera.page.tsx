@@ -28,6 +28,7 @@ export function CameraPage(): React.JSX.Element {
   const [borderGradient, setBorderGradient] = useState<string>('none')
   const [borderWidth, setBorderWidth] = useState<number>(4)
   const [isBorderAnimated, setIsBorderAnimated] = useState<boolean>(false)
+  const [language, setLanguage] = useState<'en' | 'pt'>('en')
 
   const [prevGradient, setPrevGradient] = useState<string>('none')
   const [currentGradient, setCurrentGradient] = useState<string>('none')
@@ -81,26 +82,29 @@ export function CameraPage(): React.JSX.Element {
           setIsBorderAnimated(state.isBorderAnimated)
         }
         if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
+        if (state.language) setLanguage(state.language)
 
         setInitialized(true)
         applySize(state.sizeIndex, state.shape)
       })
     }
-  }, [])
+  }, [applySize])
+
+  if (borderGradient !== currentGradient) {
+    setPrevGradient(currentGradient)
+    setCurrentGradient(borderGradient)
+    setFade(true)
+  }
 
   useEffect(() => {
-    if (borderGradient !== currentGradient) {
-      setPrevGradient(currentGradient)
-      setCurrentGradient(borderGradient)
-      setFade(true)
-
+    if (!fade) return
+    const raf = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setFade(false)
-        })
+        setFade(false)
       })
-    }
-  }, [borderGradient, currentGradient])
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [fade])
 
   useTrayEvents({
     setSelectedDeviceId,
@@ -113,6 +117,7 @@ export function CameraPage(): React.JSX.Element {
     setBorderGradient,
     setBorderWidth,
     setIsBorderAnimated,
+    setLanguage,
     applySize,
     sizeIndex,
     shape
@@ -231,7 +236,7 @@ export function CameraPage(): React.JSX.Element {
           display: hasPermissionError ? 'none' : 'block'
         }}
       />
-      {hasPermissionError && <PermissionErrorOverlay />}
+      {hasPermissionError && <PermissionErrorOverlay language={language} />}
     </div>
   )
 }

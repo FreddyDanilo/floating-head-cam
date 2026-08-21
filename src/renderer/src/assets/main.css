@@ -635,3 +635,59 @@ body {
     --spin-angle: 360deg;
   }
 }
+
+.option-pills {
+  display: flex;
+  gap: 8px;
+  -webkit-app-region: no-drag;
+  width: 100%;
+}
+
+.option-pill {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.option-pill:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.option-pill--active {
+  color: #0a84ff;
+  border-color: rgba(10, 132, 255, 0.6);
+  background: rgba(10, 132, 255, 0.12);
+}
+
+.settings-select {
+  background: rgba(0, 0, 0, 0.3);
+  color: #eaeaea;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  width: 100%;
+  -webkit-app-region: no-drag;
+  transition: border-color 0.2s ease;
+}
+
+.settings-select:hover {
+  border-color: rgba(10, 132, 255, 0.5);
+}
+
+.settings-select:focus {
+  border-color: #0a84ff;
+}
