@@ -34,8 +34,26 @@ linux:
     - AppImage
     - snap
     - deb
-  maintainer: electronjs.org
+  icon: build/icon.png
+  maintainer: Freddy Danilo <freddydanilo@users.noreply.github.com>
+  vendor: Freddy Danilo <freddydanilo@users.noreply.github.com>
   category: Utility
+snap:
+  plugs:
+    - browser-support
+    - desktop
+    - desktop-legacy
+    - home
+    - pulseaudio
+    - unity7
+    - upower-observe
+    - wayland
+    - x11
+    - network
+    - network-bind
+    - opengl
+    - camera
+    - audio-record
 appImage:
   artifactName: ${productName}-${version}.${ext}
 npmRebuild: false

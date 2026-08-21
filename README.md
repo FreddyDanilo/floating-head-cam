@@ -27,9 +27,16 @@ _Minimalist picture-in-picture (PiP) webcam application._
 
 ## Download
 
-Baixe a versão mais recente diretamente aqui do repositório (acesse a página e baixe o instalador `.dmg` para Mac ou `.exe` para Windows):
+Baixe a versão mais recente diretamente aqui do repositório (acesse a página e baixe o instalador `.dmg` para Mac, `.exe` para Windows ou `.AppImage`/`.deb`/`.snap` para Linux):
 
 - **[Baixar Versão Mais Recente (Página de Releases)](https://github.com/FreddyDanilo/floating-head-cam/releases/latest)**
+
+### Notas para Linux
+
+- **Bandeja do sistema:** No GNOME é necessário ter suporte a AppIndicator (extensão *AppIndicator Support* ou `libayatana-appindicator3`). KDE e outros ambientes funcionam nativamente.
+- **Áudio do sistema na gravação:** O Linux não expõe o áudio do sistema ao navegador como macOS/Windows. Se existir um monitor PulseAudio/PipeWire (padrão na maioria das distros), ele é usado automaticamente como fonte do áudio do sistema.
+- **Transparência:** A janela flutuante requer um compositor ativo (padrão em GNOME/KDE). Em gerenciadores de janela sem composição, o fundo pode aparecer preto.
+- **Atualizações:** AppImage atualiza automaticamente pelo app; Snap atualiza via snapd; `.deb` exige baixar a nova versão manualmente.
 
 ## Como usar
 
@@ -56,4 +63,7 @@ npm run build:mac
 
 # Gerar build para Windows
 npm run build:win
+
+# Gerar build para Linux (AppImage, deb e snap)
+npm run build:linux
 ```
