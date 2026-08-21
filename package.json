@@ -1,6 +1,6 @@
 {
   "name": "floating-head-cam",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Minimalist picture-in-picture webcam overlay with screen recording",
   "main": "./out/main/index.js",
   "author": "Freddy Danilo",
