@@ -3,12 +3,22 @@ import { autoUpdater } from 'electron-updater'
 import icon from '../../../../resources/icon.png?asset'
 import { t } from '../../../shared/i18n'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
-import { saveSettings, shortcuts } from '../settings/settings.service'
+import { saveSettings, shortcuts, DeviceInfo } from '../settings/settings.service'
 import {
   createSettingsWindow,
   getSettingsWindow,
   setWindowPosition
 } from '../window/window.service'
+
+export interface TrayState {
+  devices?: DeviceInfo[]
+  selectedDeviceId?: string
+  isMirrored?: boolean
+  sizeIndex?: number
+  alwaysOnTop?: boolean
+  isRecording?: boolean
+  language?: 'en' | 'pt'
+}
 
 let tray: Tray | null = null
 let _updateReady = false
@@ -23,7 +33,7 @@ export function initTray(): void {
   tray.setToolTip('Floating Head Cam')
 }
 
-export function toggleCamera(state: any): void {
+export function toggleCamera(state: TrayState): void {
   const newState = !getIsCameraOn()
   setIsCameraOn(newState)
   const sw = getSettingsWindow()
@@ -36,7 +46,7 @@ export function toggleCamera(state: any): void {
   buildTrayMenu(state)
 }
 
-export function buildTrayMenu(state: any): void {
+export function buildTrayMenu(state: TrayState): void {
   if (!tray) return
   const {
     devices = [],
@@ -66,7 +76,7 @@ export function buildTrayMenu(state: any): void {
   })
 
   const lang = state.language || 'en'
-  const cameraItems = devices.map((device: any) => ({
+  const cameraItems = devices.map((device: DeviceInfo) => ({
     label:
       device.label ||
       t('tray.cameraFallback', lang).replace('{id}', device.deviceId.substring(0, 5)),

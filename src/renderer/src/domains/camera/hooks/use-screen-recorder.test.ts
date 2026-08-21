@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useScreenRecorder } from './use-screen-recorder'
 
+type FakeTrack = { video?: boolean; stop?: () => void }
+
 describe('useScreenRecorder', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -41,14 +43,16 @@ describe('useScreenRecorder', () => {
     vi.stubGlobal(
       'MediaStream',
       class {
-        constructor(tracks: any[]) {
-          this.getTracks = () => tracks || []
-          this.getAudioTracks = () => (tracks ? tracks.filter((t) => !t.video) : [])
-          this.getVideoTracks = () => (tracks ? tracks.filter((t) => t.video) : [])
+        tracks: FakeTrack[]
+        constructor(tracks?: FakeTrack[]) {
+          this.tracks = tracks || []
+          this.getTracks = () => this.tracks
+          this.getAudioTracks = () => this.tracks.filter((t) => !t.video)
+          this.getVideoTracks = () => this.tracks.filter((t) => t.video === true)
         }
-        getTracks: () => any[]
-        getAudioTracks: () => any[]
-        getVideoTracks: () => any[]
+        getTracks: () => FakeTrack[]
+        getAudioTracks: () => FakeTrack[]
+        getVideoTracks: () => FakeTrack[]
       }
     )
 
@@ -76,12 +80,13 @@ describe('useScreenRecorder', () => {
     class MockMediaRecorder {
       static isTypeSupported = vi.fn().mockReturnValue(true)
       state = 'inactive'
+      onstop?: () => void
       start = vi.fn().mockImplementation(() => {
         this.state = 'recording'
       })
       stop = vi.fn().mockImplementation(() => {
         this.state = 'inactive'
-        if ((this as any).onstop) (this as any).onstop()
+        if (this.onstop) this.onstop()
       })
     }
     vi.stubGlobal('MediaRecorder', MockMediaRecorder)
@@ -100,7 +105,14 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('1080p', '60', 'libx264', 50, 100, 'default')
+      result.current.startRecording({
+        resolution: '1080p',
+        fps: '60',
+        encoder: 'libx264',
+        systemAudioVolume: 50,
+        microphoneAudioVolume: 100,
+        selectedMicrophoneId: 'default'
+      })
     })
 
     await act(async () => {
@@ -114,7 +126,14 @@ describe('useScreenRecorder', () => {
     const { result } = renderHook(() => useScreenRecorder())
 
     act(() => {
-      result.current.startRecording('720p', '30', 'libx264', 50, 100, 'default')
+      result.current.startRecording({
+        resolution: '720p',
+        fps: '30',
+        encoder: 'libx264',
+        systemAudioVolume: 50,
+        microphoneAudioVolume: 100,
+        selectedMicrophoneId: 'default'
+      })
     })
 
     await act(async () => {

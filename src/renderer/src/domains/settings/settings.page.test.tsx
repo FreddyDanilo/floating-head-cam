@@ -22,7 +22,7 @@ vi.mock('lucide-react', () => ({
 }))
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(window as any).electron = {
+  ;(window as unknown as { electron: unknown }).electron = {
     ipcRenderer: {
       invoke: mockInvoke,
       send: mockSend,

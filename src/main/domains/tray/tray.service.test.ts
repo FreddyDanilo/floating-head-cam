@@ -171,14 +171,14 @@ describe('tray.service', () => {
       setUpdateReady(true)
       buildTrayMenu(state)
       const menu = mockSetContextMenu.mock.calls[0][0]
-      expect(menu._template.some((i: any) => i.label === 'Start Update')).toBe(true)
+      expect(menu._template.some((i: { label?: string }) => i.label === 'Start Update')).toBe(true)
     })
     it('excludes Start Update item when no update is ready', () => {
       initTray()
       setUpdateReady(false)
       buildTrayMenu(state)
       const menu = mockSetContextMenu.mock.calls[0][0]
-      expect(menu._template.some((i: any) => i.label === 'Start Update')).toBe(false)
+      expect(menu._template.some((i: { label?: string }) => i.label === 'Start Update')).toBe(false)
     })
   })
 })

@@ -7,7 +7,7 @@ const mockOn = vi.fn()
 const mockRemoveAllListeners = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(window as any).electron = {
+  ;(window as unknown as { electron: unknown }).electron = {
     ipcRenderer: {
       invoke: mockInvoke,
       send: mockSend,
@@ -97,7 +97,7 @@ describe('useShortcuts', () => {
     expect(mockRemoveAllListeners).toHaveBeenCalledWith('settings-reset')
   })
   it('does nothing when window.electron is unavailable', () => {
-    ;(window as any).electron = undefined
+    ;(window as unknown as { electron: undefined }).electron = undefined
     expect(() => renderHook(() => useShortcuts())).not.toThrow()
   })
 })

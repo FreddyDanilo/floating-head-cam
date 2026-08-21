@@ -20,19 +20,21 @@ vi.mock('electron', () => ({
 }))
 
 vi.mock('fluent-ffmpeg', () => {
-  const ffmpegMock: any = vi.fn(() => ({
-    output: vi.fn().mockReturnThis(),
-    videoCodec: vi.fn().mockReturnThis(),
-    outputOptions: vi.fn().mockReturnThis(),
-    on: vi.fn().mockImplementation(function (this: any, event: string, callback: any) {
-      if (event === 'end') {
-        setTimeout(callback, 10)
-      }
-      return this
-    }),
-    run: vi.fn()
-  }))
-  ffmpegMock.setFfmpegPath = vi.fn()
+  const ffmpegMock = Object.assign(
+    vi.fn(() => ({
+      output: vi.fn().mockReturnThis(),
+      videoCodec: vi.fn().mockReturnThis(),
+      outputOptions: vi.fn().mockReturnThis(),
+      on: vi.fn().mockImplementation(function (this: unknown, event: string, callback: () => void) {
+        if (event === 'end') {
+          setTimeout(callback, 10)
+        }
+        return this
+      }),
+      run: vi.fn()
+    })),
+    { setFfmpegPath: vi.fn() }
+  )
   return { default: ffmpegMock }
 })
 

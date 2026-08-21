@@ -47,8 +47,9 @@ export function useCameraStream(
           videoElement.srcObject = stream
         }
         setPermissionError(false)
-      } catch (err: any) {
-        if (err.name === 'NotAllowedError' || err.name === 'NotFoundError') {
+      } catch (err) {
+        const errName = (err as { name?: string })?.name
+        if (errName === 'NotAllowedError' || errName === 'NotFoundError') {
           setPermissionError(true)
         }
         console.error('Error starting video stream:', err)
