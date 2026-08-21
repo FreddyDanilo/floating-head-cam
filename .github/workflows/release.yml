@@ -17,6 +17,8 @@ jobs:
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
       WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      # Skip keychain identity lookup; signing only happens when CSC_LINK is set
+      CSC_IDENTITY_AUTO_DISCOVERY: false
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -26,7 +28,10 @@ jobs:
       - run: npm ci
       - run: node scripts/extract-release-notes.mjs
       - run: npm run build
-      - run: npx electron-builder --mac --arm64 --win --x64 --publish always
+      # Notarization is skipped when Apple credentials are not configured
+      - run: >
+          npx electron-builder --mac --arm64 --win --x64 --publish always
+          ${{ secrets.APPLE_ID == '' && '-c.mac.notarize=false' || '' }}
 
   release-linux:
     runs-on: ubuntu-latest
