@@ -5,7 +5,8 @@ const OUTPUT = 'build/release-notes.md'
 
 function extractSection(changelog, title) {
   const lines = changelog.split('\n')
-  const startIdx = lines.findIndex((line) => line.trim() === `## [${title}]`)
+  const heading = new RegExp(`^## \\[${title}\\](\\s|$)`)
+  const startIdx = lines.findIndex((line) => heading.test(line.trim()))
   if (startIdx === -1) return null
 
   let endIdx = lines.length

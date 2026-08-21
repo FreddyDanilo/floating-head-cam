@@ -43,6 +43,12 @@ jobs:
             ARGS="$ARGS -c.mac.notarize=false"
           fi
           npx electron-builder $ARGS
+      - name: Apply release notes & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release edit "v$(node -p "require('./package.json').version")"
+          --notes-file build/release-notes.md --draft=false
 
   release-linux:
     runs-on: ubuntu-latest
@@ -59,3 +65,9 @@ jobs:
       - run: npm run build
       # Snap is built manually via `npm run build:linux` (requires snapcraft/docker)
       - run: npx electron-builder --linux APPIMAGE --linux deb --publish always
+      - name: Apply release notes & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release edit "v$(node -p "require('./package.json').version")"
+          --notes-file build/release-notes.md --draft=false
