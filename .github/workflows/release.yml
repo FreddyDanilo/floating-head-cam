@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   release-mac-win:
     runs-on: macos-latest
@@ -28,10 +31,18 @@ jobs:
       - run: npm ci
       - run: node scripts/extract-release-notes.mjs
       - run: npm run build
-      # Notarization is skipped when Apple credentials are not configured
-      - run: >
-          npx electron-builder --mac --arm64 --win --x64 --publish always
-          ${{ secrets.APPLE_ID == '' && '-c.mac.notarize=false' || '' }}
+      # Empty secrets arrive as "" and would be treated as file paths — unset them.
+      # Notarization is skipped when Apple credentials are not configured.
+      - name: Build & publish
+        run: |
+          for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID WIN_CSC_LINK WIN_CSC_KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then unset "$v"; fi
+          done
+          ARGS="--mac --arm64 --win --x64 --publish always"
+          if [ -z "${APPLE_ID:-}" ]; then
+            ARGS="$ARGS -c.mac.notarize=false"
+          fi
+          npx electron-builder $ARGS
 
   release-linux:
     runs-on: ubuntu-latest
