@@ -30,6 +30,9 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
   register(shortcuts.sizeSidebar, () =>
     win.webContents.send('tray-action', { type: 'set-size-index', payload: 3 })
   )
+  register(shortcuts.sizeFullscreen, () =>
+    win.webContents.send('tray-action', { type: 'set-size-index', payload: 4 })
+  )
   register(shortcuts.mirror, () =>
     win.webContents.send('tray-action', { type: 'set-mirror', payload: !currentState.isMirrored })
   )

@@ -88,16 +88,32 @@ export function setWindowPosition(pos: string): void {
     win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
   })
 }
-export function resizeWindow(sizeObj: { width: number; height: number; position?: 'right' }): void {
+export function resizeWindow(sizeObj: {
+  width: number
+  height: number
+  position?: 'right' | 'fullscreen'
+}): void {
   const sw = _settingsWindow
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win === sw) return
     const bounds = win.getContentBounds()
     const display = screen.getDisplayMatching(bounds)
-    const { workArea } = display
     let newX = bounds.x
     let newY = bounds.y
     const { width, height, position } = sizeObj
+    if (position === 'fullscreen') {
+      win.setContentBounds(
+        {
+          x: display.bounds.x,
+          y: display.bounds.y,
+          width: display.bounds.width,
+          height: display.bounds.height
+        },
+        true
+      )
+      return
+    }
+    const { workArea } = display
     if (position === 'right') {
       newX = workArea.x + workArea.width - width
       newY = workArea.y

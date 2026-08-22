@@ -52,6 +52,12 @@ export function CameraPage(): React.JSX.Element {
 
   const applySize = useCallback((index: number, currentShape: string) => {
     if (!window.electron) return
+    if (index === 4) {
+      const width = window.screen.width || window.screen.availWidth
+      const height = window.screen.height || window.screen.availHeight
+      window.electron.ipcRenderer.send('resize-window', { width, height, position: 'fullscreen' })
+      return
+    }
     if (index === 3) {
       const screenWidth = window.screen.availWidth || window.screen.width
       const screenHeight = window.screen.availHeight || window.screen.height
@@ -181,6 +187,10 @@ export function CameraPage(): React.JSX.Element {
         setSizeIndex(3)
         applySize(3, shape)
       }
+      if (e.key === '5') {
+        setSizeIndex(4)
+        applySize(4, shape)
+      }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -241,7 +251,7 @@ export function CameraPage(): React.JSX.Element {
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
+          objectFit: sizeIndex === 4 ? 'contain' : 'cover',
           borderRadius: shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
           transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
           display: hasPermissionError ? 'none' : 'block'

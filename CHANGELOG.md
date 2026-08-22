@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Configurable recording destination folder in settings (defaults to the system Videos folder)
+- Full screen camera mode (size index 5) showing the video without cropping, with the `5` key shortcut, tray radio item and settings entry
 
 ### Fixed
 
