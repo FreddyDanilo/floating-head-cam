@@ -6,3 +6,5 @@ out
 *.log*
 .env
 
+diff.patch
+build/release-notes.md

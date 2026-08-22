@@ -1,15 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { renderHook } from '@testing-library/react'
-import { useTrayEvents } from './use-tray-events'
+import { useTrayEvents, type TrayEventHandlers } from './use-tray-events'
 const mockOn = vi.fn()
 const mockRemoveAllListeners = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(window as any).electron = {
+  ;(window as unknown as { electron: unknown }).electron = {
     ipcRenderer: { on: mockOn, removeAllListeners: mockRemoveAllListeners }
   }
 })
-function makeHandlers() {
+function makeHandlers(): TrayEventHandlers {
   return {
     setSelectedDeviceId: vi.fn(),
     setShape: vi.fn(),
@@ -22,6 +22,7 @@ function makeHandlers() {
     setBorderGradient: vi.fn(),
     setBorderWidth: vi.fn(),
     setIsBorderAnimated: vi.fn(),
+    setLanguage: vi.fn(),
     sizeIndex: 0,
     shape: 'circle'
   }
@@ -85,6 +86,13 @@ describe('useTrayEvents', () => {
     trayHandler({}, { type: 'set-always-on-top', payload: false })
     expect(handlers.setAlwaysOnTop).toHaveBeenCalledWith(false)
   })
+  it('set-language action calls setLanguage', () => {
+    const handlers = makeHandlers()
+    renderHook(() => useTrayEvents(handlers))
+    const [, trayHandler] = mockOn.mock.calls.find(([ch]) => ch === 'tray-action')!
+    trayHandler({}, { type: 'set-language', payload: 'pt' })
+    expect(handlers.setLanguage).toHaveBeenCalledWith('pt')
+  })
   it('power-state event calls setPowerOn', () => {
     const handlers = makeHandlers()
     renderHook(() => useTrayEvents(handlers))
@@ -109,7 +117,7 @@ describe('useTrayEvents', () => {
     expect(handlers.setAlwaysOnTop).toHaveBeenCalledWith(false)
   })
   it('does nothing if window.electron is not available', () => {
-    ;(window as any).electron = undefined
+    ;(window as unknown as { electron: undefined }).electron = undefined
     expect(() => renderHook(() => useTrayEvents(makeHandlers()))).not.toThrow()
     expect(mockOn).not.toHaveBeenCalled()
   })

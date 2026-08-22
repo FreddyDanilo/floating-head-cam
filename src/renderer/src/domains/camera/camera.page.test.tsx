@@ -6,7 +6,7 @@ const mockOn = vi.fn()
 const mockRemoveAllListeners = vi.fn()
 beforeEach(() => {
   vi.clearAllMocks()
-  ;(window as any).electron = {
+  ;(window as unknown as { electron: unknown }).electron = {
     ipcRenderer: {
       invoke: mockInvoke,
       send: mockSend,

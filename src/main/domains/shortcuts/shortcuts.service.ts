@@ -2,11 +2,11 @@ import { BrowserWindow, globalShortcut } from 'electron'
 import { currentState, shortcuts } from '../settings/settings.service'
 import { setWindowPosition } from '../window/window.service'
 export function registerGlobalShortcuts(win: BrowserWindow): void {
-  const register = (key: string, action: () => void) => {
+  const register = (key: string, action: () => void): void => {
     if (key) {
       try {
         globalShortcut.register(key, action)
-      } catch (e) {
+      } catch {
         console.error('Failed to register shortcut:', key)
       }
     }
@@ -29,6 +29,9 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
   )
   register(shortcuts.sizeSidebar, () =>
     win.webContents.send('tray-action', { type: 'set-size-index', payload: 3 })
+  )
+  register(shortcuts.sizeFullscreen, () =>
+    win.webContents.send('tray-action', { type: 'set-size-index', payload: 4 })
   )
   register(shortcuts.mirror, () =>
     win.webContents.send('tray-action', { type: 'set-mirror', payload: !currentState.isMirrored })
@@ -55,13 +58,13 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
 export function unregisterGlobalShortcuts(): void {
   const keysToUnregister = Object.entries(shortcuts)
     .filter(([key]) => key !== 'toggleCamera' && key !== 'startRecording')
-    .map(([_, value]) => value)
+    .map(([, value]) => value)
 
   for (const key of keysToUnregister) {
     if (key && typeof key === 'string') {
       try {
         globalShortcut.unregister(key)
-      } catch (e) {
+      } catch {
         console.error('Failed to unregister shortcut:', key)
       }
     }

@@ -1,6 +1,15 @@
 import { app } from 'electron'
 import fs from 'fs'
 import { join } from 'path'
+import { execSync } from 'child_process'
+import { cpus } from 'os'
+
+export interface DeviceInfo {
+  deviceId: string
+  kind?: string
+  label: string
+  groupId?: string
+}
 export const defaultShortcuts = {
   topLeft: 'Alt+Q',
   topRight: 'Alt+E',
@@ -13,6 +22,7 @@ export const defaultShortcuts = {
   sizeMedium: '2',
   sizeLarge: '3',
   sizeSidebar: '4',
+  sizeFullscreen: '5',
   mirror: 'Alt+M',
   alwaysOnTop: 'Alt+T',
   toggleCamera: 'F9',
@@ -23,33 +33,44 @@ export const defaultShortcuts = {
   startRecording: 'F10'
 }
 
+function getGpuName(): string {
+  try {
+    return execSync('wmic path win32_VideoController get name', {
+      encoding: 'utf8',
+      stdio: 'pipe'
+    }).toLowerCase()
+  } catch {
+    return ''
+  }
+}
+
+function getCpuModel(): string {
+  try {
+    return cpus()[0]?.model?.toLowerCase() || ''
+  } catch {
+    return ''
+  }
+}
+
 function getBestEncoderDefault(): string {
   if (process.platform === 'darwin') return 'h264_videotoolbox'
 
   if (process.platform === 'win32') {
-    try {
-      const { execSync } = require('child_process')
-      const gpuInfo = execSync('wmic path win32_VideoController get name', {
-        encoding: 'utf8',
-        stdio: 'pipe'
-      }).toLowerCase()
-      if (gpuInfo.includes('nvidia')) return 'h264_nvenc'
-      if (gpuInfo.includes('amd') || gpuInfo.includes('radeon')) return 'h264_amf'
-      if (gpuInfo.includes('intel')) return 'h264_qsv'
-    } catch (e) {
-      try {
-        const cpuModel = require('os').cpus()[0]?.model?.toLowerCase() || ''
-        if (cpuModel.includes('intel')) return 'h264_qsv'
-        if (cpuModel.includes('amd')) return 'h264_amf'
-      } catch (err) {}
-    }
+    const gpuInfo = getGpuName()
+    if (gpuInfo.includes('nvidia')) return 'h264_nvenc'
+    if (gpuInfo.includes('amd') || gpuInfo.includes('radeon')) return 'h264_amf'
+    if (gpuInfo.includes('intel')) return 'h264_qsv'
+
+    const cpuModel = getCpuModel()
+    if (cpuModel.includes('intel')) return 'h264_qsv'
+    if (cpuModel.includes('amd')) return 'h264_amf'
   }
 
   return 'libx264'
 }
 
 export const defaultState = {
-  devices: [] as any[],
+  devices: [] as DeviceInfo[],
   selectedDeviceId: '',
   isMirrored: false,
   shape: 'circle',
@@ -62,6 +83,7 @@ export const defaultState = {
   x: undefined as number | undefined,
   y: undefined as number | undefined,
   language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt'),
+  recordingFolder: '',
   recordingResolution: '1080p',
   recordingFps: '60',
   recordingEncoder: getBestEncoderDefault(),
@@ -71,7 +93,7 @@ export const defaultState = {
   selectedMicrophoneId: 'default'
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
-export const currentState: typeof defaultState & { [key: string]: any } = { ...defaultState }
+export const currentState: typeof defaultState & { [key: string]: unknown } = { ...defaultState }
 export function loadSettings(): void {
   const p = join(app.getPath('userData'), 'settings.json')
   if (fs.existsSync(p)) {
@@ -79,12 +101,21 @@ export function loadSettings(): void {
       const data = JSON.parse(fs.readFileSync(p, 'utf-8'))
       if (data.shortcuts) Object.assign(shortcuts, defaultShortcuts, data.shortcuts)
       if (data.state) Object.assign(currentState, defaultState, data.state)
-    } catch (e) {}
+      currentState.devices = []
+    } catch (err) {
+      console.warn('Failed to load settings, using defaults:', err)
+    }
   }
 }
 export function saveSettings(): void {
-  const p = join(app.getPath('userData'), 'settings.json')
-  fs.writeFileSync(p, JSON.stringify({ shortcuts, state: currentState }, null, 2))
+  try {
+    const p = join(app.getPath('userData'), 'settings.json')
+    const stateToPersist = { ...currentState } as Record<string, unknown>
+    delete stateToPersist.devices
+    fs.writeFileSync(p, JSON.stringify({ shortcuts, state: stateToPersist }, null, 2))
+  } catch (e) {
+    console.error('Failed to save settings:', e)
+  }
 }
 export type SettingsTab =
   'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording' | undefined
@@ -97,6 +128,7 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
       : undefined
 
   if (!targetTab || targetTab === 'recording') {
+    currentState.recordingFolder = defaultState.recordingFolder
     currentState.recordingResolution = defaultState.recordingResolution
     currentState.recordingFps = defaultState.recordingFps
     currentState.recordingEncoder = defaultState.recordingEncoder
@@ -135,7 +167,7 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
   }
 
   if (!targetTab || targetTab === 'sizing') {
-    const sizeKeys = ['sizeSmall', 'sizeMedium', 'sizeLarge', 'sizeSidebar']
+    const sizeKeys = ['sizeSmall', 'sizeMedium', 'sizeLarge', 'sizeSidebar', 'sizeFullscreen']
     sizeKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
     currentState.sizeIndex = defaultState.sizeIndex
   }

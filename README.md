@@ -3,7 +3,7 @@
 
 # Floating Head Cam
 
-**Version 1.0.2** | **Created by Freddy Danilo**
+**Version 1.0.4** | **Created by Freddy Danilo**
 
 _Minimalist picture-in-picture (PiP) webcam application._
 </div>
@@ -24,12 +24,21 @@ _Minimalist picture-in-picture (PiP) webcam application._
 - **Modo Espelho:** Inverta a imagem da câmera horizontalmente.
 - **Atalhos Globais:** Posicione a câmera instantaneamente em qualquer canto da tela usando o teclado.
 - **Múltiplas Câmeras:** Troque facilmente entre as webcams conectadas.
+- **Gravação de Tela:** Capture a tela com áudio do sistema e microfone mixados (resolução, taxa de quadros, encoder por hardware e volumes ajustáveis).
+- **Pasta de Gravação:** Escolha onde salvar as gravações (por padrão, usa a pasta Vídeos do sistema).
 
 ## Download
 
-Baixe a versão mais recente diretamente aqui do repositório (acesse a página e baixe o instalador `.dmg` para Mac ou `.exe` para Windows):
+Baixe a versão mais recente diretamente aqui do repositório (acesse a página e baixe o instalador `.dmg` para Mac, `.exe` para Windows ou `.AppImage`/`.deb`/`.snap` para Linux):
 
 - **[Baixar Versão Mais Recente (Página de Releases)](https://github.com/FreddyDanilo/floating-head-cam/releases/latest)**
+
+### Notas para Linux
+
+- **Bandeja do sistema:** No GNOME é necessário ter suporte a AppIndicator (extensão *AppIndicator Support* ou `libayatana-appindicator3`). KDE e outros ambientes funcionam nativamente.
+- **Áudio do sistema na gravação:** O Linux não expõe o áudio do sistema ao navegador como macOS/Windows. Se existir um monitor PulseAudio/PipeWire (padrão na maioria das distros), ele é usado automaticamente como fonte do áudio do sistema.
+- **Transparência:** A janela flutuante requer um compositor ativo (padrão em GNOME/KDE). Em gerenciadores de janela sem composição, o fundo pode aparecer preto.
+- **Atualizações:** AppImage atualiza automaticamente pelo app; Snap atualiza via snapd; `.deb` exige baixar a nova versão manualmente.
 
 ## Como usar
 
@@ -56,4 +65,7 @@ npm run build:mac
 
 # Gerar build para Windows
 npm run build:win
+
+# Gerar build para Linux (AppImage, deb e snap)
+npm run build:linux
 ```
