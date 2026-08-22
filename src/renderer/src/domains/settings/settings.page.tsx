@@ -188,7 +188,9 @@ export function SettingsPage(): React.JSX.Element {
       actions: [
         { key: 'sizeSmall', label: t('settings.sizeSmall', language) },
         { key: 'sizeMedium', label: t('settings.sizeMedium', language) },
-        { key: 'sizeLarge', label: t('settings.sizeLarge', language) }
+        { key: 'sizeLarge', label: t('settings.sizeLarge', language) },
+        { key: 'sizeSidebar', label: t('settings.sizeSidebar', language) },
+        { key: 'sizeFullscreen', label: t('settings.sizeFullscreen', language) }
       ]
     },
     {

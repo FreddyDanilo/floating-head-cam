@@ -202,6 +202,18 @@ export function buildTrayMenu(state: any): void {
               if (w !== sw)
                 w.webContents.send('tray-action', { type: 'set-size-index', payload: 3 })
             })
+        },
+        {
+          label: t('tray.size.fullscreen', lang),
+          type: 'radio' as const,
+          accelerator: shortcuts.sizeFullscreen,
+          registerAccelerator: false,
+          checked: sizeIndex === 4,
+          click: () =>
+            BrowserWindow.getAllWindows().forEach((w) => {
+              if (w !== sw)
+                w.webContents.send('tray-action', { type: 'set-size-index', payload: 4 })
+            })
         }
       ]
     },

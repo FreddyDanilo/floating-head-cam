@@ -3,7 +3,10 @@ import { getSettingsWindow, resizeWindow, setWindowPosition } from './window.ser
 const { mockSetContentBounds, mockGetContentBounds, mockGetDisplayMatching } = vi.hoisted(() => ({
   mockSetContentBounds: vi.fn(),
   mockGetContentBounds: vi.fn(() => ({ x: 100, y: 100, width: 300, height: 300 })),
-  mockGetDisplayMatching: vi.fn(() => ({ workArea: { x: 0, y: 0, width: 1920, height: 1080 } }))
+  mockGetDisplayMatching: vi.fn(() => ({
+    workArea: { x: 0, y: 0, width: 1920, height: 1080 },
+    bounds: { x: 0, y: 0, width: 1920, height: 1080 }
+  }))
 }))
 vi.mock('electron', () => ({
   app: {
@@ -31,7 +34,10 @@ describe('window.service', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGetContentBounds.mockReturnValue({ x: 100, y: 100, width: 300, height: 300 })
-    mockGetDisplayMatching.mockReturnValue({ workArea: { x: 0, y: 0, width: 1920, height: 1080 } })
+    mockGetDisplayMatching.mockReturnValue({
+      workArea: { x: 0, y: 0, width: 1920, height: 1080 },
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 }
+    })
   })
   describe('getSettingsWindow', () => {
     it('returns null before any window is created', () => {
@@ -110,6 +116,17 @@ describe('window.service', () => {
       const call = mockSetContentBounds.mock.calls[0][0]
       expect(call.width).toBe(450)
       expect(call.height).toBe(450)
+    })
+    it('fullscreen: covers the full display bounds, ignoring provided size', () => {
+      mockGetDisplayMatching.mockReturnValue({
+        workArea: { x: 0, y: 0, width: 1920, height: 1040 },
+        bounds: { x: 0, y: 25, width: 1920, height: 1080 }
+      })
+      resizeWindow({ width: 1, height: 1, position: 'fullscreen' })
+      expect(mockSetContentBounds).toHaveBeenCalledWith(
+        { x: 0, y: 25, width: 1920, height: 1080 },
+        true
+      )
     })
   })
 })
