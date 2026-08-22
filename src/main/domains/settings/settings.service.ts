@@ -82,6 +82,7 @@ export const defaultState = {
   x: undefined as number | undefined,
   y: undefined as number | undefined,
   language: app.getLocale().startsWith('pt') ? 'pt' : ('en' as 'en' | 'pt'),
+  recordingFolder: '',
   recordingResolution: '1080p',
   recordingFps: '60',
   recordingEncoder: getBestEncoderDefault(),
@@ -126,6 +127,7 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
       : undefined
 
   if (!targetTab || targetTab === 'recording') {
+    currentState.recordingFolder = defaultState.recordingFolder
     currentState.recordingResolution = defaultState.recordingResolution
     currentState.recordingFps = defaultState.recordingFps
     currentState.recordingEncoder = defaultState.recordingEncoder

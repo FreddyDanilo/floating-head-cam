@@ -131,6 +131,9 @@ const translations: Translations = {
 
     'settings.recordingMicrophone': 'Microphone',
     'settings.recordingMicrophoneDefault': 'System Default',
+    'settings.recordingFolder': 'Recording Folder',
+    'settings.recordingFolderDefault': 'System default (Videos)',
+    'settings.recordingFolderChoose': 'Choose...',
 
     'tray.startRecording': 'Start Recording',
     'tray.stopRecording': 'Stop Recording'
@@ -266,6 +269,9 @@ const translations: Translations = {
 
     'settings.recordingMicrophone': 'Microfone',
     'settings.recordingMicrophoneDefault': 'Padrão do Sistema',
+    'settings.recordingFolder': 'Pasta de Gravação',
+    'settings.recordingFolderDefault': 'Padrão do sistema (Vídeos)',
+    'settings.recordingFolderChoose': 'Escolher...',
 
     'tray.startRecording': 'Iniciar Gravação',
     'tray.stopRecording': 'Parar Gravação'

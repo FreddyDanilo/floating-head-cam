@@ -3,7 +3,7 @@
 
 # Floating Head Cam
 
-**Version 1.0.2** | **Created by Freddy Danilo**
+**Version 1.0.3** | **Created by Freddy Danilo**
 
 _Minimalist picture-in-picture (PiP) webcam application._
 </div>
@@ -24,6 +24,8 @@ _Minimalist picture-in-picture (PiP) webcam application._
 - **Modo Espelho:** Inverta a imagem da câmera horizontalmente.
 - **Atalhos Globais:** Posicione a câmera instantaneamente em qualquer canto da tela usando o teclado.
 - **Múltiplas Câmeras:** Troque facilmente entre as webcams conectadas.
+- **Gravação de Tela:** Capture a tela com áudio do sistema e microfone mixados (resolução, taxa de quadros, encoder por hardware e volumes ajustáveis).
+- **Pasta de Gravação:** Escolha onde salvar as gravações (por padrão, usa a pasta Vídeos do sistema).
 
 ## Download
 

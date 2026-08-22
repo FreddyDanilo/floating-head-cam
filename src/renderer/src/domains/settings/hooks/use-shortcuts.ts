@@ -24,6 +24,7 @@ export type VisualState = {
   borderGradient: string
   borderWidth: number
   isBorderAnimated: boolean
+  recordingFolder: string
   recordingResolution: string
   recordingFps: string
   recordingEncoder: string
@@ -55,6 +56,7 @@ export function useShortcuts(): UseShortcutsReturn {
     borderGradient: 'none',
     borderWidth: 6,
     isBorderAnimated: false,
+    recordingFolder: '',
     recordingResolution: '1080p',
     recordingFps: '30',
     recordingEncoder: 'libx264',
@@ -77,6 +79,7 @@ export function useShortcuts(): UseShortcutsReturn {
         borderGradient: data.borderGradient || 'none',
         borderWidth: data.borderWidth ?? 4,
         isBorderAnimated: data.isBorderAnimated || false,
+        recordingFolder: typeof data.recordingFolder === 'string' ? data.recordingFolder : '',
         recordingResolution: data.recordingResolution || '1080p',
         recordingFps: data.recordingFps || '60',
         recordingEncoder: data.recordingEncoder || 'libx264',
@@ -101,6 +104,8 @@ export function useShortcuts(): UseShortcutsReturn {
           borderGradient: payload.state.borderGradient || 'none',
           borderWidth: payload.state.borderWidth ?? 4,
           isBorderAnimated: payload.state.isBorderAnimated || false,
+          recordingFolder:
+            typeof payload.state.recordingFolder === 'string' ? payload.state.recordingFolder : '',
           recordingResolution: payload.state.recordingResolution || '1080p',
           recordingFps: payload.state.recordingFps || '60',
           recordingEncoder: payload.state.recordingEncoder || 'libx264',

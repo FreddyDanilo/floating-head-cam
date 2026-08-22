@@ -64,6 +64,7 @@ describe('useScreenRecorder', () => {
           return Promise.resolve([{ id: 'screen:1', name: 'Screen 1' }])
         if (channel === 'recording-stop')
           return Promise.resolve({ success: true, filePath: 'test.mp4' })
+        if (channel === 'recording-start') return Promise.resolve(true)
         return Promise.resolve()
       }),
       send: vi.fn(),

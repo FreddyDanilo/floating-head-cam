@@ -74,13 +74,23 @@ const styles = {
   }
 }
 
-export function PermissionErrorOverlay({ language = 'en' }: { language?: string }): ReactElement {
+export function PermissionErrorOverlay({
+  language = 'en',
+  onRetry
+}: {
+  language?: string
+  onRetry?: () => void | Promise<void>
+}): ReactElement {
   const lang = (language === 'pt' ? 'pt' : 'en') as 'en' | 'pt'
   const { cameraPermission, checkPermissions } = usePermissions()
   const platform = detectPlatform()
 
   const handleRetry = async (): Promise<void> => {
     await checkPermissions()
+    if (onRetry) {
+      await onRetry()
+      return
+    }
     window.location.reload()
   }
 

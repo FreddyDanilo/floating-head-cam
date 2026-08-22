@@ -2,6 +2,7 @@ import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import {
   app,
   BrowserWindow,
+  dialog,
   globalShortcut,
   ipcMain,
   session,
@@ -30,7 +31,7 @@ import {
   resizeWindow,
   setWindowPosition
 } from './domains/window/window.service'
-import { setupRecordingIPC } from './domains/recording/recording.service'
+import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
 
 const windowCallbacks = {
   onFocus: (win: BrowserWindow) => {
@@ -180,6 +181,7 @@ app.whenReady().then(() => {
     'borderGradient',
     'borderWidth',
     'isBorderAnimated',
+    'recordingFolder',
     'recordingResolution',
     'recordingFps',
     'recordingEncoder',
@@ -208,26 +210,36 @@ app.whenReady().then(() => {
       }
     })
   })
+  ipcMain.handle('choose-recording-folder', async () => {
+    const result = await dialog.showOpenDialog(getSettingsWindow() as BrowserWindow, {
+      title: t('settings.recordingFolder', currentState.language || 'en'),
+      defaultPath:
+        typeof currentState.recordingFolder === 'string' && currentState.recordingFolder
+          ? currentState.recordingFolder
+          : app.getPath('videos'),
+      properties: ['openDirectory', 'createDirectory']
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    return result.filePaths[0]
+  })
+
   ipcMain.on('set-window-position', (_, pos) => {
     setWindowPosition(pos)
   })
-  ipcMain.on('recording-started', () => {
-    currentState.isRecording = true
+  function setRecordingState(isRecording: boolean): void {
+    currentState.isRecording = isRecording
     saveSettings()
     buildTrayMenu(currentState)
     BrowserWindow.getAllWindows().forEach((w) =>
-      w.webContents.send('sync-setting', { key: 'isRecording', value: true })
+      w.webContents.send('sync-setting', { key: 'isRecording', value: isRecording })
     )
-  })
+  }
 
-  ipcMain.on('recording-stopped', () => {
-    currentState.isRecording = false
-    saveSettings()
-    buildTrayMenu(currentState)
-    BrowserWindow.getAllWindows().forEach((w) =>
-      w.webContents.send('sync-setting', { key: 'isRecording', value: false })
-    )
-  })
+  ipcMain.on('recording-started', () => setRecordingState(true))
+
+  ipcMain.on('recording-stopped', () => setRecordingState(false))
+
+  setOnRecordingAborted(() => setRecordingState(false))
 
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))
   ipcMain.handle('get-shortcuts', () => shortcuts)

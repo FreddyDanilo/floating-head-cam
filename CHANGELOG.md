@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Configurable recording destination folder in settings (defaults to the system Videos folder)
+
+### Fixed
+
+- Webcams connected after the app is already running are now detected automatically (hotplug retries plus polling while the camera is missing); "Try again" re-scans devices in place instead of requiring an app restart
+- AudioContext is now closed when a recording fails to start, preventing leaked audio render threads
+- A second concurrent start attempt no longer orphans the active MediaRecorder; an in-flight recording is stopped if its page unloads
+- A recording whose renderer crashes or reloads is now detected by the main process and the file is finalized instead of leaving ffmpeg waiting forever
+- Recording start failures (unwritable destination folder, ffmpeg spawn error) are now reported back to the UI instead of showing a ghost recording session
+- If ffmpeg dies mid-recording (e.g. disk full), the camera window stops the session instead of silently dropping chunks
+- Guard against IPC chunks arriving after the recording stream has ended (potential main-process crash)
+
 ## [1.0.3] - 2026-08-21
 
 ### Added

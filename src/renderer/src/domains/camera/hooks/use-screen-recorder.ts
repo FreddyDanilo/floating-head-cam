@@ -72,6 +72,10 @@ export function useScreenRecorder(): {
       microphoneAudioVolume,
       selectedMicrophoneId
     }: StartRecordingPayload): Promise<void> => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        console.warn('startRecording ignored: a recording is already in progress')
+        return
+      }
       let desktopStream: MediaStream | null = null
       let micStream: MediaStream | null = null
       let systemAudioStream: MediaStream | null = null
@@ -219,6 +223,7 @@ export function useScreenRecorder(): {
             audioContextRef.current.close()
             audioContextRef.current = null
           }
+          audioNodesRef.current = []
           await chunkPromiseChain
           ipc.send('recording-stopped')
           try {
@@ -226,9 +231,13 @@ export function useScreenRecorder(): {
           } catch (err) {
             console.error('Failed to finalize recording file:', err)
           }
+          mediaRecorderRef.current = null
         }
 
-        ipc.send('recording-start', { encoder })
+        const started = await ipc.invoke('recording-start', { encoder })
+        if (!started) {
+          throw new Error('Recording could not start (destination folder unavailable?)')
+        }
         mediaRecorder.start(1000)
         mediaRecorderRef.current = mediaRecorder
 
@@ -238,10 +247,21 @@ export function useScreenRecorder(): {
         desktopStream?.getTracks().forEach((track) => track.stop())
         micStream?.getTracks().forEach((track) => track.stop())
         systemAudioStream?.getTracks().forEach((track) => track.stop())
+        if (audioContextRef.current) {
+          audioContextRef.current.close()
+          audioContextRef.current = null
+        }
+        audioNodesRef.current = []
       }
     },
     []
   )
+
+  useEffect(() => {
+    return () => {
+      stopRecording()
+    }
+  }, [stopRecording])
 
   useEffect(() => {
     const ipc = window.electron?.ipcRenderer

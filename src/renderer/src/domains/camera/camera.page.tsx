@@ -13,8 +13,10 @@ export function CameraPage(): React.JSX.Element {
     devices,
     selectedDeviceId,
     setSelectedDeviceId,
-    permissionError: devicesError
+    permissionError: devicesError,
+    refreshDevices
   } = useCameraDevices()
+  const [streamRetryNonce, setStreamRetryNonce] = useState(0)
   const [isMirrored, setIsMirrored] = useState(true)
   const [shape, setShape] = useState<'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'>(
     'circle'
@@ -36,8 +38,17 @@ export function CameraPage(): React.JSX.Element {
 
   useScreenRecorder()
 
-  const { videoRef, permissionError: streamError } = useCameraStream(selectedDeviceId, powerOn)
+  const { videoRef, permissionError: streamError } = useCameraStream(
+    selectedDeviceId,
+    powerOn,
+    streamRetryNonce
+  )
   const hasPermissionError = devicesError || streamError
+
+  const handleDetectionRetry = useCallback((): void => {
+    refreshDevices()
+    setStreamRetryNonce((n) => n + 1)
+  }, [refreshDevices])
 
   const applySize = useCallback((index: number, currentShape: string) => {
     if (!window.electron) return
@@ -236,7 +247,9 @@ export function CameraPage(): React.JSX.Element {
           display: hasPermissionError ? 'none' : 'block'
         }}
       />
-      {hasPermissionError && <PermissionErrorOverlay language={language} />}
+      {hasPermissionError && (
+        <PermissionErrorOverlay language={language} onRetry={handleDetectionRetry} />
+      )}
     </div>
   )
 }

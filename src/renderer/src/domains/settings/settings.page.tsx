@@ -12,7 +12,8 @@ import {
   PowerOff,
   FlipHorizontal,
   Pin,
-  TriangleAlert
+  TriangleAlert,
+  FolderOpen
 } from 'lucide-react'
 import React, { useState } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
@@ -191,6 +192,38 @@ function RecordingSettings({
               className="rounding-slider"
               onChange={(e) => updateVisualState('microphoneAudioVolume', Number(e.target.value))}
             />
+          </div>
+        </div>
+
+        <div className="settings-row settings-row--column">
+          <span className="settings-label">{t('settings.recordingFolder', language)}</span>
+          <div className="settings-folder-row">
+            <span className="settings-folder-path" title={visualState.recordingFolder}>
+              {visualState.recordingFolder || t('settings.recordingFolderDefault', language)}
+            </span>
+            <div className="settings-folder-actions">
+              <button
+                className="option-pill"
+                onClick={async () => {
+                  const ipc = window.electron?.ipcRenderer
+                  if (!ipc) return
+                  const folder = await ipc.invoke('choose-recording-folder')
+                  if (folder) updateVisualState('recordingFolder', folder)
+                }}
+              >
+                <FolderOpen size={14} style={{ verticalAlign: '-2px', marginRight: '6px' }} />
+                {t('settings.recordingFolderChoose', language)}
+              </button>
+              {visualState.recordingFolder && (
+                <button
+                  className="option-pill"
+                  title={t('settings.recordingFolderDefault', language)}
+                  onClick={() => updateVisualState('recordingFolder', '')}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
