@@ -95,11 +95,13 @@ export function resizeWindow(sizeObj: {
   const sw = _settingsWindow
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win === sw) return
-    const bounds = win.getContentBounds()
+    const isFS = win.isFullScreen() || (process.platform === 'darwin' && win.isSimpleFullScreen())
+    const bounds = isFS ? win.getNormalBounds() : win.getContentBounds()
     const display = screen.getDisplayMatching(bounds)
     let newX = bounds.x
     let newY = bounds.y
     const { width, height, position } = sizeObj
+    
     if (position === 'fullscreen') {
       if (process.platform === 'darwin') {
         win.setSimpleFullScreen(true)
@@ -109,11 +111,6 @@ export function resizeWindow(sizeObj: {
       return
     }
 
-    if (process.platform === 'darwin' && win.isSimpleFullScreen()) {
-      win.setSimpleFullScreen(false)
-    } else if (win.isFullScreen()) {
-      win.setFullScreen(false)
-    }
     const { workArea } = display
     if (position === 'right') {
       newX = workArea.x + workArea.width - width
@@ -124,7 +121,14 @@ export function resizeWindow(sizeObj: {
       if (newY + height > workArea.y + workArea.height) newY = workArea.y + workArea.height - height
       if (newY < workArea.y) newY = workArea.y
     }
-    win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
+
+    win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, !isFS)
+
+    if (process.platform === 'darwin' && win.isSimpleFullScreen()) {
+      win.setSimpleFullScreen(false)
+    } else if (win.isFullScreen()) {
+      win.setFullScreen(false)
+    }
   })
 }
 export function createWindow(callbacks: WindowCallbacks): void {
