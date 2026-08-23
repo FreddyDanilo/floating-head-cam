@@ -1,8 +1,36 @@
 import { useEffect } from 'react'
 
-type TrayEventHandlers = {
+export type CameraShape = 'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'
+
+type TrayAction =
+  | { type: 'set-device'; payload: string }
+  | { type: 'set-shape'; payload: CameraShape }
+  | { type: 'set-mirror'; payload: boolean }
+  | { type: 'set-size-index'; payload: number }
+  | { type: 'set-rounding'; payload: number }
+  | { type: 'set-always-on-top'; payload: boolean }
+  | { type: 'set-border-gradient'; payload: string }
+  | { type: 'set-border-width'; payload: number }
+  | { type: 'set-border-animated'; payload: boolean }
+  | { type: 'set-language'; payload: 'en' | 'pt' }
+
+interface ResetStatePayload {
+  state: {
+    isMirrored: boolean
+    shape: CameraShape
+    sizeIndex: number
+    rounding: number
+    alwaysOnTop: boolean
+    language?: 'en' | 'pt'
+    borderGradient?: string
+    borderWidth?: number
+    isBorderAnimated?: boolean
+  }
+}
+
+export type TrayEventHandlers = {
   setSelectedDeviceId: (id: string) => void
-  setShape: (s: any) => void
+  setShape: (s: CameraShape) => void
   setIsMirrored: (v: boolean) => void
   setSizeIndex: (i: number) => void
   setRounding: (r: number) => void
@@ -11,6 +39,7 @@ type TrayEventHandlers = {
   setBorderGradient: (g: string) => void
   setBorderWidth: (w: number) => void
   setIsBorderAnimated: (v: boolean) => void
+  setLanguage: (lang: 'en' | 'pt') => void
   applySize: (index: number, shape: string) => void
   sizeIndex: number
   shape: string
@@ -27,6 +56,7 @@ export function useTrayEvents({
   setBorderGradient,
   setBorderWidth,
   setIsBorderAnimated,
+  setLanguage,
   applySize,
   sizeIndex,
   shape
@@ -35,7 +65,7 @@ export function useTrayEvents({
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
 
-    const handleTrayAction = (_event: any, action: { type: string; payload: any }) => {
+    const handleTrayAction = (_event: unknown, action: TrayAction): void => {
       switch (action.type) {
         case 'set-device':
           setSelectedDeviceId(action.payload)
@@ -66,15 +96,22 @@ export function useTrayEvents({
         case 'set-border-animated':
           setIsBorderAnimated(action.payload)
           break
+        case 'set-language':
+          setLanguage(action.payload)
+          break
       }
     }
 
-    const handleReset = (_event: any, payload: { state: any }) => {
+    const handleReset = (_event: unknown, payload: ResetStatePayload): void => {
       setIsMirrored(payload.state.isMirrored)
       setShape(payload.state.shape)
       setSizeIndex(payload.state.sizeIndex)
       setRounding(payload.state.rounding)
       setAlwaysOnTop(payload.state.alwaysOnTop)
+
+      if (payload.state.language) {
+        setLanguage(payload.state.language)
+      }
 
       if (payload.state.borderGradient) {
         setBorderGradient(payload.state.borderGradient)
@@ -89,7 +126,7 @@ export function useTrayEvents({
       applySize(payload.state.sizeIndex, payload.state.shape)
     }
 
-    const handlePower = (_event: any, state: boolean) => setPowerOn(state)
+    const handlePower = (_event: unknown, state: boolean): void => setPowerOn(state)
 
     ipc.on('tray-action', handleTrayAction)
     ipc.on('settings-reset', handleReset)
@@ -112,6 +149,8 @@ export function useTrayEvents({
     setAlwaysOnTop,
     setPowerOn,
     setBorderGradient,
-    setBorderWidth
+    setBorderWidth,
+    setIsBorderAnimated,
+    setLanguage
   ])
 }

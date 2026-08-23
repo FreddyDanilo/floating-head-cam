@@ -6,6 +6,7 @@ import { t } from '../../../shared/i18n'
 import { getIsCameraOn } from '../camera/camera.service'
 import { currentState, saveSettings } from '../settings/settings.service'
 let _settingsWindow: BrowserWindow | null = null
+let positionSaveTimer: ReturnType<typeof setTimeout> | null = null
 export function getSettingsWindow(): BrowserWindow | null {
   return _settingsWindow
 }
@@ -87,16 +88,32 @@ export function setWindowPosition(pos: string): void {
     win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
   })
 }
-export function resizeWindow(sizeObj: { width: number; height: number; position?: 'right' }): void {
+export function resizeWindow(sizeObj: {
+  width: number
+  height: number
+  position?: 'right' | 'fullscreen'
+}): void {
   const sw = _settingsWindow
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win === sw) return
     const bounds = win.getContentBounds()
     const display = screen.getDisplayMatching(bounds)
-    const { workArea } = display
     let newX = bounds.x
     let newY = bounds.y
     const { width, height, position } = sizeObj
+    if (position === 'fullscreen') {
+      win.setContentBounds(
+        {
+          x: display.bounds.x,
+          y: display.bounds.y,
+          width: display.bounds.width,
+          height: display.bounds.height
+        },
+        true
+      )
+      return
+    }
+    const { workArea } = display
     if (position === 'right') {
       newX = workArea.x + workArea.width - width
       newY = workArea.y
@@ -125,7 +142,7 @@ export function createWindow(callbacks: WindowCallbacks): void {
     hasShadow: false,
     resizable: false,
     roundedCorners: false,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    ...(process.platform === 'linux' ? { icon, skipTaskbar: true } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
@@ -148,7 +165,11 @@ export function createWindow(callbacks: WindowCallbacks): void {
     const [x, y] = mainWindow.getPosition()
     currentState.x = x
     currentState.y = y
-    saveSettings()
+    if (positionSaveTimer) clearTimeout(positionSaveTimer)
+    positionSaveTimer = setTimeout(() => {
+      positionSaveTimer = null
+      saveSettings()
+    }, 300)
   })
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)

@@ -18,29 +18,45 @@ function codeToKey(code: string): string {
   if (code.includes('Arrow')) return code.replace('Arrow', '')
   return code
 }
-export function useShortcuts() {
+export type VisualState = {
+  shape: string
+  rounding: number
+  borderGradient: string
+  borderWidth: number
+  isBorderAnimated: boolean
+  recordingFolder: string
+  recordingResolution: string
+  recordingFps: string
+  recordingEncoder: string
+  systemAudioVolume: number
+  microphoneAudioVolume: number
+  selectedMicrophoneId: string
+}
+
+interface UseShortcutsReturn {
+  shortcuts: Record<string, string>
+  listeningKey: string | null
+  setListeningKey: (key: string | null) => void
+  resetSettings: (tab?: string) => void
+  formatMacShortcut: (shortcut: string) => string
+  language: 'en' | 'pt'
+  setAppLanguage: (lang: 'en' | 'pt') => void
+  visualState: VisualState
+  updateVisualState: (key: keyof VisualState, value: string | number | boolean) => void
+}
+
+export function useShortcuts(): UseShortcutsReturn {
   const [shortcuts, setShortcuts] = useState<Record<string, string>>({})
   const [listeningKey, setListeningKey] = useState<string | null>(null)
   const [language, setLanguage] = useState<'en' | 'pt'>('en')
 
-  const [visualState, setVisualState] = useState<{
-    shape: string
-    rounding: number
-    borderGradient: string
-    borderWidth: number
-    isBorderAnimated: boolean
-    recordingResolution: string
-    recordingFps: string
-    recordingEncoder: string
-    systemAudioVolume: number
-    microphoneAudioVolume: number
-    selectedMicrophoneId: string
-  }>({
+  const [visualState, setVisualState] = useState<VisualState>({
     shape: 'circle',
     rounding: 24,
     borderGradient: 'none',
     borderWidth: 6,
     isBorderAnimated: false,
+    recordingFolder: '',
     recordingResolution: '1080p',
     recordingFps: '30',
     recordingEncoder: 'libx264',
@@ -63,6 +79,7 @@ export function useShortcuts() {
         borderGradient: data.borderGradient || 'none',
         borderWidth: data.borderWidth ?? 4,
         isBorderAnimated: data.isBorderAnimated || false,
+        recordingFolder: typeof data.recordingFolder === 'string' ? data.recordingFolder : '',
         recordingResolution: data.recordingResolution || '1080p',
         recordingFps: data.recordingFps || '60',
         recordingEncoder: data.recordingEncoder || 'libx264',
@@ -71,7 +88,13 @@ export function useShortcuts() {
         selectedMicrophoneId: data.selectedMicrophoneId || 'default'
       })
     })
-    const handleReset = (_e: any, payload: any) => {
+    const handleReset = (
+      _e: unknown,
+      payload: {
+        shortcuts: Record<string, string>
+        state?: Partial<VisualState> & { language?: 'en' | 'pt' }
+      }
+    ): void => {
       setShortcuts(payload.shortcuts)
       if (payload.state?.language) setLanguage(payload.state.language)
       if (payload.state) {
@@ -81,6 +104,8 @@ export function useShortcuts() {
           borderGradient: payload.state.borderGradient || 'none',
           borderWidth: payload.state.borderWidth ?? 4,
           isBorderAnimated: payload.state.isBorderAnimated || false,
+          recordingFolder:
+            typeof payload.state.recordingFolder === 'string' ? payload.state.recordingFolder : '',
           recordingResolution: payload.state.recordingResolution || '1080p',
           recordingFps: payload.state.recordingFps || '60',
           recordingEncoder: payload.state.recordingEncoder || 'libx264',
@@ -90,10 +115,13 @@ export function useShortcuts() {
         })
       }
     }
-    const handleSyncLanguage = (_e: any, lang: 'en' | 'pt') => setLanguage(lang)
+    const handleSyncLanguage = (_e: unknown, lang: 'en' | 'pt'): void => setLanguage(lang)
 
-    const handleSyncSetting = (_e: any, { key, value }: { key: string; value: any }) => {
-      setVisualState((prev) => ({ ...prev, [key]: value }))
+    const handleSyncSetting = (
+      _e: unknown,
+      { key, value }: { key: string; value: unknown }
+    ): void => {
+      setVisualState((prev) => ({ ...prev, [key]: value }) as VisualState)
     }
 
     ipc.on('settings-reset', handleReset)
@@ -108,7 +136,7 @@ export function useShortcuts() {
 
   useEffect(() => {
     if (!listeningKey) return
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent): void => {
       e.preventDefault()
       e.stopPropagation()
       const modifiers = [
@@ -122,6 +150,10 @@ export function useShortcuts() {
         'ShiftRight'
       ]
       if (modifiers.includes(e.code)) return
+      if (e.code === 'Escape') {
+        setListeningKey(null)
+        return
+      }
       const keys: string[] = []
       if (e.metaKey || e.ctrlKey) keys.push('CmdOrCtrl')
       if (e.altKey) keys.push('Alt')
@@ -136,16 +168,19 @@ export function useShortcuts() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [listeningKey])
 
-  const resetSettings = (tab?: string) => {
+  const resetSettings = (tab?: string): void => {
     window.electron?.ipcRenderer.send('reset-settings', tab)
   }
 
-  const setAppLanguage = (lang: 'en' | 'pt') => {
+  const setAppLanguage = (lang: 'en' | 'pt'): void => {
     setLanguage(lang)
     window.electron?.ipcRenderer.send('sync-tray', { language: lang })
   }
 
-  const updateVisualState = (key: keyof typeof visualState, value: string | number | boolean) => {
+  const updateVisualState = (
+    key: keyof typeof visualState,
+    value: string | number | boolean
+  ): void => {
     setVisualState((prev) => ({ ...prev, [key]: value }))
     window.electron?.ipcRenderer.send('update-setting', { key, value })
   }

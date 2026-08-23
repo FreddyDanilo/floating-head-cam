@@ -1,7 +1,8 @@
-import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import {
   app,
   BrowserWindow,
+  dialog,
   globalShortcut,
   ipcMain,
   session,
@@ -30,7 +31,7 @@ import {
   resizeWindow,
   setWindowPosition
 } from './domains/window/window.service'
-import { setupRecordingIPC } from './domains/recording/recording.service'
+import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
 
 const windowCallbacks = {
   onFocus: (win: BrowserWindow) => {
@@ -38,6 +39,45 @@ const windowCallbacks = {
   },
   onBlur: () => {
     unregisterGlobalShortcuts()
+  }
+}
+
+function buildRecordingPayload(): {
+  resolution: string
+  fps: string
+  encoder: string
+  systemAudioVolume: number
+  microphoneAudioVolume: number
+  selectedMicrophoneId: string
+} {
+  return {
+    resolution: currentState.recordingResolution,
+    fps: currentState.recordingFps,
+    encoder: currentState.recordingEncoder || 'libx264',
+    systemAudioVolume: currentState.systemAudioVolume ?? 50,
+    microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100,
+    selectedMicrophoneId: currentState.selectedMicrophoneId || 'default'
+  }
+}
+
+let isRecordingFlowInFlight = false
+async function startRecordingFlow(): Promise<void> {
+  if (isRecordingFlowInFlight) return
+  isRecordingFlowInFlight = true
+  try {
+    if (!currentState.isRecording) {
+      await showCountdown()
+    }
+    BrowserWindow.getAllWindows().forEach((win) => {
+      if (win !== getSettingsWindow() && win.webContents) {
+        win.webContents.send(
+          currentState.isRecording ? 'stop-recording' : 'start-recording',
+          buildRecordingPayload()
+        )
+      }
+    })
+  } finally {
+    isRecordingFlowInFlight = false
   }
 }
 app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
@@ -59,25 +99,31 @@ app.whenReady().then(() => {
     callback(true)
   )
   session.defaultSession.setPermissionCheckHandler(() => true)
+  const supportsLoopbackAudio = process.platform === 'darwin' || process.platform === 'win32'
   session.defaultSession.setDisplayMediaRequestHandler(
     (_request, callback) => {
       desktopCapturer
         .getSources({ types: ['screen'] })
         .then((sources) => {
-          callback({ video: sources[0], audio: 'loopback' })
+          callback(
+            supportsLoopbackAudio ? { video: sources[0], audio: 'loopback' } : { video: sources[0] }
+          )
         })
         .catch((err) => {
           console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
         })
     },
-    { useSystemPicker: true }
+    { useSystemPicker: process.platform === 'darwin' }
   )
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const scriptSrc = is.dev
+      ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+      : "script-src 'self'"
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': ["script-src 'self' 'unsafe-inline' 'unsafe-eval'"]
+        'Content-Security-Policy': [scriptSrc]
       }
     })
   })
@@ -91,31 +137,36 @@ app.whenReady().then(() => {
     globalShortcut.register(shortcuts.toggleCamera, () => toggleCamera(currentState))
   }
   if (shortcuts.startRecording) {
-    globalShortcut.register(shortcuts.startRecording, async () => {
-      if (!currentState.isRecording) {
-        await showCountdown()
-      }
-      BrowserWindow.getAllWindows().forEach((win) => {
-        if (win !== getSettingsWindow() && win.webContents) {
-          win.webContents.send(currentState.isRecording ? 'stop-recording' : 'start-recording', {
-            resolution: currentState.recordingResolution,
-            fps: currentState.recordingFps,
-            encoder: currentState.recordingEncoder || 'libx264',
-            systemAudioVolume: currentState.systemAudioVolume ?? 50,
-            microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100,
-            selectedMicrophoneId: currentState.selectedMicrophoneId || 'default'
-          })
-        }
-      })
-    })
+    globalShortcut.register(shortcuts.startRecording, () => startRecordingFlow())
   }
   autoUpdater.on('update-downloaded', () => {
     setUpdateReady(true)
     buildTrayMenu(currentState)
   })
-  autoUpdater.checkForUpdates()
+  if (app.isPackaged && (process.platform !== 'linux' || process.env.APPIMAGE)) {
+    autoUpdater.checkForUpdates().catch((err: unknown) => {
+      console.warn('Auto-update check failed:', err instanceof Error ? err.message : err)
+    })
+  }
+  const allowedSyncTrayKeys = new Set([
+    'devices',
+    'selectedDeviceId',
+    'isMirrored',
+    'shape',
+    'borderGradient',
+    'borderWidth',
+    'isBorderAnimated',
+    'sizeIndex',
+    'rounding',
+    'alwaysOnTop',
+    'language'
+  ])
   ipcMain.on('sync-tray', (_, state) => {
-    Object.assign(currentState, state)
+    for (const key of Object.keys(state)) {
+      if (allowedSyncTrayKeys.has(key)) {
+        currentState[key] = state[key]
+      }
+    }
     saveSettings()
     buildTrayMenu(currentState)
     const sw = getSettingsWindow()
@@ -124,7 +175,22 @@ app.whenReady().then(() => {
     }
   })
 
+  const allowedSettingKeys = new Set([
+    'shape',
+    'rounding',
+    'borderGradient',
+    'borderWidth',
+    'isBorderAnimated',
+    'recordingFolder',
+    'recordingResolution',
+    'recordingFps',
+    'recordingEncoder',
+    'systemAudioVolume',
+    'microphoneAudioVolume',
+    'selectedMicrophoneId'
+  ])
   ipcMain.on('update-setting', (_, { key, value }) => {
+    if (!allowedSettingKeys.has(key)) return
     currentState[key] = value
     saveSettings()
     buildTrayMenu(currentState)
@@ -144,22 +210,36 @@ app.whenReady().then(() => {
       }
     })
   })
+  ipcMain.handle('choose-recording-folder', async () => {
+    const result = await dialog.showOpenDialog(getSettingsWindow() as BrowserWindow, {
+      title: t('settings.recordingFolder', currentState.language || 'en'),
+      defaultPath:
+        typeof currentState.recordingFolder === 'string' && currentState.recordingFolder
+          ? currentState.recordingFolder
+          : app.getPath('videos'),
+      properties: ['openDirectory', 'createDirectory']
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    return result.filePaths[0]
+  })
+
   ipcMain.on('set-window-position', (_, pos) => {
     setWindowPosition(pos)
   })
-  ipcMain.on('recording-started', () => {
-    currentState.isRecording = true
+  function setRecordingState(isRecording: boolean): void {
+    currentState.isRecording = isRecording
     saveSettings()
     buildTrayMenu(currentState)
-    BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('sync-setting', { key: 'isRecording', value: true }))
-  })
+    BrowserWindow.getAllWindows().forEach((w) =>
+      w.webContents.send('sync-setting', { key: 'isRecording', value: isRecording })
+    )
+  }
 
-  ipcMain.on('recording-stopped', () => {
-    currentState.isRecording = false
-    saveSettings()
-    buildTrayMenu(currentState)
-    BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('sync-setting', { key: 'isRecording', value: false }))
-  })
+  ipcMain.on('recording-started', () => setRecordingState(true))
+
+  ipcMain.on('recording-stopped', () => setRecordingState(false))
+
+  setOnRecordingAborted(() => setRecordingState(false))
 
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))
   ipcMain.handle('get-shortcuts', () => shortcuts)
@@ -181,7 +261,9 @@ app.whenReady().then(() => {
       if (status !== 'granted') {
         try {
           await desktopCapturer.getSources({ types: ['screen'] })
-        } catch (e) {}
+        } catch {
+          return systemPreferences.getMediaAccessStatus('screen')
+        }
         return systemPreferences.getMediaAccessStatus('screen')
       }
       return status
@@ -206,26 +288,7 @@ app.whenReady().then(() => {
         globalShortcut.register(shortcuts.toggleCamera, () => toggleCamera(currentState))
       }
       if (shortcuts.startRecording) {
-        globalShortcut.register(shortcuts.startRecording, async () => {
-          if (!currentState.isRecording) {
-            await showCountdown()
-          }
-          BrowserWindow.getAllWindows().forEach((win) => {
-            if (win !== getSettingsWindow() && win.webContents) {
-              win.webContents.send(
-                currentState.isRecording ? 'stop-recording' : 'start-recording',
-                {
-                  resolution: currentState.recordingResolution,
-                  fps: currentState.recordingFps,
-                  encoder: currentState.recordingEncoder || 'libx264',
-                  systemAudioVolume: currentState.systemAudioVolume ?? 50,
-                  microphoneAudioVolume: currentState.microphoneAudioVolume ?? 100,
-                  selectedMicrophoneId: currentState.selectedMicrophoneId || 'default'
-                }
-              )
-            }
-          })
-        })
+        globalShortcut.register(shortcuts.startRecording, () => startRecordingFlow())
       }
       if (floatingHead.isFocused()) {
         registerGlobalShortcuts(floatingHead)

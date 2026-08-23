@@ -1,10 +1,61 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 
-export function useScreenRecorder() {
+const RESOLUTION_BITRATES: Record<string, number> = {
+  '720p': 5000000,
+  '1080p': 8000000,
+  '1440p': 14000000,
+  '2160p': 24000000
+}
+
+function isLinuxPlatform(): boolean {
+  return /Linux/.test(navigator.userAgent) && !/Android|Chromium.*cros/i.test(navigator.userAgent)
+}
+
+async function getLinuxSystemAudioStream(): Promise<MediaStream | null> {
+  try {
+    if (!isLinuxPlatform()) return null
+    if (!navigator.mediaDevices?.enumerateDevices) return null
+
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    const monitor = devices.find(
+      (d) => d.kind === 'audioinput' && /monitor|loopback/i.test(d.label)
+    )
+    if (!monitor) return null
+
+    return await navigator.mediaDevices.getUserMedia({
+      audio: {
+        deviceId: { exact: monitor.deviceId },
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      }
+    })
+  } catch (e) {
+    console.warn('Linux system audio capture unavailable:', e)
+    return null
+  }
+}
+
+interface StartRecordingPayload {
+  resolution: string
+  fps: string
+  encoder: string
+  systemAudioVolume: number
+  microphoneAudioVolume: number
+  selectedMicrophoneId: string
+}
+
+type StartRecordingFn = (payload: StartRecordingPayload) => Promise<void>
+
+export function useScreenRecorder(): {
+  isRecording: boolean
+  startRecording: StartRecordingFn
+  stopRecording: () => void
+} {
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
-  const audioNodesRef = useRef<any[]>([])
+  const audioNodesRef = useRef<AudioNode[]>([])
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -13,14 +64,21 @@ export function useScreenRecorder() {
   }, [])
 
   const startRecording = useCallback(
-    async (
-      resolution: string,
-      fps: string,
-      encoder: string,
-      systemAudioVolume: number,
-      microphoneAudioVolume: number,
-      selectedMicrophoneId: string
-    ) => {
+    async ({
+      resolution,
+      fps,
+      encoder,
+      systemAudioVolume,
+      microphoneAudioVolume,
+      selectedMicrophoneId
+    }: StartRecordingPayload): Promise<void> => {
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+        console.warn('startRecording ignored: a recording is already in progress')
+        return
+      }
+      let desktopStream: MediaStream | null = null
+      let micStream: MediaStream | null = null
+      let systemAudioStream: MediaStream | null = null
       try {
         const ipc = window.electron?.ipcRenderer
         if (!ipc) throw new Error('No IPC found')
@@ -45,7 +103,7 @@ export function useScreenRecorder() {
           height = 2160
         }
 
-        const desktopStream = await navigator.mediaDevices.getDisplayMedia({
+        desktopStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
             width: { ideal: width },
             height: { ideal: height },
@@ -54,7 +112,7 @@ export function useScreenRecorder() {
           audio: true
         })
 
-        const micStream = await navigator.mediaDevices.getUserMedia({
+        micStream = await navigator.mediaDevices.getUserMedia({
           video: false,
           audio: {
             ...(selectedMicrophoneId && selectedMicrophoneId !== 'default'
@@ -65,6 +123,8 @@ export function useScreenRecorder() {
             autoGainControl: false
           }
         })
+
+        systemAudioStream = await getLinuxSystemAudioStream()
 
         const audioCtx = new AudioContext()
         if (audioCtx.state === 'suspended') {
@@ -89,8 +149,19 @@ export function useScreenRecorder() {
           systemSource.connect(systemGain).connect(dest)
           systemGain.connect(dummyGain)
           audioNodesRef.current.push(systemSource, systemGain)
+        } else if (systemAudioStream && systemAudioStream.getAudioTracks().length > 0) {
+          const systemSource = audioCtx.createMediaStreamSource(
+            new MediaStream([systemAudioStream.getAudioTracks()[0]])
+          )
+          const systemGain = audioCtx.createGain()
+          systemGain.gain.value = Number(systemAudioVolume ?? 50) / 100
+          systemSource.connect(systemGain).connect(dest)
+          systemGain.connect(dummyGain)
+          audioNodesRef.current.push(systemSource, systemGain)
         } else {
-          console.warn('No system audio track found in desktopStream')
+          console.warn(
+            'No system audio available (on Linux, a PulseAudio/PipeWire monitor source is required)'
+          )
         }
 
         if (micStream.getAudioTracks().length > 0) {
@@ -129,7 +200,7 @@ export function useScreenRecorder() {
 
         const mediaRecorder = new MediaRecorder(mixedStream, {
           mimeType,
-          videoBitsPerSecond: 8000000
+          videoBitsPerSecond: RESOLUTION_BITRATES[resolution] ?? 8000000
         })
 
         let chunkPromiseChain = Promise.resolve()
@@ -144,36 +215,60 @@ export function useScreenRecorder() {
         }
 
         mediaRecorder.onstop = async () => {
-          desktopStream.getTracks().forEach((track) => track.stop())
-          micStream.getTracks().forEach((track) => track.stop())
+          desktopStream?.getTracks().forEach((track) => track.stop())
+          micStream?.getTracks().forEach((track) => track.stop())
+          systemAudioStream?.getTracks().forEach((track) => track.stop())
           mixedStream.getTracks().forEach((track) => track.stop())
           if (audioContextRef.current) {
             audioContextRef.current.close()
             audioContextRef.current = null
           }
+          audioNodesRef.current = []
           await chunkPromiseChain
           ipc.send('recording-stopped')
-          await ipc.invoke('recording-stop')
+          try {
+            await ipc.invoke('recording-stop')
+          } catch (err) {
+            console.error('Failed to finalize recording file:', err)
+          }
+          mediaRecorderRef.current = null
         }
 
-        ipc.send('recording-start', { encoder })
+        const started = await ipc.invoke('recording-start', { encoder })
+        if (!started) {
+          throw new Error('Recording could not start (destination folder unavailable?)')
+        }
         mediaRecorder.start(1000)
         mediaRecorderRef.current = mediaRecorder
 
         ipc.send('recording-started')
       } catch (e) {
         console.error('Failed to start recording', e)
+        desktopStream?.getTracks().forEach((track) => track.stop())
+        micStream?.getTracks().forEach((track) => track.stop())
+        systemAudioStream?.getTracks().forEach((track) => track.stop())
+        if (audioContextRef.current) {
+          audioContextRef.current.close()
+          audioContextRef.current = null
+        }
+        audioNodesRef.current = []
       }
     },
     []
   )
 
   useEffect(() => {
+    return () => {
+      stopRecording()
+    }
+  }, [stopRecording])
+
+  useEffect(() => {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
 
     const handleStartRecording = (
-      _e: any,
+      _e: unknown,
       {
         resolution,
         fps,
@@ -181,32 +276,28 @@ export function useScreenRecorder() {
         systemAudioVolume,
         microphoneAudioVolume,
         selectedMicrophoneId
-      }: {
-        resolution: string
-        fps: string
-        encoder: string
-        systemAudioVolume: number
-        microphoneAudioVolume: number
-        selectedMicrophoneId: string
-      }
-    ) => {
-      startRecording(
+      }: StartRecordingPayload
+    ): void => {
+      startRecording({
         resolution,
         fps,
         encoder,
         systemAudioVolume,
         microphoneAudioVolume,
         selectedMicrophoneId
-      )
+      })
     }
 
-    const handleStopRecording = () => {
+    const handleStopRecording = (): void => {
       stopRecording()
     }
 
-    const handleSyncSetting = (_e: any, { key, value }: { key: string; value: any }) => {
+    const handleSyncSetting = (
+      _e: unknown,
+      { key, value }: { key: string; value: unknown }
+    ): void => {
       if (key === 'isRecording') {
-        setIsRecording(value)
+        setIsRecording(value === true)
       }
     }
 

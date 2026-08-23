@@ -35,6 +35,7 @@ const translations: Translations = {
     'settings.sizeMedium': 'Medium',
     'settings.sizeLarge': 'Large',
     'settings.sizeSidebar': 'Sidebar',
+    'settings.sizeFullscreen': 'Full Screen',
     'settings.reset': 'Restore',
     'settings.pressKeys': 'Press Keys...',
     'settings.unbound': 'Unbound',
@@ -97,6 +98,7 @@ const translations: Translations = {
     'tray.size.medium': 'Medium',
     'tray.size.large': 'Large',
     'tray.size.sidebar': 'Sidebar',
+    'tray.size.fullscreen': 'Full Screen',
     'tray.mirror': 'Mirror Camera',
     'tray.alwaysOnTop': 'Always on Top',
     'tray.quit': 'Quit',
@@ -131,6 +133,9 @@ const translations: Translations = {
 
     'settings.recordingMicrophone': 'Microphone',
     'settings.recordingMicrophoneDefault': 'System Default',
+    'settings.recordingFolder': 'Recording Folder',
+    'settings.recordingFolderDefault': 'System default (Videos)',
+    'settings.recordingFolderChoose': 'Choose...',
 
     'tray.startRecording': 'Start Recording',
     'tray.stopRecording': 'Stop Recording'
@@ -168,6 +173,7 @@ const translations: Translations = {
     'settings.sizeMedium': 'Médio',
     'settings.sizeLarge': 'Grande',
     'settings.sizeSidebar': 'Barra Lateral',
+    'settings.sizeFullscreen': 'Tela Cheia',
     'settings.reset': 'Restaurar',
     'settings.pressKeys': 'Pressione as Teclas...',
     'settings.unbound': 'Não Definido',
@@ -230,6 +236,7 @@ const translations: Translations = {
     'tray.size.medium': 'Médio',
     'tray.size.large': 'Grande',
     'tray.size.sidebar': 'Barra Lateral',
+    'tray.size.fullscreen': 'Tela Cheia',
     'tray.mirror': 'Espelhar Câmera',
     'tray.alwaysOnTop': 'Sempre no Topo',
     'tray.quit': 'Sair',
@@ -266,6 +273,9 @@ const translations: Translations = {
 
     'settings.recordingMicrophone': 'Microfone',
     'settings.recordingMicrophoneDefault': 'Padrão do Sistema',
+    'settings.recordingFolder': 'Pasta de Gravação',
+    'settings.recordingFolderDefault': 'Padrão do sistema (Vídeos)',
+    'settings.recordingFolderChoose': 'Escolher...',
 
     'tray.startRecording': 'Iniciar Gravação',
     'tray.stopRecording': 'Parar Gravação'

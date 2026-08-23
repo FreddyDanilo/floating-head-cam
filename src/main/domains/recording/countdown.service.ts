@@ -24,7 +24,7 @@ export function showCountdown(): Promise<void> {
     if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
       win.loadURL(process.env['ELECTRON_RENDERER_URL'] + '#/countdown')
     } else {
-      win.loadFile(join(__dirname, '../renderer/index.html'), { hash: 'countdown' })
+      win.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/countdown' })
     }
 
     setTimeout(() => {

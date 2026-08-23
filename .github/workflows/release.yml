@@ -1,0 +1,73 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release-mac-win:
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      CSC_LINK: ${{ secrets.CSC_LINK }}
+      CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+      WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+      # Skip keychain identity lookup; signing only happens when CSC_LINK is set
+      CSC_IDENTITY_AUTO_DISCOVERY: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/extract-release-notes.mjs
+      - run: npm run build
+      # Empty secrets arrive as "" and would be treated as file paths — unset them.
+      # Notarization is skipped when Apple credentials are not configured.
+      - name: Build & publish
+        run: |
+          for v in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID WIN_CSC_LINK WIN_CSC_KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then unset "$v"; fi
+          done
+          ARGS="--mac --arm64 --win --x64 --publish always"
+          if [ -z "${APPLE_ID:-}" ]; then
+            ARGS="$ARGS -c.mac.notarize=false"
+          fi
+          npx electron-builder $ARGS
+      - name: Apply release notes & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release edit "v$(node -p "require('./package.json').version")"
+          --notes-file build/release-notes.md --draft=false
+
+  release-linux:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/extract-release-notes.mjs
+      - run: npm run build
+      # Snap is built manually via `npm run build:linux` (requires snapcraft/docker)
+      - run: npx electron-builder --linux APPIMAGE --linux deb --publish always
+      - name: Apply release notes & publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >
+          gh release edit "v$(node -p "require('./package.json').version")"
+          --notes-file build/release-notes.md --draft=false

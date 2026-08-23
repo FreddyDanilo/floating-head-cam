@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { BrowserWindow } from 'electron'
 const { mockRegister, mockSend, mockSetWindowPosition } = vi.hoisted(() => ({
   mockRegister: vi.fn(),
   mockSend: vi.fn(),
@@ -34,7 +35,7 @@ vi.mock('../window/window.service', () => ({
 }))
 import { registerGlobalShortcuts } from './shortcuts.service'
 describe('shortcuts.service', () => {
-  const mockWin = { webContents: { send: mockSend } } as any
+  const mockWin = { webContents: { send: mockSend } } as unknown as BrowserWindow
   beforeEach(() => vi.clearAllMocks())
   it('registers all non-empty shortcuts', () => {
     registerGlobalShortcuts(mockWin)

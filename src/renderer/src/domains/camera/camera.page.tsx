@@ -13,8 +13,10 @@ export function CameraPage(): React.JSX.Element {
     devices,
     selectedDeviceId,
     setSelectedDeviceId,
-    permissionError: devicesError
+    permissionError: devicesError,
+    refreshDevices
   } = useCameraDevices()
+  const [streamRetryNonce, setStreamRetryNonce] = useState(0)
   const [isMirrored, setIsMirrored] = useState(true)
   const [shape, setShape] = useState<'circle' | 'square' | 'vertical-rect' | 'horizontal-rect'>(
     'circle'
@@ -28,6 +30,7 @@ export function CameraPage(): React.JSX.Element {
   const [borderGradient, setBorderGradient] = useState<string>('none')
   const [borderWidth, setBorderWidth] = useState<number>(4)
   const [isBorderAnimated, setIsBorderAnimated] = useState<boolean>(false)
+  const [language, setLanguage] = useState<'en' | 'pt'>('en')
 
   const [prevGradient, setPrevGradient] = useState<string>('none')
   const [currentGradient, setCurrentGradient] = useState<string>('none')
@@ -35,11 +38,26 @@ export function CameraPage(): React.JSX.Element {
 
   useScreenRecorder()
 
-  const { videoRef, permissionError: streamError } = useCameraStream(selectedDeviceId, powerOn)
+  const { videoRef, permissionError: streamError } = useCameraStream(
+    selectedDeviceId,
+    powerOn,
+    streamRetryNonce
+  )
   const hasPermissionError = devicesError || streamError
+
+  const handleDetectionRetry = useCallback((): void => {
+    refreshDevices()
+    setStreamRetryNonce((n) => n + 1)
+  }, [refreshDevices])
 
   const applySize = useCallback((index: number, currentShape: string) => {
     if (!window.electron) return
+    if (index === 4) {
+      const width = window.screen.width || window.screen.availWidth
+      const height = window.screen.height || window.screen.availHeight
+      window.electron.ipcRenderer.send('resize-window', { width, height, position: 'fullscreen' })
+      return
+    }
     if (index === 3) {
       const screenWidth = window.screen.availWidth || window.screen.width
       const screenHeight = window.screen.availHeight || window.screen.height
@@ -81,26 +99,29 @@ export function CameraPage(): React.JSX.Element {
           setIsBorderAnimated(state.isBorderAnimated)
         }
         if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
+        if (state.language) setLanguage(state.language)
 
         setInitialized(true)
         applySize(state.sizeIndex, state.shape)
       })
     }
-  }, [])
+  }, [applySize])
+
+  if (borderGradient !== currentGradient) {
+    setPrevGradient(currentGradient)
+    setCurrentGradient(borderGradient)
+    setFade(true)
+  }
 
   useEffect(() => {
-    if (borderGradient !== currentGradient) {
-      setPrevGradient(currentGradient)
-      setCurrentGradient(borderGradient)
-      setFade(true)
-
+    if (!fade) return
+    const raf = requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setFade(false)
-        })
+        setFade(false)
       })
-    }
-  }, [borderGradient, currentGradient])
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [fade])
 
   useTrayEvents({
     setSelectedDeviceId,
@@ -113,6 +134,7 @@ export function CameraPage(): React.JSX.Element {
     setBorderGradient,
     setBorderWidth,
     setIsBorderAnimated,
+    setLanguage,
     applySize,
     sizeIndex,
     shape
@@ -164,6 +186,10 @@ export function CameraPage(): React.JSX.Element {
       if (e.key === '4') {
         setSizeIndex(3)
         applySize(3, shape)
+      }
+      if (e.key === '5') {
+        setSizeIndex(4)
+        applySize(4, shape)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -225,13 +251,15 @@ export function CameraPage(): React.JSX.Element {
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover',
+          objectFit: sizeIndex === 4 ? 'contain' : 'cover',
           borderRadius: shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
           transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
           display: hasPermissionError ? 'none' : 'block'
         }}
       />
-      {hasPermissionError && <PermissionErrorOverlay />}
+      {hasPermissionError && (
+        <PermissionErrorOverlay language={language} onRetry={handleDetectionRetry} />
+      )}
     </div>
   )
 }

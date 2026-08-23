@@ -1,9 +1,9 @@
 {
   "name": "floating-head-cam",
-  "version": "1.0.2",
-  "description": "An Electron application with React and TypeScript",
+  "version": "1.0.4",
+  "description": "Minimalist picture-in-picture webcam overlay with screen recording",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "Freddy Danilo",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
@@ -18,7 +18,9 @@
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
     "postinstall": "electron-builder install-app-deps && patch-package",
-    "release": "npm run build && dotenv -e .env -- electron-builder --mac --arm64 --win --x64 --publish always",
+    "release": "npm run build && node scripts/extract-release-notes.mjs && dotenv -e .env -- electron-builder --mac --arm64 --win --x64 --linux APPIMAGE --linux deb --publish always",
+    "release:prepare": "node scripts/prepare-release.mjs",
+    "release:linux": "npm run build && node scripts/extract-release-notes.mjs && electron-builder --linux --x64 --publish always",
     "build:unpack": "npm run build && dotenv -e .env -- electron-builder --dir",
     "build:win": "npm run build && dotenv -e .env -- electron-builder --win --x64",
     "build:mac": "npm run build && dotenv -e .env -- electron-builder --mac --arm64",
