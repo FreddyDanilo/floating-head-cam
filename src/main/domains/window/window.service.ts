@@ -102,16 +102,18 @@ export function resizeWindow(sizeObj: {
     let newY = bounds.y
     const { width, height, position } = sizeObj
     if (position === 'fullscreen') {
-      win.setContentBounds(
-        {
-          x: display.bounds.x,
-          y: display.bounds.y,
-          width: display.bounds.width,
-          height: display.bounds.height
-        },
-        true
-      )
+      if (process.platform === 'darwin') {
+        win.setSimpleFullScreen(true)
+      } else {
+        win.setFullScreen(true)
+      }
       return
+    }
+
+    if (process.platform === 'darwin' && win.isSimpleFullScreen()) {
+      win.setSimpleFullScreen(false)
+    } else if (win.isFullScreen()) {
+      win.setFullScreen(false)
     }
     const { workArea } = display
     if (position === 'right') {
