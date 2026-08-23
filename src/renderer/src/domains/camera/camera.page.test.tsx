@@ -18,7 +18,7 @@ beforeEach(() => {
     writable: true,
     configurable: true,
     value: {
-      getUserMedia: vi.fn().mockResolvedValue({}),
+      getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [] }),
       enumerateDevices: vi.fn().mockResolvedValue([]),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn()

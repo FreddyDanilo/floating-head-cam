@@ -16,8 +16,8 @@ export function getRecordingTargetFolder(): string {
     const configured =
       typeof currentState.recordingFolder === 'string' ? currentState.recordingFolder : ''
     if (configured) {
-      fs.accessSync(configured, fs.constants.W_OK)
       fs.mkdirSync(configured, { recursive: true })
+      fs.accessSync(configured, fs.constants.W_OK)
       return configured
     }
   } catch (err) {
