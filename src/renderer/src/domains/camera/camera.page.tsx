@@ -235,7 +235,7 @@ export function CameraPage(): React.JSX.Element {
         style={{
           width: '100%',
           height: '100%',
-          objectFit: sizeIndex === 4 ? 'contain' : 'cover',
+          objectFit: 'cover',
           borderRadius: shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
           transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
           display: hasPermissionError ? 'none' : 'block'
