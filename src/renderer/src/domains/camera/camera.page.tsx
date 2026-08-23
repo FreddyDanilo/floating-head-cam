@@ -182,16 +182,16 @@ export function CameraPage(): React.JSX.Element {
 
   if (!initialized) return <div className="app-container" />
 
-  const computedRadius = shape === 'circle' ? '50%' : `${rounding}px`
+  const computedRadius = sizeIndex === 4 ? '0' : shape === 'circle' ? '50%' : `${rounding}px`
 
   return (
     <div
       className="app-container"
       style={{
         position: 'relative',
-        padding: borderGradient === 'none' ? '0px' : `${borderWidth}px`,
+        padding: sizeIndex === 4 || borderGradient === 'none' ? '0px' : `${borderWidth}px`,
         borderRadius: computedRadius,
-        WebkitMaskImage: shape === 'circle' ? '-webkit-radial-gradient(white, black)' : 'none',
+        WebkitMaskImage: sizeIndex === 4 ? 'none' : shape === 'circle' ? '-webkit-radial-gradient(white, black)' : 'none',
         boxSizing: 'border-box',
         width: '100%',
         height: '100%',
@@ -236,7 +236,7 @@ export function CameraPage(): React.JSX.Element {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          borderRadius: shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
+          borderRadius: sizeIndex === 4 ? '0' : shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
           transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
           display: hasPermissionError ? 'none' : 'block'
         }}
