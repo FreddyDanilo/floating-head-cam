@@ -122,12 +122,16 @@ export function resizeWindow(sizeObj: {
       if (newY < workArea.y) newY = workArea.y
     }
 
-    win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, !isFS)
-
-    if (process.platform === 'darwin' && win.isSimpleFullScreen()) {
-      win.setSimpleFullScreen(false)
-    } else if (win.isFullScreen()) {
-      win.setFullScreen(false)
+    if (isFS) {
+      win.setContentBounds(display.bounds, false)
+      if (process.platform === 'darwin') {
+        win.setSimpleFullScreen(false)
+      } else {
+        win.setFullScreen(false)
+      }
+      win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
+    } else {
+      win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
     }
   })
 }

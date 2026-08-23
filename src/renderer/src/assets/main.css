@@ -61,6 +61,8 @@ body {
   overflow-y: auto;
   color: #ffffff;
   -webkit-app-region: no-drag;
+  display: flex;
+  flex-direction: column;
 }
 
 .settings-container::-webkit-scrollbar {
