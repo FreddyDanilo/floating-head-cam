@@ -61,6 +61,8 @@ body {
   overflow-y: auto;
   color: #ffffff;
   -webkit-app-region: no-drag;
+  display: flex;
+  flex-direction: column;
 }
 
 .settings-container::-webkit-scrollbar {
@@ -196,7 +198,7 @@ body {
 }
 
 .settings-footer {
-  margin-top: 0px;
+  margin-top: auto;
   margin-bottom: 20px;
   display: flex;
   justify-content: flex-end;
