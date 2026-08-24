@@ -604,6 +604,7 @@ body {
   gap: 8px;
   margin-bottom: 0px;
   flex-wrap: wrap;
+  -webkit-app-region: no-drag;
 }
 
 .settings-tabs::-webkit-scrollbar {
@@ -623,6 +624,7 @@ body {
   border-radius: 6px;
   transition: all 0.2s ease;
   white-space: nowrap;
+  -webkit-app-region: no-drag;
 }
 
 .settings-tab:hover {
