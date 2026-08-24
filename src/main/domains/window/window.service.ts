@@ -31,7 +31,8 @@ export function createSettingsWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      autoplayPolicy: 'no-user-gesture-required'
+      autoplayPolicy: 'no-user-gesture-required',
+      devTools: false
     }
   })
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
@@ -155,7 +156,8 @@ export function createWindow(callbacks: WindowCallbacks): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      autoplayPolicy: 'no-user-gesture-required'
+      autoplayPolicy: 'no-user-gesture-required',
+      devTools: false
     }
   })
   mainWindow.setAlwaysOnTop(true, 'screen-saver')

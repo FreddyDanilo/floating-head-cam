@@ -88,6 +88,18 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
+  
+  app.on('web-contents-created', (_, webContents) => {
+    webContents.on('before-input-event', (event, input) => {
+      if (
+        input.key === 'F12' || 
+        (input.control && input.shift && input.key.toLowerCase() === 'i') || 
+        (input.meta && input.shift && input.key.toLowerCase() === 'i')
+      ) {
+        event.preventDefault()
+      }
+    })
+  })
   initTray()
   buildTrayMenu(currentState)
   if (shortcuts.toggleCamera) {
