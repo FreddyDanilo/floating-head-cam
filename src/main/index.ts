@@ -41,6 +41,9 @@ const windowCallbacks = {
   }
 }
 app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
+if (process.platform === 'win32') {
+  app.disableHardwareAcceleration()
+}
 app.whenReady().then(() => {
   const loginSettings = app.getLoginItemSettings()
   if (loginSettings.wasOpenedAtLogin) {
