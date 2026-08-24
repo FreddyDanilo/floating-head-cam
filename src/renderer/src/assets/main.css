@@ -78,22 +78,26 @@ body {
   border-radius: 4px;
 }
 
+.settings-top-bar {
+  position: sticky;
+  top: 0;
+  background: rgb(15, 15, 15);
+  z-index: 100;
+  margin-left: -30px;
+  margin-right: -30px;
+  padding: 0 30px 8px 30px;
+}
+
 .settings-header {
   display: flex;
   align-items: center;
   gap: 12px;
   margin-top: 0;
   margin-bottom: 8px;
-  margin-left: -30px;
-  margin-right: -30px;
-  padding: 48px 30px 16px 30px;
+  padding: 48px 0 16px 0;
   -webkit-app-region: drag;
   cursor: grab;
   user-select: none;
-  position: sticky;
-  top: 0;
-  background: rgb(15, 15, 15);
-  z-index: 100;
 }
 
 .settings-header h1 {
