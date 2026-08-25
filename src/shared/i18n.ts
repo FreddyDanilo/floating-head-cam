@@ -141,6 +141,15 @@ const translations: Translations = {
     'tray.startRecording': 'Start Recording [Beta]',
     'tray.stopRecording': 'Stop Recording [Beta]',
 
+    'mic.error.title': 'Microphone Blocked',
+    'mic.error.message': 'The app needs permission to use the microphone for recording audio.',
+    'mic.error.mac':
+      'Open System Settings > Privacy & Security > Microphone and allow access.',
+    'mic.error.win': 'Open Settings > Privacy > Microphone and allow access.',
+    'mic.error.default': 'Check your system privacy settings to allow microphone access.',
+    'mic.error.tryAgain': 'Try Again',
+    'mic.status.denied': 'Status: Denied by OS',
+
     'screen.error.title': 'Screen Recording Blocked',
     'screen.error.message': 'The app needs permission to record the screen.',
     'screen.error.mac':
@@ -290,6 +299,16 @@ const translations: Translations = {
 
     'tray.startRecording': 'Iniciar Gravação [Beta]',
     'tray.stopRecording': 'Parar Gravação [Beta]',
+
+    'mic.error.title': 'Microfone Bloqueado',
+    'mic.error.message': 'O aplicativo precisa de permissão para usar o microfone e gravar áudio.',
+    'mic.error.mac':
+      'Abra Ajustes do Sistema > Privacidade e Segurança > Microfone e permita o acesso.',
+    'mic.error.win': 'Abra Configurações > Privacidade > Microfone e permita o acesso.',
+    'mic.error.default':
+      'Verifique as configurações de privacidade do sistema para liberar o microfone.',
+    'mic.error.tryAgain': 'Tentar Novamente',
+    'mic.status.denied': 'Status: Negado pelo SO',
 
     'screen.error.title': 'Gravação de Tela Bloqueada',
     'screen.error.message': 'O aplicativo precisa de permissão para gravar a tela.',

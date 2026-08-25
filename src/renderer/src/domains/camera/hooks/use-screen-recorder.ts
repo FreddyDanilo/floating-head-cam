@@ -50,11 +50,13 @@ type StartRecordingFn = (payload: StartRecordingPayload) => Promise<void>
 export function useScreenRecorder(): {
   isRecording: boolean
   screenPermissionDenied: boolean
+  micPermissionDenied: boolean
   startRecording: StartRecordingFn
   stopRecording: () => void
 } {
   const [isRecording, setIsRecording] = useState(false)
   const [screenPermissionDenied, setScreenPermissionDenied] = useState(false)
+  const [micPermissionDenied, setMicPermissionDenied] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const audioNodesRef = useRef<AudioNode[]>([])
@@ -90,9 +92,14 @@ export function useScreenRecorder(): {
           setScreenPermissionDenied(true)
           throw new Error('Screen permission denied')
         }
+        setScreenPermissionDenied(false)
 
         const micPermission = await ipc.invoke('check-media-permission', 'microphone')
-        if (micPermission !== 'granted') throw new Error('Microphone permission denied')
+        if (micPermission !== 'granted') {
+          setMicPermissionDenied(true)
+          throw new Error('Microphone permission denied')
+        }
+        setMicPermissionDenied(false)
 
         const parsedFps = parseInt(fps, 10) || 30
         let width = 1280
@@ -131,71 +138,100 @@ export function useScreenRecorder(): {
           }
         }
 
-        setScreenPermissionDenied(false)
-
-        micStream = await navigator.mediaDevices.getUserMedia({
-          video: false,
-          audio: {
-            ...(selectedMicrophoneId && selectedMicrophoneId !== 'default'
-              ? { deviceId: { exact: selectedMicrophoneId } }
-              : {}),
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false
-          }
-        })
+        try {
+          micStream = await navigator.mediaDevices.getUserMedia({
+            video: false,
+            audio: {
+              ...(selectedMicrophoneId && selectedMicrophoneId !== 'default'
+                ? { deviceId: { exact: selectedMicrophoneId } }
+                : {}),
+              echoCancellation: false,
+              noiseSuppression: false,
+              autoGainControl: false
+            }
+          })
+        } catch (micErr) {
+          console.warn('Microphone unavailable, recording without mic:', micErr)
+        }
 
         systemAudioStream = await getLinuxSystemAudioStream()
 
-        const audioCtx = new AudioContext()
+        if (desktopStream.getAudioTracks().length === 0 && !systemAudioStream) {
+          try {
+            const allDevices = await navigator.mediaDevices.enumerateDevices()
+            const virtualDevice = allDevices.find(
+              (d) =>
+                d.kind === 'audioinput' &&
+                /blackhole|loopback|soundflower|virtual|monitor/i.test(d.label)
+            )
+            if (virtualDevice) {
+              systemAudioStream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                  deviceId: { exact: virtualDevice.deviceId },
+                  echoCancellation: false,
+                  noiseSuppression: false,
+                  autoGainControl: false
+                }
+              })
+            }
+          } catch (err) {
+            console.warn('System audio via virtual device unavailable:', err)
+          }
+        }
+
+        const audioCtx = new AudioContext({ sampleRate: 48000 })
         if (audioCtx.state === 'suspended') {
           await audioCtx.resume()
         }
         audioContextRef.current = audioCtx
         const dest = audioCtx.createMediaStreamDestination()
 
-        const dummyGain = audioCtx.createGain()
-        dummyGain.gain.value = 0
-        dummyGain.connect(audioCtx.destination)
+        const keepAliveOsc = audioCtx.createOscillator()
+        const keepAliveGain = audioCtx.createGain()
+        keepAliveGain.gain.value = 0
+        keepAliveOsc.connect(keepAliveGain)
+        keepAliveGain.connect(audioCtx.destination)
+        keepAliveOsc.start()
 
-        audioNodesRef.current = []
-        audioNodesRef.current.push(dest, dummyGain)
+        audioNodesRef.current = [dest, keepAliveOsc, keepAliveGain]
 
-        if (desktopStream.getAudioTracks().length > 0) {
-          const systemSource = audioCtx.createMediaStreamSource(
-            new MediaStream([desktopStream.getAudioTracks()[0]])
-          )
+        function safeGain(value: unknown, fallback: number): number {
+          const n = Number(value)
+          return isFinite(n) && n >= 0 && n <= 100 ? n / 100 : fallback / 100
+        }
+
+        const systemTracks = desktopStream.getAudioTracks()
+        if (systemTracks.length > 0) {
+          const systemSource = audioCtx.createMediaStreamSource(new MediaStream([systemTracks[0]]))
           const systemGain = audioCtx.createGain()
-          systemGain.gain.value = Number(systemAudioVolume ?? 50) / 100
-          systemSource.connect(systemGain).connect(dest)
-          systemGain.connect(dummyGain)
+          systemGain.gain.value = safeGain(systemAudioVolume, 50)
+          systemSource.connect(systemGain)
+          systemGain.connect(dest)
           audioNodesRef.current.push(systemSource, systemGain)
         } else if (systemAudioStream && systemAudioStream.getAudioTracks().length > 0) {
           const systemSource = audioCtx.createMediaStreamSource(
             new MediaStream([systemAudioStream.getAudioTracks()[0]])
           )
           const systemGain = audioCtx.createGain()
-          systemGain.gain.value = Number(systemAudioVolume ?? 50) / 100
-          systemSource.connect(systemGain).connect(dest)
-          systemGain.connect(dummyGain)
+          systemGain.gain.value = safeGain(systemAudioVolume, 50)
+          systemSource.connect(systemGain)
+          systemGain.connect(dest)
           audioNodesRef.current.push(systemSource, systemGain)
         } else {
-          console.warn(
-            'No system audio available (on Linux, a PulseAudio/PipeWire monitor source is required)'
-          )
+          console.warn('No system audio available. On macOS, install BlackHole or Loopback to capture system audio.')
         }
 
-        if (micStream.getAudioTracks().length > 0) {
+        if (micStream && micStream.getAudioTracks().length > 0) {
           const micSource = audioCtx.createMediaStreamSource(
             new MediaStream([micStream.getAudioTracks()[0]])
           )
           const micGain = audioCtx.createGain()
-          micGain.gain.value = Number(microphoneAudioVolume ?? 100) / 100
-          micSource.connect(micGain).connect(dest)
-          micGain.connect(dummyGain)
+          micGain.gain.value = safeGain(microphoneAudioVolume, 100)
+          micSource.connect(micGain)
+          micGain.connect(dest)
           audioNodesRef.current.push(micSource, micGain)
         } else {
-          console.warn('No microphone audio track found in micStream')
+          console.warn('No microphone audio track found')
         }
 
         const mixedStream = new MediaStream([
@@ -255,7 +291,13 @@ export function useScreenRecorder(): {
           mediaRecorderRef.current = null
         }
 
-        const started = await ipc.invoke('recording-start', { encoder, resolution, fps })
+        const started = await ipc.invoke('recording-start', {
+          encoder,
+          resolution,
+          fps,
+          systemAudioVolume,
+          microphoneAudioVolume
+        })
         if (!started) {
           throw new Error('Recording could not start (destination folder unavailable?)')
         }
@@ -333,5 +375,5 @@ export function useScreenRecorder(): {
     }
   }, [startRecording, stopRecording])
 
-  return { isRecording, screenPermissionDenied, startRecording, stopRecording }
+  return { isRecording, screenPermissionDenied, micPermissionDenied, startRecording, stopRecording }
 }

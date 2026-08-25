@@ -85,8 +85,16 @@ export function setupRecordingIPC(): void {
       {
         encoder,
         resolution,
-        fps
-      }: { encoder?: string; resolution?: string; fps?: string } = {}
+        fps,
+        systemAudioVolume,
+        microphoneAudioVolume
+      }: {
+        encoder?: string
+        resolution?: string
+        fps?: string
+        systemAudioVolume?: number
+        microphoneAudioVolume?: number
+      } = {}
     ) => {
       if (recordingStream || ffmpegProcess) {
         console.warn('recording-start ignored: a recording is already in progress')
@@ -104,7 +112,7 @@ export function setupRecordingIPC(): void {
         cleanup()
         return false
       }
-      const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mp4`
+      const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mov`
       const filePath = path.join(videosFolder, fileName)
 
       const resolvedEncoder = encoder || 'libx264'
@@ -114,12 +122,22 @@ export function setupRecordingIPC(): void {
 
       const vf = `scale=${dims.width}:${dims.height}:flags=lanczos,fps=fps=${targetFps}`
 
+      const safeVol = (v: unknown, fallback: number): number => {
+        const n = Number(v)
+        return isFinite(n) && n >= 0 && n <= 100 ? n : fallback
+      }
+      const sysVol = safeVol(systemAudioVolume, 50) / 100
+      const micVol = safeVol(microphoneAudioVolume, 100) / 100
+      const masterVol = Math.max(sysVol, micVol)
+
       const outputOptions = [
         '-pix_fmt yuv420p',
         `-vf ${vf}`,
         `-b:v ${targetBitrate}k`,
         '-maxrate:v ' + Math.round(targetBitrate * 1.5) + 'k',
         '-bufsize:v ' + Math.round(targetBitrate * 2) + 'k',
+        '-ar 48000',
+        `-af volume=${masterVol.toFixed(3)},dynaudnorm=p=0.9:m=100:s=12`,
         '-movflags +faststart'
       ]
 
