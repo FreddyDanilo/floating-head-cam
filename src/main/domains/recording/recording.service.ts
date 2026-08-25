@@ -6,8 +6,12 @@ import fs from 'fs'
 import { PassThrough } from 'stream'
 import { currentState } from '../settings/settings.service'
 
-if (ffmpegStatic) {
-  ffmpeg.setFfmpegPath(ffmpegStatic)
+let ffmpegPath = ffmpegStatic
+if (ffmpegPath && ffmpegPath.includes('app.asar')) {
+  ffmpegPath = ffmpegPath.replace('app.asar', 'app.asar.unpacked')
+}
+if (ffmpegPath) {
+  ffmpeg.setFfmpegPath(ffmpegPath)
 }
 
 export function getRecordingTargetFolder(): string {
