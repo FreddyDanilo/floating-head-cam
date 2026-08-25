@@ -111,14 +111,26 @@ export function ScreenPermissionErrorOverlay({
       <p style={styles.message}>{t('screen.error.message', lang)}</p>
       <p style={styles.instructions}>{getInstructions()}</p>
 
-      <button
-        onClick={handleRetry}
-        style={styles.retryButton}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.35)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.2)')}
-      >
-        {t('screen.error.tryAgain', lang)}
-      </button>
+      <div style={{ display: 'flex', gap: '12px' }}>
+        {platform === 'mac' && (
+          <button
+            onClick={() => window.electron?.ipcRenderer.invoke('open-system-settings', 'screen')}
+            style={styles.retryButton}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.35)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.2)')}
+          >
+            {t('screen.error.openSettings', lang)}
+          </button>
+        )}
+        <button
+          onClick={handleRetry}
+          style={styles.retryButton}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.35)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.2)')}
+        >
+          {t('screen.error.tryAgain', lang)}
+        </button>
+      </div>
 
       {screenPermission === 'denied' && (
         <div style={styles.deniedStatus}>{t('screen.status.denied', lang)}</div>

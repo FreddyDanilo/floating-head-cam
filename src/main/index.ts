@@ -8,7 +8,8 @@ import {
   screen,
   session,
   systemPreferences,
-  desktopCapturer
+  desktopCapturer,
+  shell
 } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { getIsCameraOn, setIsCameraOn } from './domains/camera/camera.service'
@@ -319,6 +320,21 @@ app.whenReady().then(() => {
       return status
     }
     return 'granted'
+  })
+
+  ipcMain.handle('open-system-settings', async (_, type: 'camera' | 'microphone' | 'screen') => {
+    try {
+      if (process.platform === 'darwin') {
+        if (type === 'camera') shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Camera')
+        else if (type === 'microphone') shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone')
+        else if (type === 'screen') shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture')
+      } else if (process.platform === 'win32') {
+        if (type === 'camera') shell.openExternal('ms-settings:privacy-webcam')
+        else if (type === 'microphone') shell.openExternal('ms-settings:privacy-microphone')
+      }
+    } catch (err) {
+      console.error('[main] failed to open system settings:', err)
+    }
   })
 
   ipcMain.handle('get-screen-sources', async () => {

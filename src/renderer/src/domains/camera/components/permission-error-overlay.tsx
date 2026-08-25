@@ -109,14 +109,26 @@ export function PermissionErrorOverlay({
       <p style={styles.message}>{t('camera.error.message', lang)}</p>
       <p style={styles.instructions}>{getInstructions()}</p>
 
-      <button
-        onClick={handleRetry}
-        style={styles.retryButton}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
-      >
-        {t('camera.error.tryAgain', lang)}
-      </button>
+      <div style={{ display: 'flex', gap: '12px' }}>
+        {(platform === 'mac' || platform === 'win') && (
+          <button
+            onClick={() => window.electron?.ipcRenderer.invoke('open-system-settings', 'camera')}
+            style={styles.retryButton}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
+          >
+            {t('camera.error.openSettings', lang)}
+          </button>
+        )}
+        <button
+          onClick={handleRetry}
+          style={styles.retryButton}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)')}
+        >
+          {t('camera.error.tryAgain', lang)}
+        </button>
+      </div>
 
       {cameraPermission === 'denied' && (
         <div style={styles.deniedStatus}>{t('camera.status.denied', lang)}</div>

@@ -113,6 +113,7 @@ const translations: Translations = {
     'camera.error.title': 'Camera Blocked',
     'camera.error.message': 'The application needs permission to use the camera.',
     'camera.error.tryAgain': 'Try Again',
+    'camera.error.openSettings': 'Open Settings',
     'camera.off': 'Camera Off',
     'camera.status.denied': 'Status: Denied by OS',
 
@@ -152,6 +153,7 @@ const translations: Translations = {
     'mic.error.win': 'Open Settings > Privacy > Microphone and allow access.',
     'mic.error.default': 'Check your system privacy settings to allow microphone access.',
     'mic.error.tryAgain': 'Try Again',
+    'mic.error.openSettings': 'Open Settings',
     'mic.status.denied': 'Status: Denied by OS',
 
     'screen.error.title': 'Screen Recording Blocked',
@@ -161,6 +163,7 @@ const translations: Translations = {
     'screen.error.win': 'Open Settings > Privacy > Screen Recording and allow access.',
     'screen.error.default': 'Check your system privacy settings to allow screen recording access.',
     'screen.error.tryAgain': 'Try Again',
+    'screen.error.openSettings': 'Open Settings',
     'screen.status.denied': 'Status: Denied by OS'
   },
   pt: {
@@ -276,6 +279,7 @@ const translations: Translations = {
     'camera.error.title': 'Câmera Bloqueada',
     'camera.error.message': 'O aplicativo precisa de permissão para usar a câmera.',
     'camera.error.tryAgain': 'Tentar Novamente',
+    'camera.error.openSettings': 'Abrir Configurações',
     'camera.off': 'Câmera Desligada',
     'camera.status.denied': 'Status: Negado pelo SO',
 
@@ -317,6 +321,7 @@ const translations: Translations = {
     'mic.error.default':
       'Verifique as configurações de privacidade do sistema para liberar o microfone.',
     'mic.error.tryAgain': 'Tentar Novamente',
+    'mic.error.openSettings': 'Abrir Configurações',
     'mic.status.denied': 'Status: Negado pelo SO',
 
     'screen.error.title': 'Gravação de Tela Bloqueada',
@@ -327,6 +332,7 @@ const translations: Translations = {
     'screen.error.default':
       'Verifique as configurações de privacidade do sistema para liberar a gravação de tela.',
     'screen.error.tryAgain': 'Tentar Novamente',
+    'screen.error.openSettings': 'Abrir Configurações',
     'screen.status.denied': 'Status: Negado pelo SO'
   }
 }

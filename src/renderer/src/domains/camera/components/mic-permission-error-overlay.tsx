@@ -111,14 +111,26 @@ export function MicPermissionErrorOverlay({
       <p style={styles.message}>{t('mic.error.message', lang)}</p>
       <p style={styles.instructions}>{getInstructions()}</p>
 
-      <button
-        onClick={handleRetry}
-        style={styles.retryButton}
-        onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.35)')}
-        onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.2)')}
-      >
-        {t('mic.error.tryAgain', lang)}
-      </button>
+      <div style={{ display: 'flex', gap: '12px' }}>
+        {(platform === 'mac' || platform === 'win') && (
+          <button
+            onClick={() => window.electron?.ipcRenderer.invoke('open-system-settings', 'microphone')}
+            style={styles.retryButton}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.35)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.2)')}
+          >
+            {t('mic.error.openSettings', lang)}
+          </button>
+        )}
+        <button
+          onClick={handleRetry}
+          style={styles.retryButton}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.35)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.2)')}
+        >
+          {t('mic.error.tryAgain', lang)}
+        </button>
+      </div>
 
       {microphonePermission === 'denied' && (
         <div style={styles.deniedStatus}>{t('mic.status.denied', lang)}</div>
