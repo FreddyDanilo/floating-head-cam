@@ -6,6 +6,7 @@ export function useAudioMeter(stream: MediaStream | null): number {
 
   useEffect(() => {
     if (!stream || stream.getAudioTracks().length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLevel(0)
       return
     }

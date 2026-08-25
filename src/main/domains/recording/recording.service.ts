@@ -185,7 +185,6 @@ export function setupRecordingIPC(): void {
     }
   )
 
-
   ipcMain.on('recording-chunk', (_, chunk: ArrayBuffer) => {
     if (recordingStream && !recordingStream.writableEnded) {
       recordingStream.write(Buffer.from(chunk))

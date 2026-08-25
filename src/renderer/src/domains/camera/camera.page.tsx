@@ -70,25 +70,22 @@ export function CameraPage(): React.JSX.Element {
   }, [cameraX, cameraY, cameraWidth, cameraHeight])
 
   useEffect(() => {
-    const handleGlobalMouseMove = (e: MouseEvent) => {
+    const handleGlobalMouseMove = (e: MouseEvent): void => {
       mousePos.current = { x: e.clientX, y: e.clientY }
     }
     window.addEventListener('mousemove', handleGlobalMouseMove)
 
     const interval = setInterval(() => {
       if (isAnimating.current || isDragging.current) return
-      
+
       const rect = cameraRect.current
       const pos = mousePos.current
-      
+
       if (rect.w === 0) return
 
-      const isOverCamera = 
-        pos.x >= rect.x && 
-        pos.x <= rect.x + rect.w && 
-        pos.y >= rect.y && 
-        pos.y <= rect.y + rect.h
-      
+      const isOverCamera =
+        pos.x >= rect.x && pos.x <= rect.x + rect.w && pos.y >= rect.y && pos.y <= rect.y + rect.h
+
       if (isOverCamera !== lastHoverState.current) {
         lastHoverState.current = isOverCamera
         if (window.electron) {
@@ -140,9 +137,9 @@ export function CameraPage(): React.JSX.Element {
     }
     setCameraWidth(w)
     setCameraHeight(h)
-    
-    setCameraX(prev => Math.min(Math.max(0, prev), window.innerWidth - w))
-    setCameraY(prev => Math.min(Math.max(0, prev), window.innerHeight - h))
+
+    setCameraX((prev) => Math.min(Math.max(0, prev), window.innerWidth - w))
+    setCameraY((prev) => Math.min(Math.max(0, prev), window.innerHeight - h))
   }, [])
 
   useEffect(() => {
@@ -191,40 +188,53 @@ export function CameraPage(): React.JSX.Element {
     return () => cancelAnimationFrame(raf)
   }, [fade])
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    isDragging.current = true
-    if (containerRef.current) {
-      containerRef.current.style.transition = 'none'
-    }
-    currentDragPos.current = { x: cameraX, y: cameraY }
-    dragOffset.current = {
-      x: e.clientX - cameraX,
-      y: e.clientY - cameraY
-    }
-  }, [cameraX, cameraY])
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      isDragging.current = true
+      if (containerRef.current) {
+        containerRef.current.style.transition = 'none'
+      }
+      currentDragPos.current = { x: cameraX, y: cameraY }
+      dragOffset.current = {
+        x: e.clientX - cameraX,
+        y: e.clientY - cameraY
+      }
+    },
+    [cameraX, cameraY]
+  )
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent): void => {
       if (!isDragging.current) return
-      const newX = Math.min(Math.max(0, e.clientX - dragOffset.current.x), window.innerWidth - cameraWidth)
-      const newY = Math.min(Math.max(0, e.clientY - dragOffset.current.y), window.innerHeight - cameraHeight)
-      
+      const newX = Math.min(
+        Math.max(0, e.clientX - dragOffset.current.x),
+        window.innerWidth - cameraWidth
+      )
+      const newY = Math.min(
+        Math.max(0, e.clientY - dragOffset.current.y),
+        window.innerHeight - cameraHeight
+      )
+
       currentDragPos.current = { x: newX, y: newY }
       if (containerRef.current) {
         containerRef.current.style.left = `${newX}px`
         containerRef.current.style.top = `${newY}px`
       }
     }
-    const handleMouseUp = () => {
+    const handleMouseUp = (): void => {
       if (isDragging.current) {
         isDragging.current = false
         if (containerRef.current) {
-          containerRef.current.style.transition = 'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
+          containerRef.current.style.transition =
+            'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
         }
         setCameraX(currentDragPos.current.x)
         setCameraY(currentDragPos.current.y)
         if (window.electron) {
-          window.electron.ipcRenderer.send('sync-tray', { x: currentDragPos.current.x, y: currentDragPos.current.y })
+          window.electron.ipcRenderer.send('sync-tray', {
+            x: currentDragPos.current.x,
+            y: currentDragPos.current.y
+          })
         }
       }
     }
@@ -256,28 +266,45 @@ export function CameraPage(): React.JSX.Element {
   useEffect(() => {
     const ipc = window.electron?.ipcRenderer
     if (!ipc) return
-    const handlePermissionDenied = (_e: unknown, payload: { screen: boolean; mic: boolean }) => {
+    const handlePermissionDenied = (
+      _e: unknown,
+      payload: { screen: boolean; mic: boolean }
+    ): void => {
       setScreenPermissionDenied(payload.screen)
       setMicPermissionDenied(payload.mic)
     }
-    const handleCameraPosition = (_e: unknown, pos: string) => {
+    const handleCameraPosition = (_e: unknown, pos: string): void => {
       let newX = cameraX
       let newY = cameraY
       switch (pos) {
         case 'top-left':
-          newX = 0; newY = 0; break;
+          newX = 0
+          newY = 0
+          break
         case 'top-right':
-          newX = window.innerWidth - cameraWidth; newY = 0; break;
+          newX = window.innerWidth - cameraWidth
+          newY = 0
+          break
         case 'bottom-left':
-          newX = 0; newY = window.innerHeight - cameraHeight; break;
+          newX = 0
+          newY = window.innerHeight - cameraHeight
+          break
         case 'bottom-right':
-          newX = window.innerWidth - cameraWidth; newY = window.innerHeight - cameraHeight; break;
+          newX = window.innerWidth - cameraWidth
+          newY = window.innerHeight - cameraHeight
+          break
         case 'left-middle':
-          newX = 0; newY = (window.innerHeight - cameraHeight) / 2; break;
+          newX = 0
+          newY = (window.innerHeight - cameraHeight) / 2
+          break
         case 'right-middle':
-          newX = window.innerWidth - cameraWidth; newY = (window.innerHeight - cameraHeight) / 2; break;
+          newX = window.innerWidth - cameraWidth
+          newY = (window.innerHeight - cameraHeight) / 2
+          break
         case 'center':
-          newX = (window.innerWidth - cameraWidth) / 2; newY = (window.innerHeight - cameraHeight) / 2; break;
+          newX = (window.innerWidth - cameraWidth) / 2
+          newY = (window.innerHeight - cameraHeight) / 2
+          break
       }
       setCameraX(newX)
       setCameraY(newY)
@@ -368,12 +395,18 @@ export function CameraPage(): React.JSX.Element {
           pointerEvents: 'auto',
           padding: sizeIndex === 4 || borderGradient === 'none' ? '0px' : `${borderWidth}px`,
           borderRadius: computedRadius,
-          WebkitMaskImage: sizeIndex === 4 ? 'none' : shape === 'circle' ? '-webkit-radial-gradient(white, black)' : 'none',
+          WebkitMaskImage:
+            sizeIndex === 4
+              ? 'none'
+              : shape === 'circle'
+                ? '-webkit-radial-gradient(white, black)'
+                : 'none',
           boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: 'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease',
+          transition:
+            'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease',
           zIndex: 1
         }}
       >
@@ -411,7 +444,12 @@ export function CameraPage(): React.JSX.Element {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            borderRadius: sizeIndex === 4 ? '0' : shape === 'circle' ? '50%' : `${Math.max(0, rounding - borderWidth)}px`,
+            borderRadius:
+              sizeIndex === 4
+                ? '0'
+                : shape === 'circle'
+                  ? '50%'
+                  : `${Math.max(0, rounding - borderWidth)}px`,
             transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
             display: hasPermissionError ? 'none' : 'block'
           }}

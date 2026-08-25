@@ -85,6 +85,7 @@ export function setWindowPosition(pos: string): void {
   })
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function resizeWindow(_sizeObj: {
   width: number
   height: number
@@ -94,11 +95,11 @@ export function resizeWindow(_sizeObj: {
 }
 export function createWindow(callbacks: WindowCallbacks): void {
   const displays = screen.getAllDisplays()
-  let selectedDisplay = displays.find(d => d.id.toString() === currentState.cameraScreenId)
+  let selectedDisplay = displays.find((d) => d.id.toString() === currentState.cameraScreenId)
   if (!selectedDisplay) selectedDisplay = screen.getPrimaryDisplay()
-  
+
   const { bounds } = selectedDisplay
-  
+
   const mainWindow = new BrowserWindow({
     width: bounds.width,
     height: bounds.height,
@@ -158,11 +159,11 @@ export function createWindow(callbacks: WindowCallbacks): void {
 
 export function moveCameraToScreen(screenId: string): void {
   const displays = screen.getAllDisplays()
-  let selectedDisplay = displays.find(d => d.id.toString() === screenId)
+  let selectedDisplay = displays.find((d) => d.id.toString() === screenId)
   if (!selectedDisplay) selectedDisplay = screen.getPrimaryDisplay()
-  
+
   const { bounds } = selectedDisplay
-  
+
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win !== _settingsWindow && win !== _recordingWorker) {
       win.setBounds({

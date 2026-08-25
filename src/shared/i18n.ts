@@ -148,8 +148,7 @@ const translations: Translations = {
 
     'mic.error.title': 'Microphone Blocked',
     'mic.error.message': 'The app needs permission to use the microphone for recording audio.',
-    'mic.error.mac':
-      'Open System Settings > Privacy & Security > Microphone and allow access.',
+    'mic.error.mac': 'Open System Settings > Privacy & Security > Microphone and allow access.',
     'mic.error.win': 'Open Settings > Privacy > Microphone and allow access.',
     'mic.error.default': 'Check your system privacy settings to allow microphone access.',
     'mic.error.tryAgain': 'Try Again',

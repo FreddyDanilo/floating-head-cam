@@ -21,7 +21,11 @@ import { t } from '../../../../shared/i18n'
 import { useShortcuts, VisualState } from './hooks/use-shortcuts'
 import { useAudioDevices } from '../camera/hooks/use-audio-devices'
 import { useAudioMeter } from './hooks/use-audio-meter'
-import { getMacOSVirtualAudioStream, getLinuxSystemAudioStream, isLinuxPlatform } from '../camera/hooks/use-screen-recorder'
+import {
+  getMacOSVirtualAudioStream,
+  getLinuxSystemAudioStream,
+  isLinuxPlatform
+} from '../camera/hooks/use-screen-recorder'
 
 const SHAPE_KEYS = [
   {
@@ -123,26 +127,30 @@ function RecordingSettings({
     let currentStream: MediaStream | null = null
     const getMic = async (): Promise<void> => {
       try {
-        const constraints = visualState.selectedMicrophoneId && visualState.selectedMicrophoneId !== 'default' 
-          ? { deviceId: { exact: visualState.selectedMicrophoneId } } 
-          : true
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-          audio: typeof constraints === 'boolean' ? constraints : { ...constraints, echoCancellation: false, noiseSuppression: false } 
+        const constraints =
+          visualState.selectedMicrophoneId && visualState.selectedMicrophoneId !== 'default'
+            ? { deviceId: { exact: visualState.selectedMicrophoneId } }
+            : true
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio:
+            typeof constraints === 'boolean'
+              ? constraints
+              : { ...constraints, echoCancellation: false, noiseSuppression: false }
         })
         if (!active) {
-          stream.getTracks().forEach(t => t.stop())
+          stream.getTracks().forEach((t) => t.stop())
         } else {
           currentStream = stream
           setMicStream(stream)
         }
-      } catch(e) {
+      } catch (e) {
         console.warn('Meter mic error:', e)
       }
     }
     getMic()
     return () => {
       active = false
-      if (currentStream) currentStream.getTracks().forEach(t => t.stop())
+      if (currentStream) currentStream.getTracks().forEach((t) => t.stop())
     }
   }, [visualState.selectedMicrophoneId])
 
@@ -157,7 +165,7 @@ function RecordingSettings({
         stream = await getMacOSVirtualAudioStream()
       }
       if (!active && stream) {
-        stream.getTracks().forEach(t => t.stop())
+        stream.getTracks().forEach((t) => t.stop())
       } else if (stream) {
         currentStream = stream
         setSysStream(stream)
@@ -166,7 +174,7 @@ function RecordingSettings({
     getSys()
     return () => {
       active = false
-      if (currentStream) currentStream.getTracks().forEach(t => t.stop())
+      if (currentStream) currentStream.getTracks().forEach((t) => t.stop())
     }
   }, [])
 
@@ -176,13 +184,23 @@ function RecordingSettings({
   const isWindows = navigator.userAgent.indexOf('Win') !== -1
 
   const renderMeter = (level: number, disabled?: boolean): React.JSX.Element => (
-    <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', marginTop: '16px', overflow: 'hidden' }}>
-      <div style={{ 
-        width: disabled ? '0%' : `${level}%`, 
-        height: '100%', 
-        background: level > 85 ? '#ef4444' : level > 60 ? '#eab308' : '#22c55e',
-        transition: 'width 0.1s ease-out, background 0.1s ease-out'
-      }} />
+    <div
+      style={{
+        height: '6px',
+        background: 'rgba(255,255,255,0.1)',
+        borderRadius: '3px',
+        marginTop: '16px',
+        overflow: 'hidden'
+      }}
+    >
+      <div
+        style={{
+          width: disabled ? '0%' : `${level}%`,
+          height: '100%',
+          background: level > 85 ? '#ef4444' : level > 60 ? '#eab308' : '#22c55e',
+          transition: 'width 0.1s ease-out, background 0.1s ease-out'
+        }}
+      />
     </div>
   )
 
@@ -190,7 +208,9 @@ function RecordingSettings({
     <div className="settings-section">
       <div className="settings-list">
         <div className="settings-row settings-row--column">
-          <span className="settings-label">{t('settings.recordingScreen', language) || 'Recording Screen'}</span>
+          <span className="settings-label">
+            {t('settings.recordingScreen', language) || 'Recording Screen'}
+          </span>
           <select
             className="settings-select"
             value={visualState.recordingScreenId || ''}
@@ -253,23 +273,30 @@ function RecordingSettings({
         </div>
 
         <div className="settings-row settings-row--column">
-          <span className="settings-label">
-            {t('settings.recordingAudio', language)}
-          </span>
-          
+          <span className="settings-label">{t('settings.recordingAudio', language)}</span>
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-            
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'rgba(0, 0, 0, 0.2)',
-              padding: '14px',
-              borderRadius: '10px',
-              width: '100%',
-              gap: '16px'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'rgba(0, 0, 0, 0.2)',
+                padding: '14px',
+                borderRadius: '10px',
+                width: '100%',
+                gap: '16px'
+              }}
+            >
               <div>
-                <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '8px' }}>
+                <span
+                  className="settings-label"
+                  style={{
+                    fontSize: '13px',
+                    color: 'rgba(255,255,255,0.7)',
+                    display: 'block',
+                    marginBottom: '8px'
+                  }}
+                >
                   {t('settings.recordingMicrophone', language)}
                 </span>
                 <select
@@ -278,7 +305,9 @@ function RecordingSettings({
                   onChange={(e) => updateVisualState('selectedMicrophoneId', e.target.value)}
                   style={{ width: '100%', margin: 0 }}
                 >
-                  <option value="default">{t('settings.recordingMicrophoneDefault', language)}</option>
+                  <option value="default">
+                    {t('settings.recordingMicrophoneDefault', language)}
+                  </option>
                   {devices.map((d) => (
                     <option key={d.deviceId} value={d.deviceId}>
                       {d.label || d.deviceId.substring(0, 8)}
@@ -289,7 +318,10 @@ function RecordingSettings({
 
               <div>
                 <div className="rounding-header">
-                  <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                  <span
+                    className="settings-label"
+                    style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                  >
                     {t('settings.recordingMicAudio', language)}
                   </span>
                   <span className="rounding-value">{visualState.microphoneAudioVolume}%</span>
@@ -302,23 +334,30 @@ function RecordingSettings({
                     step={1}
                     value={visualState.microphoneAudioVolume}
                     className="rounding-slider"
-                    onChange={(e) => updateVisualState('microphoneAudioVolume', Number(e.target.value))}
+                    onChange={(e) =>
+                      updateVisualState('microphoneAudioVolume', Number(e.target.value))
+                    }
                   />
                   {renderMeter(micLevel)}
                 </div>
               </div>
             </div>
 
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              background: 'rgba(0, 0, 0, 0.2)',
-              padding: '14px',
-              borderRadius: '10px',
-              width: '100%'
-            }}>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                background: 'rgba(0, 0, 0, 0.2)',
+                padding: '14px',
+                borderRadius: '10px',
+                width: '100%'
+              }}
+            >
               <div className="rounding-header">
-                <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                <span
+                  className="settings-label"
+                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                >
                   {t('settings.recordingSystemAudio', language)}
                 </span>
                 <span className="rounding-value">{visualState.systemAudioVolume}%</span>
@@ -334,8 +373,18 @@ function RecordingSettings({
                   onChange={(e) => updateVisualState('systemAudioVolume', Number(e.target.value))}
                 />
                 {isWindows ? (
-                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '6px', textAlign: 'center' }}>
-                    {t('settings.recordingSystemAudioWindowsWarning', language) || (language === 'pt' ? 'Medidor indisponível no Windows antes de gravar.' : 'Meter unavailable on Windows before recording.')}
+                  <div
+                    style={{
+                      fontSize: '10px',
+                      color: 'rgba(255,255,255,0.4)',
+                      marginTop: '6px',
+                      textAlign: 'center'
+                    }}
+                  >
+                    {t('settings.recordingSystemAudioWindowsWarning', language) ||
+                      (language === 'pt'
+                        ? 'Medidor indisponível no Windows antes de gravar.'
+                        : 'Meter unavailable on Windows before recording.')}
                   </div>
                 ) : (
                   renderMeter(sysLevel)
@@ -376,7 +425,6 @@ function RecordingSettings({
             </div>
           </div>
         </div>
-
       </div>
     </div>
   )
@@ -408,7 +456,9 @@ export function SettingsPage(): React.JSX.Element {
 
   React.useEffect(() => {
     if (window.electron) {
-      window.electron.ipcRenderer.invoke('get-screen-sources').then((data) => setScreens(data || []))
+      window.electron.ipcRenderer
+        .invoke('get-screen-sources')
+        .then((data) => setScreens(data || []))
     }
   }, [])
 
@@ -425,7 +475,14 @@ export function SettingsPage(): React.JSX.Element {
     if (showGradientEditor) {
       updateVisualState('borderGradient', customGradientValue)
     }
-  }, [gradColor1, gradColor2, gradAngle, showGradientEditor, customGradientValue])
+  }, [
+    gradColor1,
+    gradColor2,
+    gradAngle,
+    showGradientEditor,
+    customGradientValue,
+    updateVisualState
+  ])
 
   const handleOpenGradientEditor = (): void => {
     if (isCustom) {
@@ -634,18 +691,26 @@ export function SettingsPage(): React.JSX.Element {
 
               <div className="settings-row settings-row--column">
                 <span className="settings-label">{t('settings.border', language)}</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    background: 'rgba(0, 0, 0, 0.2)',
-                    padding: '14px',
-                    borderRadius: '10px',
-                    width: '100%'
-                  }}>
+                <div
+                  style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      background: 'rgba(0, 0, 0, 0.2)',
+                      padding: '14px',
+                      borderRadius: '10px',
+                      width: '100%'
+                    }}
+                  >
                     <span
                       className="settings-label"
-                      style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', marginBottom: '8px' }}
+                      style={{
+                        fontSize: '13px',
+                        color: 'rgba(255,255,255,0.7)',
+                        marginBottom: '8px'
+                      }}
                     >
                       {t('settings.borderColor', language)}
                     </span>
@@ -685,7 +750,10 @@ export function SettingsPage(): React.JSX.Element {
                     </div>
 
                     {showGradientEditor && (
-                      <div className="gradient-editor" style={{ background: 'transparent', padding: '12px 0 0 0' }}>
+                      <div
+                        className="gradient-editor"
+                        style={{ background: 'transparent', padding: '12px 0 0 0' }}
+                      >
                         <div
                           className="gradient-editor__preview"
                           style={{ background: customGradientValue }}
@@ -760,43 +828,43 @@ export function SettingsPage(): React.JSX.Element {
                   <div
                     className={`border-width-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}
                   >
-                      <div className="rounding-header">
-                        <span
-                          className="settings-label"
-                          style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
-                        >
-                          {t('settings.borderWidth', language)}
-                        </span>
-                        <span className="rounding-value">{visualState.borderWidth}px</span>
+                    <div className="rounding-header">
+                      <span
+                        className="settings-label"
+                        style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                      >
+                        {t('settings.borderWidth', language)}
+                      </span>
+                      <span className="rounding-value">{visualState.borderWidth}px</span>
+                    </div>
+                    <div className="slider-wrap" style={{ marginTop: '4px' }}>
+                      <input
+                        type="range"
+                        min={1}
+                        max={20}
+                        step={1}
+                        value={visualState.borderWidth}
+                        className="rounding-slider"
+                        disabled={visualState.borderGradient === 'none'}
+                        onChange={(e) => updateVisualState('borderWidth', Number(e.target.value))}
+                      />
+                      <div className="slider-ticks">
+                        {[
+                          { val: 1, i18nKey: 'settings.borderWidth.thin' },
+                          { val: 4, i18nKey: 'settings.borderWidth.default' },
+                          { val: 20, i18nKey: 'settings.borderWidth.thick' }
+                        ].map((tick) => (
+                          <button
+                            key={tick.val}
+                            className={`slider-tick ${visualState.borderWidth === tick.val ? 'slider-tick--active' : ''}`}
+                            disabled={visualState.borderGradient === 'none'}
+                            onClick={() => updateVisualState('borderWidth', tick.val)}
+                          >
+                            {t(tick.i18nKey, language)}
+                          </button>
+                        ))}
                       </div>
-                      <div className="slider-wrap" style={{ marginTop: '4px' }}>
-                        <input
-                          type="range"
-                          min={1}
-                          max={20}
-                          step={1}
-                          value={visualState.borderWidth}
-                          className="rounding-slider"
-                          disabled={visualState.borderGradient === 'none'}
-                          onChange={(e) => updateVisualState('borderWidth', Number(e.target.value))}
-                        />
-                        <div className="slider-ticks">
-                          {[
-                            { val: 1, i18nKey: 'settings.borderWidth.thin' },
-                            { val: 4, i18nKey: 'settings.borderWidth.default' },
-                            { val: 20, i18nKey: 'settings.borderWidth.thick' }
-                          ].map((tick) => (
-                            <button
-                              key={tick.val}
-                              className={`slider-tick ${visualState.borderWidth === tick.val ? 'slider-tick--active' : ''}`}
-                              disabled={visualState.borderGradient === 'none'}
-                              onClick={() => updateVisualState('borderWidth', tick.val)}
-                            >
-                              {t(tick.i18nKey, language)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                    </div>
                   </div>
 
                   <div
@@ -811,45 +879,45 @@ export function SettingsPage(): React.JSX.Element {
                       width: '100%'
                     }}
                   >
-                      <span
-                        className="settings-label"
-                        style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
-                      >
-                        {t('settings.animation', language)}
-                      </span>
-                      <button
-                        className={`toggle-button ${visualState.isBorderAnimated ? 'toggle-button--active' : ''}`}
-                        disabled={visualState.borderGradient === 'none'}
-                        onClick={() =>
-                          updateVisualState('isBorderAnimated', !visualState.isBorderAnimated)
-                        }
+                    <span
+                      className="settings-label"
+                      style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                    >
+                      {t('settings.animation', language)}
+                    </span>
+                    <button
+                      className={`toggle-button ${visualState.isBorderAnimated ? 'toggle-button--active' : ''}`}
+                      disabled={visualState.borderGradient === 'none'}
+                      onClick={() =>
+                        updateVisualState('isBorderAnimated', !visualState.isBorderAnimated)
+                      }
+                      style={{
+                        width: '40px',
+                        height: '24px',
+                        borderRadius: '12px',
+                        background: visualState.isBorderAnimated
+                          ? '#0A84FF'
+                          : 'rgba(255, 255, 255, 0.15)',
+                        position: 'relative',
+                        cursor: visualState.borderGradient === 'none' ? 'not-allowed' : 'pointer',
+                        border: 'none',
+                        transition: 'background 0.2s',
+                        padding: 0
+                      }}
+                    >
+                      <div
                         style={{
-                          width: '40px',
-                          height: '24px',
-                          borderRadius: '12px',
-                          background: visualState.isBorderAnimated
-                            ? '#0A84FF'
-                            : 'rgba(255, 255, 255, 0.15)',
-                          position: 'relative',
-                          cursor: visualState.borderGradient === 'none' ? 'not-allowed' : 'pointer',
-                          border: 'none',
-                          transition: 'background 0.2s',
-                          padding: 0
+                          width: '20px',
+                          height: '20px',
+                          borderRadius: '50%',
+                          background: '#fff',
+                          position: 'absolute',
+                          top: '2px',
+                          left: visualState.isBorderAnimated ? '18px' : '2px',
+                          transition: 'left 0.2s, background 0.2s'
                         }}
-                      >
-                        <div
-                          style={{
-                            width: '20px',
-                            height: '20px',
-                            borderRadius: '50%',
-                            background: '#fff',
-                            position: 'absolute',
-                            top: '2px',
-                            left: visualState.isBorderAnimated ? '18px' : '2px',
-                            transition: 'left 0.2s, background 0.2s'
-                          }}
-                        />
-                      </button>
+                      />
+                    </button>
                   </div>
                 </div>
               </div>
@@ -921,13 +989,17 @@ export function SettingsPage(): React.JSX.Element {
           <div className="settings-section" style={{ marginBottom: '-17px' }}>
             <div className="settings-list">
               <div className="settings-row settings-row--column">
-                <span className="settings-label">{t('settings.cameraScreen', language) || 'Camera Screen'}</span>
+                <span className="settings-label">
+                  {t('settings.cameraScreen', language) || 'Camera Screen'}
+                </span>
                 <select
                   className="settings-select"
                   value={visualState.cameraScreenId || ''}
                   onChange={(e) => updateVisualState('cameraScreenId', e.target.value)}
                 >
-                  <option value="">{t('settings.screenDefault', language) || 'Primary Display'}</option>
+                  <option value="">
+                    {t('settings.screenDefault', language) || 'Primary Display'}
+                  </option>
                   {(Array.isArray(screens) ? screens : []).map((s) => (
                     <option key={s.display_id} value={s.display_id}>
                       {s.name} ({s.display_id})

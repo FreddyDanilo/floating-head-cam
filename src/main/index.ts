@@ -116,9 +116,12 @@ app.whenReady().then(() => {
             return
           }
           const primaryDisplay = screen.getPrimaryDisplay()
-          let targetSource = sources.find((s) => s.display_id === String(currentState.recordingScreenId))
+          let targetSource = sources.find(
+            (s) => s.display_id === String(currentState.recordingScreenId)
+          )
           if (!targetSource) {
-            targetSource = sources.find((s) => s.display_id === String(primaryDisplay.id)) ?? sources[0]
+            targetSource =
+              sources.find((s) => s.display_id === String(primaryDisplay.id)) ?? sources[0]
           }
           if (process.platform === 'darwin' || process.platform === 'win32') {
             callback({ video: targetSource, audio: 'loopback' })
@@ -149,12 +152,12 @@ app.whenReady().then(() => {
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
-  
+
   app.on('web-contents-created', (_, webContents) => {
     webContents.on('before-input-event', (event, input) => {
       if (
-        input.key === 'F12' || 
-        (input.control && input.shift && input.key.toLowerCase() === 'i') || 
+        input.key === 'F12' ||
+        (input.control && input.shift && input.key.toLowerCase() === 'i') ||
         (input.meta && input.shift && input.key.toLowerCase() === 'i')
       ) {
         event.preventDefault()
@@ -242,7 +245,7 @@ app.whenReady().then(() => {
         win.webContents.send('tray-action', { type: 'set-border-animated', payload: value })
       }
     })
-    
+
     if (key === 'cameraScreenId') {
       moveCameraToScreen(value as string)
     }
@@ -287,6 +290,7 @@ app.whenReady().then(() => {
 
   setOnRecordingAborted(() => setRecordingState(false))
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ;(app as any).on('tray-toggle-recording', () => startRecordingFlow())
 
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))

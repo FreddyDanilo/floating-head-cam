@@ -297,7 +297,10 @@ export function buildTrayMenu(state: TrayState): void {
       ]
     },
     { type: 'separator' },
-    { label: t('tray.about', lang), click: () => shell.openExternal('https://github.com/FreddyDanilo/floating-head-cam') },
+    {
+      label: t('tray.about', lang),
+      click: () => shell.openExternal('https://github.com/FreddyDanilo/floating-head-cam')
+    },
     { label: t('tray.quit', lang), click: () => app.quit() }
   ])
   tray.setContextMenu(menu)

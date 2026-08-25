@@ -1,9 +1,8 @@
-
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getSettingsWindow, resizeWindow, setWindowPosition } from './window.service'
-const { 
-  mockSetContentBounds, 
-  mockGetContentBounds, 
+const {
+  mockSetContentBounds,
+  mockGetContentBounds,
   mockGetDisplayMatching,
   mockSetSimpleFullScreen,
   mockSetFullScreen,
@@ -52,7 +51,14 @@ vi.mock('electron', () => ({
 vi.mock('@electron-toolkit/utils', () => ({ is: { dev: false } }))
 vi.mock('../../../../resources/icon.png?asset', () => ({ default: '/mock/icon.png' }))
 vi.mock('../settings/settings.service', () => ({
-  currentState: { x: undefined, y: undefined, shape: 'circle', sizeIndex: 0, alwaysOnTop: true, cameraScreenId: '' },
+  currentState: {
+    x: undefined,
+    y: undefined,
+    shape: 'circle',
+    sizeIndex: 0,
+    alwaysOnTop: true,
+    cameraScreenId: ''
+  },
   saveSettings: vi.fn()
 }))
 vi.mock('../camera/camera.service', () => ({ getIsCameraOn: vi.fn(() => false) }))

@@ -40,9 +40,7 @@ export async function getMacOSVirtualAudioStream(): Promise<MediaStream | null> 
   try {
     const allDevices = await navigator.mediaDevices.enumerateDevices()
     const virtualDevice = allDevices.find(
-      (d) =>
-        d.kind === 'audioinput' &&
-        /blackhole|loopback|soundflower|virtual/i.test(d.label)
+      (d) => d.kind === 'audioinput' && /blackhole|loopback|soundflower|virtual/i.test(d.label)
     )
     if (!virtualDevice) return null
     return await navigator.mediaDevices.getUserMedia({
@@ -252,7 +250,9 @@ export function useScreenRecorder(): {
           systemGain.connect(dest)
           audioNodesRef.current.push(systemSource, systemGain)
         } else {
-          console.warn('No system audio available. On macOS install BlackHole or grant Screen Recording to the Electron binary.')
+          console.warn(
+            'No system audio available. On macOS install BlackHole or grant Screen Recording to the Electron binary.'
+          )
         }
 
         if (micStream && micStream.getAudioTracks().length > 0) {
