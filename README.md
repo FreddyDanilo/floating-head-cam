@@ -3,6 +3,8 @@
 
 # Floating Head Cam
 
+**Created by Freddy Danilo**
+
 _Posiciona a tua câmera do jeito mais simples possível._
 </div>
 
