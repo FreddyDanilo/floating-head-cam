@@ -102,6 +102,7 @@ const translations: Translations = {
     'tray.mirror': 'Mirror Camera',
     'tray.alwaysOnTop': 'Always on Top',
     'tray.quit': 'Quit',
+    'tray.about': 'About',
 
     'camera.error.mac': 'Open System Settings > Privacy & Security > Camera and allow access.',
     'camera.error.win': 'Open Settings > Privacy > Camera and allow access.',
@@ -249,6 +250,7 @@ const translations: Translations = {
     'tray.mirror': 'Espelhar Câmera',
     'tray.alwaysOnTop': 'Sempre no Topo',
     'tray.quit': 'Sair',
+    'tray.about': 'Sobre',
 
     'camera.error.mac':
       'Abra Ajustes do Sistema > Privacidade e Segurança > Câmera e permita o acesso.',

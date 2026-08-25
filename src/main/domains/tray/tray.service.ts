@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, nativeImage, Tray } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, Tray, shell } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../../../resources/icon.png?asset'
 import { t } from '../../../shared/i18n'
@@ -296,6 +296,8 @@ export function buildTrayMenu(state: TrayState): void {
         }
       ]
     },
+    { type: 'separator' },
+    { label: t('tray.about', lang), click: () => shell.openExternal('https://github.com/FreddyDanilo/floating-head-cam') },
     { label: t('tray.quit', lang), click: () => app.quit() }
   ])
   tray.setContextMenu(menu)

@@ -381,48 +381,50 @@ export function SettingsPage(): React.JSX.Element {
 
   return (
     <div className="settings-container">
-      <div
-        className="settings-header"
-        style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Clapperboard size={28} className="settings-icon" />
-          <h1>{t('settings.title', language)}</h1>
+      <div className="settings-top-bar">
+        <div
+          className="settings-header"
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Clapperboard size={28} className="settings-icon" />
+            <h1>{t('settings.title', language)}</h1>
+          </div>
         </div>
-      </div>
-      <p className="settings-description">{t('settings.description', language)}</p>
+        <p className="settings-description">{t('settings.description', language)}</p>
 
-      <div className="settings-tabs">
-        <button
-          className={`settings-tab ${activeTab === 'visuals' ? 'settings-tab--active' : ''}`}
-          onClick={() => setActiveTab('visuals')}
-        >
-          {t('settings.visuals', language)}
-        </button>
-        <button
-          className={`settings-tab ${activeTab === 'positioning' ? 'settings-tab--active' : ''}`}
-          onClick={() => setActiveTab('positioning')}
-        >
-          {t('settings.positioning', language)}
-        </button>
-        <button
-          className={`settings-tab ${activeTab === 'cameraControl' ? 'settings-tab--active' : ''}`}
-          onClick={() => setActiveTab('cameraControl')}
-        >
-          {t('settings.cameraControl', language)}
-        </button>
-        <button
-          className={`settings-tab ${activeTab === 'sizing' ? 'settings-tab--active' : ''}`}
-          onClick={() => setActiveTab('sizing')}
-        >
-          {t('settings.sizing', language)}
-        </button>
-        <button
-          className={`settings-tab ${activeTab === 'recording' ? 'settings-tab--active' : ''}`}
-          onClick={() => setActiveTab('recording')}
-        >
-          {t('settings.recording', language)}
-        </button>
+        <div className="settings-tabs">
+          <button
+            className={`settings-tab ${activeTab === 'visuals' ? 'settings-tab--active' : ''}`}
+            onClick={() => setActiveTab('visuals')}
+          >
+            {t('settings.visuals', language)}
+          </button>
+          <button
+            className={`settings-tab ${activeTab === 'positioning' ? 'settings-tab--active' : ''}`}
+            onClick={() => setActiveTab('positioning')}
+          >
+            {t('settings.positioning', language)}
+          </button>
+          <button
+            className={`settings-tab ${activeTab === 'cameraControl' ? 'settings-tab--active' : ''}`}
+            onClick={() => setActiveTab('cameraControl')}
+          >
+            {t('settings.cameraControl', language)}
+          </button>
+          <button
+            className={`settings-tab ${activeTab === 'sizing' ? 'settings-tab--active' : ''}`}
+            onClick={() => setActiveTab('sizing')}
+          >
+            {t('settings.sizing', language)}
+          </button>
+          <button
+            className={`settings-tab ${activeTab === 'recording' ? 'settings-tab--active' : ''}`}
+            onClick={() => setActiveTab('recording')}
+          >
+            {t('settings.recording', language)}
+          </button>
+        </div>
       </div>
 
       <div className="settings-sections">
