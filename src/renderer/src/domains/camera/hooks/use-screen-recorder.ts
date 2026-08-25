@@ -7,11 +7,11 @@ const RESOLUTION_BITRATES: Record<string, number> = {
   '2160p': 24000000
 }
 
-function isLinuxPlatform(): boolean {
+export function isLinuxPlatform(): boolean {
   return /Linux/.test(navigator.userAgent) && !/Android|Chromium.*cros/i.test(navigator.userAgent)
 }
 
-async function getLinuxSystemAudioStream(): Promise<MediaStream | null> {
+export async function getLinuxSystemAudioStream(): Promise<MediaStream | null> {
   if (!isLinuxPlatform()) return null
   if (!navigator.mediaDevices?.enumerateDevices) return null
 
@@ -35,7 +35,7 @@ async function getLinuxSystemAudioStream(): Promise<MediaStream | null> {
   }
 }
 
-async function getMacOSVirtualAudioStream(): Promise<MediaStream | null> {
+export async function getMacOSVirtualAudioStream(): Promise<MediaStream | null> {
   if (navigator.userAgent.indexOf('Mac') === -1) return null
   try {
     const allDevices = await navigator.mediaDevices.enumerateDevices()
@@ -147,7 +147,11 @@ export function useScreenRecorder(): {
             frameRate: { ideal: parsedFps },
             displaySurface: 'monitor'
           } as MediaTrackConstraints,
-          audio: true
+          audio: {
+            echoCancellation: false,
+            noiseSuppression: false,
+            autoGainControl: false
+          }
         })
 
         const videoTrack = desktopStream.getVideoTracks()[0]

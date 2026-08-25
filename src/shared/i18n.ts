@@ -42,7 +42,8 @@ const translations: Translations = {
     'settings.pressKeys': 'Press Keys...',
     'settings.unbound': 'Unbound',
     'settings.language': 'Language',
-    'settings.border': 'Border Color',
+    'settings.border': 'Border',
+    'settings.borderColor': 'Color',
     'settings.border.none': 'None',
     'settings.border.gradient_01': 'Gradient 01',
     'settings.border.gradient_02': 'Gradient 02',
@@ -70,7 +71,7 @@ const translations: Translations = {
     'settings.gradient.custom': 'Custom',
     'settings.gradient.none': 'None',
 
-    'settings.borderWidth': 'Border Width',
+    'settings.borderWidth': 'Width',
     'settings.borderWidth.thin': 'Thin',
     'settings.borderWidth.default': 'Default',
     'settings.borderWidth.thick': 'Thick',
@@ -135,6 +136,7 @@ const translations: Translations = {
     'settings.encoder.amd': 'AMD (AMF)',
     'settings.startRecording': 'Start / Stop Recording',
 
+    'settings.recordingAudio': 'Audio',
     'settings.recordingMicrophone': 'Microphone',
     'settings.recordingMicrophoneDefault': 'System Default',
     'settings.recordingFolder': 'Recording Folder',
@@ -202,7 +204,8 @@ const translations: Translations = {
     'settings.pressKeys': 'Pressione as Teclas...',
     'settings.unbound': 'Não Definido',
     'settings.language': 'Idioma',
-    'settings.border': 'Cor da Borda',
+    'settings.border': 'Borda',
+    'settings.borderColor': 'Cor',
     'settings.border.none': 'Sem borda',
     'settings.border.gradient_01': 'Gradiente 01',
     'settings.border.gradient_02': 'Gradiente 02',
@@ -230,7 +233,7 @@ const translations: Translations = {
     'settings.gradient.custom': 'Personalizado',
     'settings.gradient.none': 'Nenhum',
 
-    'settings.borderWidth': 'Espessura da Borda',
+    'settings.borderWidth': 'Largura',
     'settings.borderWidth.thin': 'Fina',
     'settings.borderWidth.default': 'Padrão',
     'settings.borderWidth.thick': 'Grossa',
@@ -297,6 +300,7 @@ const translations: Translations = {
     'settings.encoder.amd': 'AMD (AMF)',
     'settings.startRecording': 'Iniciar / Parar Gravação',
 
+    'settings.recordingAudio': 'Áudio',
     'settings.recordingMicrophone': 'Microfone',
     'settings.recordingMicrophoneDefault': 'Padrão do Sistema',
     'settings.recordingFolder': 'Pasta de Gravação',

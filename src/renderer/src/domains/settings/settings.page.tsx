@@ -20,6 +20,8 @@ import { GRADIENTS, GradientKey } from '../../../../shared/colors'
 import { t } from '../../../../shared/i18n'
 import { useShortcuts, VisualState } from './hooks/use-shortcuts'
 import { useAudioDevices } from '../camera/hooks/use-audio-devices'
+import { useAudioMeter } from './hooks/use-audio-meter'
+import { getMacOSVirtualAudioStream, getLinuxSystemAudioStream, isLinuxPlatform } from '../camera/hooks/use-screen-recorder'
 
 const SHAPE_KEYS = [
   {
@@ -113,6 +115,77 @@ function RecordingSettings({
   const { devices } = useAudioDevices()
   const encoderOptions = getEncoderOptions()
 
+  const [micStream, setMicStream] = React.useState<MediaStream | null>(null)
+  const [sysStream, setSysStream] = React.useState<MediaStream | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    let currentStream: MediaStream | null = null
+    const getMic = async (): Promise<void> => {
+      try {
+        const constraints = visualState.selectedMicrophoneId && visualState.selectedMicrophoneId !== 'default' 
+          ? { deviceId: { exact: visualState.selectedMicrophoneId } } 
+          : true
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          audio: typeof constraints === 'boolean' ? constraints : { ...constraints, echoCancellation: false, noiseSuppression: false } 
+        })
+        if (!active) {
+          stream.getTracks().forEach(t => t.stop())
+        } else {
+          currentStream = stream
+          setMicStream(stream)
+        }
+      } catch(e) {
+        console.warn('Meter mic error:', e)
+      }
+    }
+    getMic()
+    return () => {
+      active = false
+      if (currentStream) currentStream.getTracks().forEach(t => t.stop())
+    }
+  }, [visualState.selectedMicrophoneId])
+
+  React.useEffect(() => {
+    let active = true
+    let currentStream: MediaStream | null = null
+    const getSys = async (): Promise<void> => {
+      let stream: MediaStream | null = null
+      if (isLinuxPlatform()) {
+        stream = await getLinuxSystemAudioStream()
+      } else if (navigator.userAgent.indexOf('Mac') !== -1) {
+        stream = await getMacOSVirtualAudioStream()
+      }
+      if (!active && stream) {
+        stream.getTracks().forEach(t => t.stop())
+      } else if (stream) {
+        currentStream = stream
+        setSysStream(stream)
+      }
+    }
+    getSys()
+    return () => {
+      active = false
+      if (currentStream) currentStream.getTracks().forEach(t => t.stop())
+    }
+  }, [])
+
+  const micLevel = useAudioMeter(micStream)
+  const sysLevel = useAudioMeter(sysStream)
+
+  const isWindows = navigator.userAgent.indexOf('Win') !== -1
+
+  const renderMeter = (level: number, disabled?: boolean): React.JSX.Element => (
+    <div style={{ height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '3px', marginTop: '16px', overflow: 'hidden' }}>
+      <div style={{ 
+        width: disabled ? '0%' : `${level}%`, 
+        height: '100%', 
+        background: level > 85 ? '#ef4444' : level > 60 ? '#eab308' : '#22c55e',
+        transition: 'width 0.1s ease-out, background 0.1s ease-out'
+      }} />
+    </div>
+  )
+
   return (
     <div className="settings-section">
       <div className="settings-list">
@@ -132,33 +205,35 @@ function RecordingSettings({
           </select>
         </div>
 
-        <div className="settings-row settings-row--column">
-          <span className="settings-label">{t('settings.recordingResolution', language)}</span>
-          <div className="option-pills">
-            {RESOLUTIONS.map((r) => (
-              <button
-                key={r}
-                className={`option-pill ${visualState.recordingResolution === r ? 'option-pill--active' : ''}`}
-                onClick={() => updateVisualState('recordingResolution', r)}
-              >
-                {t(`settings.recording.${r}`, language)}
-              </button>
-            ))}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+          <div className="settings-row settings-row--column">
+            <span className="settings-label">{t('settings.recordingResolution', language)}</span>
+            <div className="option-pills">
+              {RESOLUTIONS.map((r) => (
+                <button
+                  key={r}
+                  className={`option-pill ${visualState.recordingResolution === r ? 'option-pill--active' : ''}`}
+                  onClick={() => updateVisualState('recordingResolution', r)}
+                >
+                  {t(`settings.recording.${r}`, language)}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="settings-row settings-row--column">
-          <span className="settings-label">{t('settings.recordingFps', language)}</span>
-          <div className="option-pills">
-            {FPS_OPTIONS.map((f) => (
-              <button
-                key={f}
-                className={`option-pill ${visualState.recordingFps === f ? 'option-pill--active' : ''}`}
-                onClick={() => updateVisualState('recordingFps', f)}
-              >
-                {t(`settings.recording.${f}fps`, language)}
-              </button>
-            ))}
+          <div className="settings-row settings-row--column">
+            <span className="settings-label">{t('settings.recordingFps', language)}</span>
+            <div className="option-pills" style={{ flexDirection: 'column' }}>
+              {FPS_OPTIONS.map((f) => (
+                <button
+                  key={f}
+                  className={`option-pill ${visualState.recordingFps === f ? 'option-pill--active' : ''}`}
+                  onClick={() => updateVisualState('recordingFps', f)}
+                >
+                  {t(`settings.recording.${f}fps`, language)}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -178,38 +253,95 @@ function RecordingSettings({
         </div>
 
         <div className="settings-row settings-row--column">
-          <div className="rounding-header">
-            <span className="settings-label">{t('settings.recordingSystemAudio', language)}</span>
-            <span className="rounding-value">{visualState.systemAudioVolume}%</span>
-          </div>
-          <div className="slider-wrap">
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={visualState.systemAudioVolume}
-              className="rounding-slider"
-              onChange={(e) => updateVisualState('systemAudioVolume', Number(e.target.value))}
-            />
-          </div>
-        </div>
+          <span className="settings-label">
+            {t('settings.recordingAudio', language)}
+          </span>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+            
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'rgba(0, 0, 0, 0.2)',
+              padding: '14px',
+              borderRadius: '10px',
+              width: '100%',
+              gap: '16px'
+            }}>
+              <div>
+                <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', display: 'block', marginBottom: '8px' }}>
+                  {t('settings.recordingMicrophone', language)}
+                </span>
+                <select
+                  className="settings-select"
+                  value={visualState.selectedMicrophoneId}
+                  onChange={(e) => updateVisualState('selectedMicrophoneId', e.target.value)}
+                  style={{ width: '100%', margin: 0 }}
+                >
+                  <option value="default">{t('settings.recordingMicrophoneDefault', language)}</option>
+                  {devices.map((d) => (
+                    <option key={d.deviceId} value={d.deviceId}>
+                      {d.label || d.deviceId.substring(0, 8)}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-        <div className="settings-row settings-row--column">
-          <div className="rounding-header">
-            <span className="settings-label">{t('settings.recordingMicAudio', language)}</span>
-            <span className="rounding-value">{visualState.microphoneAudioVolume}%</span>
-          </div>
-          <div className="slider-wrap">
-            <input
-              type="range"
-              min={0}
-              max={100}
-              step={1}
-              value={visualState.microphoneAudioVolume}
-              className="rounding-slider"
-              onChange={(e) => updateVisualState('microphoneAudioVolume', Number(e.target.value))}
-            />
+              <div>
+                <div className="rounding-header">
+                  <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                    {t('settings.recordingMicAudio', language)}
+                  </span>
+                  <span className="rounding-value">{visualState.microphoneAudioVolume}%</span>
+                </div>
+                <div className="slider-wrap" style={{ marginTop: '4px' }}>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={visualState.microphoneAudioVolume}
+                    className="rounding-slider"
+                    onChange={(e) => updateVisualState('microphoneAudioVolume', Number(e.target.value))}
+                  />
+                  {renderMeter(micLevel)}
+                </div>
+              </div>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              background: 'rgba(0, 0, 0, 0.2)',
+              padding: '14px',
+              borderRadius: '10px',
+              width: '100%'
+            }}>
+              <div className="rounding-header">
+                <span className="settings-label" style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
+                  {t('settings.recordingSystemAudio', language)}
+                </span>
+                <span className="rounding-value">{visualState.systemAudioVolume}%</span>
+              </div>
+              <div className="slider-wrap" style={{ marginTop: '4px' }}>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={visualState.systemAudioVolume}
+                  className="rounding-slider"
+                  onChange={(e) => updateVisualState('systemAudioVolume', Number(e.target.value))}
+                />
+                {isWindows ? (
+                  <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', marginTop: '6px', textAlign: 'center' }}>
+                    {t('settings.recordingSystemAudioWindowsWarning', language) || (language === 'pt' ? 'Medidor indisponível no Windows antes de gravar.' : 'Meter unavailable on Windows before recording.')}
+                  </div>
+                ) : (
+                  renderMeter(sysLevel)
+                )}
+              </div>
+            </div>
           </div>
         </div>
 
@@ -245,21 +377,6 @@ function RecordingSettings({
           </div>
         </div>
 
-        <div className="settings-row settings-row--column">
-          <span className="settings-label">{t('settings.recordingMicrophone', language)}</span>
-          <select
-            className="settings-select"
-            value={visualState.selectedMicrophoneId}
-            onChange={(e) => updateVisualState('selectedMicrophoneId', e.target.value)}
-          >
-            <option value="default">{t('settings.recordingMicrophoneDefault', language)}</option>
-            {devices.map((d) => (
-              <option key={d.deviceId} value={d.deviceId}>
-                {d.label || d.deviceId.substring(0, 8)}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
     </div>
   )
@@ -304,6 +421,12 @@ export function SettingsPage(): React.JSX.Element {
 
   const isCustom = isLinearGradient(visualState.borderGradient)
 
+  React.useEffect(() => {
+    if (showGradientEditor) {
+      updateVisualState('borderGradient', customGradientValue)
+    }
+  }, [gradColor1, gradColor2, gradAngle, showGradientEditor, customGradientValue])
+
   const handleOpenGradientEditor = (): void => {
     if (isCustom) {
       const parsed = parseCustomGradient(visualState.borderGradient)
@@ -312,11 +435,6 @@ export function SettingsPage(): React.JSX.Element {
       setGradAngle(parsed.angle)
     }
     setShowGradientEditor((v) => !v)
-  }
-
-  const handleApplyGradient = (): void => {
-    updateVisualState('borderGradient', customGradientValue)
-    setShowGradientEditor(false)
   }
 
   const roundingTicks = [
@@ -516,211 +634,224 @@ export function SettingsPage(): React.JSX.Element {
 
               <div className="settings-row settings-row--column">
                 <span className="settings-label">{t('settings.border', language)}</span>
-                <div className="gradient-picker">
-                  <button
-                    className={`gradient-swatch gradient-swatch--none ${visualState.borderGradient === 'none' ? 'gradient-swatch--active' : ''}`}
-                    onClick={() => {
-                      updateVisualState('borderGradient', 'none')
-                      setShowGradientEditor(false)
-                    }}
-                    title={t('settings.gradient.none', language)}
-                  >
-                    <span className="gradient-swatch__x">✕</span>
-                  </button>
-
-                  {GRADIENT_ENTRIES.map(([key, grad]) => (
-                    <button
-                      key={key}
-                      className={`gradient-swatch ${visualState.borderGradient === key ? 'gradient-swatch--active' : ''}`}
-                      style={{ background: grad }}
-                      onClick={() => {
-                        updateVisualState('borderGradient', key)
-                        setShowGradientEditor(false)
-                      }}
-                      title={key}
-                    />
-                  ))}
-
-                  <button
-                    className={`gradient-swatch gradient-swatch--custom ${isCustom ? 'gradient-swatch--active' : ''}`}
-                    style={isCustom ? { background: visualState.borderGradient } : undefined}
-                    onClick={handleOpenGradientEditor}
-                    title={t('settings.gradient.custom', language)}
-                  >
-                    {!isCustom && <span className="gradient-swatch__plus">+</span>}
-                  </button>
-                </div>
-
-                <div
-                  className={`border-width-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}
-                >
-                  <div className="rounding-header">
-                    <span
-                      className="settings-label"
-                      style={{ fontSize: '13px', color: 'rgba(255,255,255,0.55)' }}
-                    >
-                      {t('settings.borderWidth', language)}
-                    </span>
-                    <span className="rounding-value">{visualState.borderWidth}px</span>
-                  </div>
-                  <div className="slider-wrap">
-                    <input
-                      type="range"
-                      min={1}
-                      max={20}
-                      step={1}
-                      value={visualState.borderWidth}
-                      className="rounding-slider"
-                      disabled={visualState.borderGradient === 'none'}
-                      onChange={(e) => updateVisualState('borderWidth', Number(e.target.value))}
-                    />
-                    <div className="slider-ticks">
-                      {[
-                        { val: 1, i18nKey: 'settings.borderWidth.thin' },
-                        { val: 4, i18nKey: 'settings.borderWidth.default' },
-                        { val: 20, i18nKey: 'settings.borderWidth.thick' }
-                      ].map((tick) => (
-                        <button
-                          key={tick.val}
-                          className={`slider-tick ${visualState.borderWidth === tick.val ? 'slider-tick--active' : ''}`}
-                          disabled={visualState.borderGradient === 'none'}
-                          onClick={() => updateVisualState('borderWidth', tick.val)}
-                        >
-                          {t(tick.i18nKey, language)}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  className={`settings-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}
-                  style={{
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                  <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
+                    flexDirection: 'column',
                     background: 'rgba(0, 0, 0, 0.2)',
                     padding: '14px',
                     borderRadius: '10px',
                     width: '100%'
-                  }}
-                >
-                  <span
-                    className="settings-label"
-                    style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                  }}>
+                    <span
+                      className="settings-label"
+                      style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)', marginBottom: '8px' }}
+                    >
+                      {t('settings.borderColor', language)}
+                    </span>
+                    <div className="gradient-picker">
+                      <button
+                        className={`gradient-swatch gradient-swatch--none ${visualState.borderGradient === 'none' ? 'gradient-swatch--active' : ''}`}
+                        onClick={() => {
+                          updateVisualState('borderGradient', 'none')
+                          setShowGradientEditor(false)
+                        }}
+                        title={t('settings.gradient.none', language)}
+                      >
+                        <span className="gradient-swatch__x">✕</span>
+                      </button>
+
+                      {GRADIENT_ENTRIES.map(([key, grad]) => (
+                        <button
+                          key={key}
+                          className={`gradient-swatch ${visualState.borderGradient === key ? 'gradient-swatch--active' : ''}`}
+                          style={{ background: grad }}
+                          onClick={() => {
+                            updateVisualState('borderGradient', key)
+                            setShowGradientEditor(false)
+                          }}
+                          title={key}
+                        />
+                      ))}
+
+                      <button
+                        className={`gradient-swatch gradient-swatch--custom ${isCustom ? 'gradient-swatch--active' : ''}`}
+                        style={isCustom ? { background: visualState.borderGradient } : undefined}
+                        onClick={handleOpenGradientEditor}
+                        title={t('settings.gradient.custom', language)}
+                      >
+                        {!isCustom && <span className="gradient-swatch__plus">+</span>}
+                      </button>
+                    </div>
+
+                    {showGradientEditor && (
+                      <div className="gradient-editor" style={{ background: 'transparent', padding: '12px 0 0 0' }}>
+                        <div
+                          className="gradient-editor__preview"
+                          style={{ background: customGradientValue }}
+                        />
+
+                        <div className="gradient-editor__colors">
+                          <label className="gradient-editor__color-label">
+                            <span>{t('settings.gradient.colorA', language)}</span>
+                            <div
+                              className="gradient-editor__color-wrap"
+                              style={{ background: gradColor1 }}
+                            >
+                              <input
+                                type="color"
+                                value={gradColor1}
+                                onChange={(e) => setGradColor1(e.target.value)}
+                                className="gradient-editor__color-input"
+                              />
+                            </div>
+                          </label>
+
+                          <div className="gradient-editor__arrow">→</div>
+
+                          <label className="gradient-editor__color-label">
+                            <span>{t('settings.gradient.colorB', language)}</span>
+                            <div
+                              className="gradient-editor__color-wrap"
+                              style={{ background: gradColor2 }}
+                            >
+                              <input
+                                type="color"
+                                value={gradColor2}
+                                onChange={(e) => setGradColor2(e.target.value)}
+                                className="gradient-editor__color-input"
+                              />
+                            </div>
+                          </label>
+                        </div>
+
+                        <div className="gradient-editor__angle-row">
+                          <div className="gradient-editor__angle-header">
+                            <span className="gradient-editor__angle-label">
+                              {t('settings.gradient.angle', language)}
+                            </span>
+                            <span className="gradient-editor__angle-value">{gradAngle}°</span>
+                          </div>
+                          <div className="gradient-editor__angle-presets">
+                            {PRESET_ANGLES.map((a) => (
+                              <button
+                                key={a}
+                                className={`gradient-editor__angle-btn ${gradAngle === a ? 'gradient-editor__angle-btn--active' : ''}`}
+                                onClick={() => setGradAngle(a)}
+                              >
+                                {a}°
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={360}
+                            step={1}
+                            value={gradAngle}
+                            className="rounding-slider"
+                            onChange={(e) => setGradAngle(Number(e.target.value))}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    className={`border-width-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}
                   >
-                    {t('settings.animation', language)}
-                  </span>
-                  <button
-                    className={`toggle-button ${visualState.isBorderAnimated ? 'toggle-button--active' : ''}`}
-                    disabled={visualState.borderGradient === 'none'}
-                    onClick={() =>
-                      updateVisualState('isBorderAnimated', !visualState.isBorderAnimated)
-                    }
+                      <div className="rounding-header">
+                        <span
+                          className="settings-label"
+                          style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                        >
+                          {t('settings.borderWidth', language)}
+                        </span>
+                        <span className="rounding-value">{visualState.borderWidth}px</span>
+                      </div>
+                      <div className="slider-wrap" style={{ marginTop: '4px' }}>
+                        <input
+                          type="range"
+                          min={1}
+                          max={20}
+                          step={1}
+                          value={visualState.borderWidth}
+                          className="rounding-slider"
+                          disabled={visualState.borderGradient === 'none'}
+                          onChange={(e) => updateVisualState('borderWidth', Number(e.target.value))}
+                        />
+                        <div className="slider-ticks">
+                          {[
+                            { val: 1, i18nKey: 'settings.borderWidth.thin' },
+                            { val: 4, i18nKey: 'settings.borderWidth.default' },
+                            { val: 20, i18nKey: 'settings.borderWidth.thick' }
+                          ].map((tick) => (
+                            <button
+                              key={tick.val}
+                              className={`slider-tick ${visualState.borderWidth === tick.val ? 'slider-tick--active' : ''}`}
+                              disabled={visualState.borderGradient === 'none'}
+                              onClick={() => updateVisualState('borderWidth', tick.val)}
+                            >
+                              {t(tick.i18nKey, language)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                  </div>
+
+                  <div
+                    className={`settings-row${visualState.borderGradient === 'none' ? ' settings-row--disabled' : ''}`}
                     style={{
-                      width: '40px',
-                      height: '24px',
-                      borderRadius: '12px',
-                      background: visualState.isBorderAnimated
-                        ? '#0A84FF'
-                        : 'rgba(255, 255, 255, 0.15)',
-                      position: 'relative',
-                      cursor: visualState.borderGradient === 'none' ? 'not-allowed' : 'pointer',
-                      border: 'none',
-                      transition: 'background 0.2s',
-                      padding: 0
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: 'rgba(0, 0, 0, 0.2)',
+                      padding: '14px',
+                      borderRadius: '10px',
+                      width: '100%'
                     }}
                   >
-                    <div
-                      style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '50%',
-                        background: '#fff',
-                        position: 'absolute',
-                        top: '2px',
-                        left: visualState.isBorderAnimated ? '18px' : '2px',
-                        transition: 'left 0.2s, background 0.2s'
-                      }}
-                    />
-                  </button>
-                </div>
-
-                {showGradientEditor && (
-                  <div className="gradient-editor">
-                    <div
-                      className="gradient-editor__preview"
-                      style={{ background: customGradientValue }}
-                    />
-
-                    <div className="gradient-editor__colors">
-                      <label className="gradient-editor__color-label">
-                        <span>{t('settings.gradient.colorA', language)}</span>
+                      <span
+                        className="settings-label"
+                        style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                      >
+                        {t('settings.animation', language)}
+                      </span>
+                      <button
+                        className={`toggle-button ${visualState.isBorderAnimated ? 'toggle-button--active' : ''}`}
+                        disabled={visualState.borderGradient === 'none'}
+                        onClick={() =>
+                          updateVisualState('isBorderAnimated', !visualState.isBorderAnimated)
+                        }
+                        style={{
+                          width: '40px',
+                          height: '24px',
+                          borderRadius: '12px',
+                          background: visualState.isBorderAnimated
+                            ? '#0A84FF'
+                            : 'rgba(255, 255, 255, 0.15)',
+                          position: 'relative',
+                          cursor: visualState.borderGradient === 'none' ? 'not-allowed' : 'pointer',
+                          border: 'none',
+                          transition: 'background 0.2s',
+                          padding: 0
+                        }}
+                      >
                         <div
-                          className="gradient-editor__color-wrap"
-                          style={{ background: gradColor1 }}
-                        >
-                          <input
-                            type="color"
-                            value={gradColor1}
-                            onChange={(e) => setGradColor1(e.target.value)}
-                            className="gradient-editor__color-input"
-                          />
-                        </div>
-                      </label>
-
-                      <div className="gradient-editor__arrow">→</div>
-
-                      <label className="gradient-editor__color-label">
-                        <span>{t('settings.gradient.colorB', language)}</span>
-                        <div
-                          className="gradient-editor__color-wrap"
-                          style={{ background: gradColor2 }}
-                        >
-                          <input
-                            type="color"
-                            value={gradColor2}
-                            onChange={(e) => setGradColor2(e.target.value)}
-                            className="gradient-editor__color-input"
-                          />
-                        </div>
-                      </label>
-                    </div>
-
-                    <div className="gradient-editor__angle-row">
-                      <div className="gradient-editor__angle-header">
-                        <span className="gradient-editor__angle-label">
-                          {t('settings.gradient.angle', language)}
-                        </span>
-                        <span className="gradient-editor__angle-value">{gradAngle}°</span>
-                      </div>
-                      <div className="gradient-editor__angle-presets">
-                        {PRESET_ANGLES.map((a) => (
-                          <button
-                            key={a}
-                            className={`gradient-editor__angle-btn ${gradAngle === a ? 'gradient-editor__angle-btn--active' : ''}`}
-                            onClick={() => setGradAngle(a)}
-                          >
-                            {a}°
-                          </button>
-                        ))}
-                      </div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={360}
-                        step={1}
-                        value={gradAngle}
-                        className="rounding-slider"
-                        onChange={(e) => setGradAngle(Number(e.target.value))}
-                      />
-                    </div>
-
-                    <button className="gradient-editor__apply" onClick={handleApplyGradient}>
-                      {t('settings.gradient.apply', language)}
-                    </button>
+                          style={{
+                            width: '20px',
+                            height: '20px',
+                            borderRadius: '50%',
+                            background: '#fff',
+                            position: 'absolute',
+                            top: '2px',
+                            left: visualState.isBorderAnimated ? '18px' : '2px',
+                            transition: 'left 0.2s, background 0.2s'
+                          }}
+                        />
+                      </button>
                   </div>
-                )}
+                </div>
               </div>
             </div>
           </div>
@@ -787,7 +918,7 @@ export function SettingsPage(): React.JSX.Element {
         )}
 
         {activeTab === 'positioning' && (
-          <div className="settings-section" style={{ marginBottom: '8px' }}>
+          <div className="settings-section" style={{ marginBottom: '-17px' }}>
             <div className="settings-list">
               <div className="settings-row settings-row--column">
                 <span className="settings-label">{t('settings.cameraScreen', language) || 'Camera Screen'}</span>

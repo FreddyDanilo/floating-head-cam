@@ -651,6 +651,7 @@ body {
   gap: 8px;
   -webkit-app-region: no-drag;
   width: 100%;
+  flex-wrap: wrap;
 }
 
 .option-pill {
