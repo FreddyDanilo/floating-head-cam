@@ -83,6 +83,7 @@ body {
   margin-right: -30px;
   padding: 0 30px 8px 30px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  -webkit-app-region: no-drag;
 }
 
 .settings-header {
@@ -601,6 +602,9 @@ body {
   margin-bottom: 0px;
   flex-wrap: wrap;
   -webkit-app-region: no-drag;
+  position: relative;
+  z-index: 10;
+  transform: translateZ(0);
 }
 
 .settings-tabs::-webkit-scrollbar {
