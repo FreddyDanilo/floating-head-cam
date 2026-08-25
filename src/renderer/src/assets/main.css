@@ -92,10 +92,18 @@ body {
   gap: 12px;
   margin-top: 0;
   margin-bottom: 8px;
-  padding: 48px 0 16px 0;
+  padding: 12px 0 16px 0;
   -webkit-app-region: drag;
   cursor: grab;
   user-select: none;
+}
+
+html[data-platform='darwin'] .settings-header {
+  padding: 48px 0 16px 0;
+}
+
+html[data-platform='win32'] .settings-header {
+  padding-right: 160px;
 }
 
 .settings-header h1 {

@@ -2,6 +2,7 @@ import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow, screen, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../../../resources/icon.png?asset'
+import winIcon from '../../../../build/icon.ico?asset'
 import { t } from '../../../shared/i18n'
 import { getIsCameraOn } from '../camera/camera.service'
 import { currentState, saveSettings } from '../settings/settings.service'
@@ -26,15 +27,20 @@ export function createSettingsWindow(): void {
     _settingsWindow.focus()
     return
   }
+  const isMac = process.platform === 'darwin'
   _settingsWindow = new BrowserWindow({
     width: 600,
     height: 700,
     title: t('tray.preferences', currentState.language || 'en').replace('...', ''),
-    transparent: true,
-    backgroundColor: '#00000000',
-    vibrancy: 'under-window',
-    visualEffectState: 'active',
-    titleBarStyle: 'hiddenInset',
+    transparent: isMac,
+    backgroundColor: isMac ? '#00000000' : '#0f0f0f',
+    ...(isMac
+      ? { vibrancy: 'under-window', visualEffectState: 'active', titleBarStyle: 'hiddenInset' }
+      : {
+          icon: winIcon,
+          titleBarStyle: 'hidden',
+          titleBarOverlay: { color: '#0f0f0f', symbolColor: '#ffffff', height: 36 }
+        }),
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -116,6 +122,7 @@ export function createWindow(callbacks: WindowCallbacks): void {
     resizable: false,
     roundedCorners: false,
     ...(process.platform === 'linux' ? { icon, skipTaskbar: true } : {}),
+    ...(process.platform === 'win32' ? { icon: winIcon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,

@@ -13,6 +13,7 @@ asarUnpack:
   - resources/**
   - node_modules/ffmpeg-static/**
 win:
+  icon: build/icon.ico
   executableName: Floating Head Cam
 nsis:
   artifactName: ${productName}-${version}-setup.${ext}
