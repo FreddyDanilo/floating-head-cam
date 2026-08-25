@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron'
+
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getSettingsWindow, resizeWindow, setWindowPosition } from './window.service'
 const { 
