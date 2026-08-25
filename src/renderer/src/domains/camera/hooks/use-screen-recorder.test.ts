@@ -36,6 +36,13 @@ describe('useScreenRecorder', () => {
           gain: { value: 1 },
           connect: vi.fn().mockReturnValue({ connect: vi.fn() })
         })
+        createOscillator = vi.fn().mockReturnValue({
+          connect: vi.fn().mockReturnValue({ connect: vi.fn() }),
+          start: vi.fn()
+        })
+        state = 'running'
+        resume = vi.fn().mockResolvedValue(undefined)
+        destination = {}
         close = vi.fn()
       }
     )
@@ -105,8 +112,8 @@ describe('useScreenRecorder', () => {
   it('starts recording correctly', async () => {
     const { result } = renderHook(() => useScreenRecorder())
 
-    act(() => {
-      result.current.startRecording({
+    await act(async () => {
+      await result.current.startRecording({
         resolution: '1080p',
         fps: '60',
         encoder: 'libx264',
@@ -116,18 +123,14 @@ describe('useScreenRecorder', () => {
       })
     })
 
-    await act(async () => {
-      await Promise.resolve()
-    })
-
     expect(window.electron?.ipcRenderer.send).toHaveBeenCalledWith('recording-started')
   })
 
   it('stops recording correctly', async () => {
     const { result } = renderHook(() => useScreenRecorder())
 
-    act(() => {
-      result.current.startRecording({
+    await act(async () => {
+      await result.current.startRecording({
         resolution: '720p',
         fps: '30',
         encoder: 'libx264',
@@ -137,17 +140,11 @@ describe('useScreenRecorder', () => {
       })
     })
 
-    await act(async () => {
-      await Promise.resolve()
-    })
-
     act(() => {
       result.current.stopRecording()
     })
 
     await act(async () => {
-      await Promise.resolve()
-      await Promise.resolve()
       await Promise.resolve()
     })
 

@@ -17,7 +17,15 @@ vi.mock('electron', () => ({
   },
   BrowserWindow: {
     getAllWindows: vi.fn(() => [
-      { getContentBounds: mockGetContentBounds, setContentBounds: mockSetContentBounds }
+      {
+        getContentBounds: mockGetContentBounds,
+        setContentBounds: mockSetContentBounds,
+        isFullScreen: vi.fn(() => false),
+        isSimpleFullScreen: vi.fn(() => false),
+        setSimpleFullScreen: vi.fn(),
+        setFullScreen: vi.fn(),
+        getNormalBounds: mockGetContentBounds
+      }
     ])
   },
   screen: { getDisplayMatching: mockGetDisplayMatching },
@@ -123,10 +131,12 @@ describe('window.service', () => {
         bounds: { x: 0, y: 25, width: 1920, height: 1080 }
       })
       resizeWindow({ width: 1, height: 1, position: 'fullscreen' })
-      expect(mockSetContentBounds).toHaveBeenCalledWith(
-        { x: 0, y: 25, width: 1920, height: 1080 },
-        true
-      )
+      const win = BrowserWindow.getAllWindows()[0]
+      if (process.platform === 'darwin') {
+        expect(win.setSimpleFullScreen).toHaveBeenCalledWith(true)
+      } else {
+        expect(win.setFullScreen).toHaveBeenCalledWith(true)
+      }
     })
   })
 })

@@ -19,7 +19,7 @@ Feito para criadores de conteúdo que não têm domínio de programas de ediçã
 - **Sempre no Topo:** A tua câmera flutua sobre todas as outras janelas, não importa o que você esteja a fazer.
 - **Vitual Customizável:** Mude o formato (círculo, quadrado, retângulos), ajuste o tamanho e o arredondamento das bordas como preferir.
 - **Atalhos Mágicos:** Posiciona a câmera para qualquer canto da tela instantaneamente usando atalhos do teclado.
-- **Gravador Embutido [BETA]:** Grava a tua tela.
+- **Gravador [BETA]:** Grava a tua tela.
 
 ## Como começar
 
