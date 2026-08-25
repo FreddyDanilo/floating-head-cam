@@ -193,6 +193,9 @@ export function CameraPage(): React.JSX.Element {
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     isDragging.current = true
+    if (containerRef.current) {
+      containerRef.current.style.transition = 'none'
+    }
     currentDragPos.current = { x: cameraX, y: cameraY }
     dragOffset.current = {
       x: e.clientX - cameraX,
@@ -215,6 +218,9 @@ export function CameraPage(): React.JSX.Element {
     const handleMouseUp = () => {
       if (isDragging.current) {
         isDragging.current = false
+        if (containerRef.current) {
+          containerRef.current.style.transition = 'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
+        }
         setCameraX(currentDragPos.current.x)
         setCameraY(currentDragPos.current.y)
         if (window.electron) {
@@ -367,7 +373,7 @@ export function CameraPage(): React.JSX.Element {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: isDragging.current ? 'none' : 'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease',
+          transition: 'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease',
           zIndex: 1
         }}
       >

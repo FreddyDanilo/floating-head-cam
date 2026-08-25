@@ -31,6 +31,8 @@ export type VisualState = {
   systemAudioVolume: number
   microphoneAudioVolume: number
   selectedMicrophoneId: string
+  cameraScreenId: string
+  recordingScreenId: string
 }
 
 interface UseShortcutsReturn {
@@ -62,7 +64,9 @@ export function useShortcuts(): UseShortcutsReturn {
     recordingEncoder: 'libx264',
     systemAudioVolume: 50,
     microphoneAudioVolume: 100,
-    selectedMicrophoneId: 'default'
+    selectedMicrophoneId: 'default',
+    cameraScreenId: '',
+    recordingScreenId: ''
   })
 
   useEffect(() => {
@@ -85,7 +89,9 @@ export function useShortcuts(): UseShortcutsReturn {
         recordingEncoder: data.recordingEncoder || 'libx264',
         systemAudioVolume: data.systemAudioVolume ?? 50,
         microphoneAudioVolume: data.microphoneAudioVolume ?? 100,
-        selectedMicrophoneId: data.selectedMicrophoneId || 'default'
+        selectedMicrophoneId: data.selectedMicrophoneId || 'default',
+        cameraScreenId: data.cameraScreenId || '',
+        recordingScreenId: data.recordingScreenId || ''
       })
     })
     const handleReset = (
@@ -111,7 +117,9 @@ export function useShortcuts(): UseShortcutsReturn {
           recordingEncoder: payload.state.recordingEncoder || 'libx264',
           systemAudioVolume: payload.state.systemAudioVolume ?? 50,
           microphoneAudioVolume: payload.state.microphoneAudioVolume ?? 100,
-          selectedMicrophoneId: payload.state.selectedMicrophoneId || 'default'
+          selectedMicrophoneId: payload.state.selectedMicrophoneId || 'default',
+          cameraScreenId: payload.state.cameraScreenId || '',
+          recordingScreenId: payload.state.recordingScreenId || ''
         })
       }
     }

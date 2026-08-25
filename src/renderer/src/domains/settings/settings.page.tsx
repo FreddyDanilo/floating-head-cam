@@ -101,12 +101,14 @@ type RecordingSettingsProps = {
   language: 'en' | 'pt'
   visualState: VisualState
   updateVisualState: (key: keyof VisualState, value: string | number | boolean) => void
+  screens: { id: string; name: string; display_id: string }[]
 }
 
 function RecordingSettings({
   language,
   visualState,
-  updateVisualState
+  updateVisualState,
+  screens
 }: RecordingSettingsProps): React.JSX.Element {
   const { devices } = useAudioDevices()
   const encoderOptions = getEncoderOptions()
@@ -114,6 +116,22 @@ function RecordingSettings({
   return (
     <div className="settings-section">
       <div className="settings-list">
+        <div className="settings-row settings-row--column">
+          <span className="settings-label">{t('settings.recordingScreen', language) || 'Recording Screen'}</span>
+          <select
+            className="settings-select"
+            value={visualState.recordingScreenId || ''}
+            onChange={(e) => updateVisualState('recordingScreenId', e.target.value)}
+          >
+            <option value="">{t('settings.screenDefault', language) || 'Primary Display'}</option>
+            {(Array.isArray(screens) ? screens : []).map((s) => (
+              <option key={s.display_id} value={s.display_id}>
+                {s.name} ({s.display_id})
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div className="settings-row settings-row--column">
           <span className="settings-label">{t('settings.recordingResolution', language)}</span>
           <div className="option-pills">
@@ -269,6 +287,13 @@ export function SettingsPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<
     'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'
   >('visuals')
+  const [screens, setScreens] = useState<{ id: string; name: string; display_id: string }[]>([])
+
+  React.useEffect(() => {
+    if (window.electron) {
+      window.electron.ipcRenderer.invoke('get-screen-sources').then((data) => setScreens(data || []))
+    }
+  }, [])
 
   const [showGradientEditor, setShowGradientEditor] = useState(false)
   const [gradColor1, setGradColor1] = useState('#ff6b6b')
@@ -707,6 +732,7 @@ export function SettingsPage(): React.JSX.Element {
               language={language}
               visualState={visualState}
               updateVisualState={updateVisualState}
+              screens={screens}
             />
             {sections
               .filter((section) => section.key === 'recording')
@@ -757,6 +783,28 @@ export function SettingsPage(): React.JSX.Element {
                   </div>
                 </div>
               ))}
+          </div>
+        )}
+
+        {activeTab === 'positioning' && (
+          <div className="settings-section" style={{ marginBottom: '8px' }}>
+            <div className="settings-list">
+              <div className="settings-row settings-row--column">
+                <span className="settings-label">{t('settings.cameraScreen', language) || 'Camera Screen'}</span>
+                <select
+                  className="settings-select"
+                  value={visualState.cameraScreenId || ''}
+                  onChange={(e) => updateVisualState('cameraScreenId', e.target.value)}
+                >
+                  <option value="">{t('settings.screenDefault', language) || 'Primary Display'}</option>
+                  {(Array.isArray(screens) ? screens : []).map((s) => (
+                    <option key={s.display_id} value={s.display_id}>
+                      {s.name} ({s.display_id})
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         )}
 

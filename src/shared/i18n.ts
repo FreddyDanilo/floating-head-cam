@@ -14,6 +14,8 @@ const translations: Translations = {
     'settings.rightMiddle': 'Right Middle',
     'settings.bottomLeft': 'Bottom Left',
     'settings.bottomRight': 'Bottom Right',
+    'settings.cameraScreen': 'Camera Screen',
+    'settings.screenDefault': 'Primary Display',
     'settings.cameraControl': 'Camera Control',
     'settings.mirror': 'Toggle Mirror',
     'settings.alwaysOnTop': 'Always on Top',
@@ -114,6 +116,7 @@ const translations: Translations = {
     'camera.status.denied': 'Status: Denied by OS',
 
     'settings.recording': 'Screen Recording [Beta]',
+    'settings.recordingScreen': 'Recording Screen',
     'settings.recordingResolution': 'Resolution',
     'settings.recordingFps': 'Framerate',
     'settings.recording.720p': '720p (HD)',
@@ -171,6 +174,8 @@ const translations: Translations = {
     'settings.rightMiddle': 'Centro Direito',
     'settings.bottomLeft': 'Inferior Esquerdo',
     'settings.bottomRight': 'Inferior Direito',
+    'settings.cameraScreen': 'Monitor da Câmera',
+    'settings.screenDefault': 'Monitor Principal',
     'settings.cameraControl': 'Controle da Câmera',
     'settings.mirror': 'Alternar Espelhamento',
     'settings.alwaysOnTop': 'Alternar Sempre no Topo',
@@ -273,6 +278,7 @@ const translations: Translations = {
     'camera.status.denied': 'Status: Negado pelo SO',
 
     'settings.recording': 'Gravação de Tela [Beta]',
+    'settings.recordingScreen': 'Monitor de Gravação',
     'settings.recordingResolution': 'Resolução',
     'settings.recordingFps': 'Taxa de Quadros',
     'settings.recording.720p': '720p (HD)',

@@ -90,7 +90,9 @@ export const defaultState = {
   isRecording: false,
   systemAudioVolume: 50,
   microphoneAudioVolume: 100,
-  selectedMicrophoneId: 'default'
+  selectedMicrophoneId: 'default',
+  cameraScreenId: '',
+  recordingScreenId: ''
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
 export const currentState: typeof defaultState & { [key: string]: unknown } = { ...defaultState }

@@ -32,7 +32,8 @@ import {
   resizeWindow,
   setWindowPosition,
   getRecordingWorker,
-  createRecordingWorker
+  createRecordingWorker,
+  moveCameraToScreen
 } from './domains/window/window.service'
 import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
 
@@ -115,12 +116,14 @@ app.whenReady().then(() => {
             return
           }
           const primaryDisplay = screen.getPrimaryDisplay()
-          const primarySource =
-            sources.find((s) => s.display_id === String(primaryDisplay.id)) ?? sources[0]
+          let targetSource = sources.find((s) => s.display_id === String(currentState.recordingScreenId))
+          if (!targetSource) {
+            targetSource = sources.find((s) => s.display_id === String(primaryDisplay.id)) ?? sources[0]
+          }
           if (process.platform === 'darwin' || process.platform === 'win32') {
-            callback({ video: primarySource, audio: 'loopback' })
+            callback({ video: targetSource, audio: 'loopback' })
           } else {
-            callback({ video: primarySource })
+            callback({ video: targetSource })
           }
         })
         .catch((err) => {
@@ -186,7 +189,8 @@ app.whenReady().then(() => {
     'sizeIndex',
     'rounding',
     'alwaysOnTop',
-    'language'
+    'language',
+    'cameraScreenId'
   ])
   ipcMain.on('sync-tray', (_, state) => {
     for (const key of Object.keys(state)) {
@@ -214,7 +218,9 @@ app.whenReady().then(() => {
     'recordingEncoder',
     'systemAudioVolume',
     'microphoneAudioVolume',
-    'selectedMicrophoneId'
+    'selectedMicrophoneId',
+    'cameraScreenId',
+    'recordingScreenId'
   ])
   ipcMain.on('update-setting', (_, { key, value }) => {
     if (!allowedSettingKeys.has(key)) return
@@ -236,6 +242,10 @@ app.whenReady().then(() => {
         win.webContents.send('tray-action', { type: 'set-border-animated', payload: value })
       }
     })
+    
+    if (key === 'cameraScreenId') {
+      moveCameraToScreen(value as string)
+    }
   })
   ipcMain.handle('choose-recording-folder', async () => {
     const result = await dialog.showOpenDialog(getSettingsWindow() as BrowserWindow, {

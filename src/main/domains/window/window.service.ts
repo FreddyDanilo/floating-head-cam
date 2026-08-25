@@ -93,8 +93,11 @@ export function resizeWindow(_sizeObj: {
   // Ignored in Full-Screen architecture
 }
 export function createWindow(callbacks: WindowCallbacks): void {
-  const primaryDisplay = screen.getPrimaryDisplay()
-  const { bounds } = primaryDisplay
+  const displays = screen.getAllDisplays()
+  let selectedDisplay = displays.find(d => d.id.toString() === currentState.cameraScreenId)
+  if (!selectedDisplay) selectedDisplay = screen.getPrimaryDisplay()
+  
+  const { bounds } = selectedDisplay
   
   const mainWindow = new BrowserWindow({
     width: bounds.width,
@@ -151,4 +154,23 @@ export function createWindow(callbacks: WindowCallbacks): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+}
+
+export function moveCameraToScreen(screenId: string): void {
+  const displays = screen.getAllDisplays()
+  let selectedDisplay = displays.find(d => d.id.toString() === screenId)
+  if (!selectedDisplay) selectedDisplay = screen.getPrimaryDisplay()
+  
+  const { bounds } = selectedDisplay
+  
+  BrowserWindow.getAllWindows().forEach((win) => {
+    if (win !== _settingsWindow && win !== _recordingWorker) {
+      win.setBounds({
+        x: bounds.x,
+        y: bounds.y,
+        width: bounds.width,
+        height: bounds.height
+      })
+    }
+  })
 }
