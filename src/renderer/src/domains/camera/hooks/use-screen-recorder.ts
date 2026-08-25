@@ -330,7 +330,7 @@ export function useScreenRecorder(): {
         if (!started) {
           throw new Error('Recording could not start (destination folder unavailable?)')
         }
-        mediaRecorder.start(250)
+        mediaRecorder.start(2000)
         mediaRecorderRef.current = mediaRecorder
 
         ipc.send('recording-started')

@@ -58,6 +58,8 @@ export function CameraPage(): React.JSX.Element {
   const [cameraY, setCameraY] = useState<number>(0)
   const isDragging = useRef(false)
   const dragOffset = useRef({ x: 0, y: 0 })
+  const currentDragPos = useRef({ x: 0, y: 0 })
+  const containerRef = useRef<HTMLDivElement>(null)
   const isAnimating = useRef(false)
   const mousePos = useRef({ x: 0, y: 0 })
   const lastHoverState = useRef(false)
@@ -79,7 +81,6 @@ export function CameraPage(): React.JSX.Element {
       const rect = cameraRect.current
       const pos = mousePos.current
       
-      // If window isn't initialized yet
       if (rect.w === 0) return
 
       const isOverCamera = 
@@ -140,7 +141,6 @@ export function CameraPage(): React.JSX.Element {
     setCameraWidth(w)
     setCameraHeight(h)
     
-    // Boundary check
     setCameraX(prev => Math.min(Math.max(0, prev), window.innerWidth - w))
     setCameraY(prev => Math.min(Math.max(0, prev), window.innerHeight - h))
   }, [])
@@ -193,6 +193,7 @@ export function CameraPage(): React.JSX.Element {
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     isDragging.current = true
+    currentDragPos.current = { x: cameraX, y: cameraY }
     dragOffset.current = {
       x: e.clientX - cameraX,
       y: e.clientY - cameraY
@@ -202,14 +203,22 @@ export function CameraPage(): React.JSX.Element {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging.current) return
-      setCameraX(Math.min(Math.max(0, e.clientX - dragOffset.current.x), window.innerWidth - cameraWidth))
-      setCameraY(Math.min(Math.max(0, e.clientY - dragOffset.current.y), window.innerHeight - cameraHeight))
+      const newX = Math.min(Math.max(0, e.clientX - dragOffset.current.x), window.innerWidth - cameraWidth)
+      const newY = Math.min(Math.max(0, e.clientY - dragOffset.current.y), window.innerHeight - cameraHeight)
+      
+      currentDragPos.current = { x: newX, y: newY }
+      if (containerRef.current) {
+        containerRef.current.style.left = `${newX}px`
+        containerRef.current.style.top = `${newY}px`
+      }
     }
     const handleMouseUp = () => {
       if (isDragging.current) {
         isDragging.current = false
+        setCameraX(currentDragPos.current.x)
+        setCameraY(currentDragPos.current.y)
         if (window.electron) {
-          window.electron.ipcRenderer.send('sync-tray', { x: cameraX, y: cameraY })
+          window.electron.ipcRenderer.send('sync-tray', { x: currentDragPos.current.x, y: currentDragPos.current.y })
         }
       }
     }
@@ -341,6 +350,7 @@ export function CameraPage(): React.JSX.Element {
   return (
     <div style={{ width: '100vw', height: '100vh', pointerEvents: 'none', position: 'relative' }}>
       <div
+        ref={containerRef}
         className="app-container"
         onMouseDown={handleMouseDown}
         style={{

@@ -119,12 +119,13 @@ export function setupRecordingIPC(): void {
       const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mov`
       const filePath = path.join(videosFolder, fileName)
 
-      const resolvedEncoder = encoder || 'libx264'
+      const isMac = process.platform === 'darwin'
+      const resolvedEncoder = encoder || (isMac ? 'h264_videotoolbox' : 'libx264')
       const targetFps = parseInt(fps || '60', 10) || 60
       const dims = RESOLUTION_DIMENSIONS[resolution || '1080p'] ?? RESOLUTION_DIMENSIONS['1080p']
       const targetBitrate = RESOLUTION_BITRATES[resolution || '1080p'] ?? 8000
 
-      const vf = `scale=${dims.width}:${dims.height}:flags=lanczos,fps=fps=${targetFps}`
+      const vf = `scale=${dims.width}:${dims.height}:flags=fast_bilinear,fps=fps=${targetFps}`
 
       void systemAudioVolume
       void microphoneAudioVolume
