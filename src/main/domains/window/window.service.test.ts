@@ -1,12 +1,25 @@
+import { BrowserWindow } from 'electron'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { getSettingsWindow, resizeWindow, setWindowPosition } from './window.service'
-const { mockSetContentBounds, mockGetContentBounds, mockGetDisplayMatching } = vi.hoisted(() => ({
+const { 
+  mockSetContentBounds, 
+  mockGetContentBounds, 
+  mockGetDisplayMatching,
+  mockSetSimpleFullScreen,
+  mockSetFullScreen,
+  mockIsFullScreen,
+  mockIsSimpleFullScreen
+} = vi.hoisted(() => ({
   mockSetContentBounds: vi.fn(),
   mockGetContentBounds: vi.fn(() => ({ x: 100, y: 100, width: 300, height: 300 })),
   mockGetDisplayMatching: vi.fn(() => ({
     workArea: { x: 0, y: 0, width: 1920, height: 1080 },
     bounds: { x: 0, y: 0, width: 1920, height: 1080 }
-  }))
+  })),
+  mockSetSimpleFullScreen: vi.fn(),
+  mockSetFullScreen: vi.fn(),
+  mockIsFullScreen: vi.fn(() => false),
+  mockIsSimpleFullScreen: vi.fn(() => false)
 }))
 vi.mock('electron', () => ({
   app: {
@@ -20,10 +33,10 @@ vi.mock('electron', () => ({
       {
         getContentBounds: mockGetContentBounds,
         setContentBounds: mockSetContentBounds,
-        isFullScreen: vi.fn(() => false),
-        isSimpleFullScreen: vi.fn(() => false),
-        setSimpleFullScreen: vi.fn(),
-        setFullScreen: vi.fn(),
+        isFullScreen: mockIsFullScreen,
+        isSimpleFullScreen: mockIsSimpleFullScreen,
+        setSimpleFullScreen: mockSetSimpleFullScreen,
+        setFullScreen: mockSetFullScreen,
         getNormalBounds: mockGetContentBounds
       }
     ])
