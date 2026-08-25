@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { CameraPage } from './domains/camera/camera.page'
 import { SettingsPage } from './domains/settings/settings.page'
 import { CountdownPage } from './domains/recording/countdown.page'
+import { RecordingWorkerPage } from './domains/camera/recording-worker.page'
 
 function App(): React.JSX.Element {
   const [route, setRoute] = useState<string>('')
@@ -18,6 +19,9 @@ function App(): React.JSX.Element {
   }
   if (route === '#/countdown') {
     return <CountdownPage />
+  }
+  if (route === '#/worker') {
+    return <RecordingWorkerPage />
   }
   return <CameraPage />
 }

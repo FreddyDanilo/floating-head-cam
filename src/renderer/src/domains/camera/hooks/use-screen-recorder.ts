@@ -12,16 +12,15 @@ function isLinuxPlatform(): boolean {
 }
 
 async function getLinuxSystemAudioStream(): Promise<MediaStream | null> {
-  try {
-    if (!isLinuxPlatform()) return null
-    if (!navigator.mediaDevices?.enumerateDevices) return null
+  if (!isLinuxPlatform()) return null
+  if (!navigator.mediaDevices?.enumerateDevices) return null
 
+  try {
     const devices = await navigator.mediaDevices.enumerateDevices()
     const monitor = devices.find(
       (d) => d.kind === 'audioinput' && /monitor|loopback/i.test(d.label)
     )
     if (!monitor) return null
-
     return await navigator.mediaDevices.getUserMedia({
       audio: {
         deviceId: { exact: monitor.deviceId },
@@ -32,6 +31,30 @@ async function getLinuxSystemAudioStream(): Promise<MediaStream | null> {
     })
   } catch (e) {
     console.warn('Linux system audio capture unavailable:', e)
+    return null
+  }
+}
+
+async function getMacOSVirtualAudioStream(): Promise<MediaStream | null> {
+  if (navigator.userAgent.indexOf('Mac') === -1) return null
+  try {
+    const allDevices = await navigator.mediaDevices.enumerateDevices()
+    const virtualDevice = allDevices.find(
+      (d) =>
+        d.kind === 'audioinput' &&
+        /blackhole|loopback|soundflower|virtual/i.test(d.label)
+    )
+    if (!virtualDevice) return null
+    return await navigator.mediaDevices.getUserMedia({
+      audio: {
+        deviceId: { exact: virtualDevice.deviceId },
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false
+      }
+    })
+  } catch (err) {
+    console.warn('System audio via virtual device unavailable:', err)
     return null
   }
 }
@@ -80,9 +103,11 @@ export function useScreenRecorder(): {
         console.warn('startRecording ignored: a recording is already in progress')
         return
       }
+
       let desktopStream: MediaStream | null = null
       let micStream: MediaStream | null = null
       let systemAudioStream: MediaStream | null = null
+
       try {
         const ipc = window.electron?.ipcRenderer
         if (!ipc) throw new Error('No IPC found')
@@ -138,50 +163,60 @@ export function useScreenRecorder(): {
           }
         }
 
+        const micConstraintsBase: MediaTrackConstraints = {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false
+        }
+
+        const useExactDevice = selectedMicrophoneId && selectedMicrophoneId !== 'default'
+
         try {
           micStream = await navigator.mediaDevices.getUserMedia({
             video: false,
-            audio: {
-              ...(selectedMicrophoneId && selectedMicrophoneId !== 'default'
-                ? { deviceId: { exact: selectedMicrophoneId } }
-                : {}),
-              echoCancellation: false,
-              noiseSuppression: false,
-              autoGainControl: false
-            }
+            audio: useExactDevice
+              ? { ...micConstraintsBase, deviceId: { exact: selectedMicrophoneId } }
+              : micConstraintsBase
           })
         } catch (micErr) {
-          console.warn('Microphone unavailable, recording without mic:', micErr)
-        }
-
-        systemAudioStream = await getLinuxSystemAudioStream()
-
-        if (desktopStream.getAudioTracks().length === 0 && !systemAudioStream) {
-          try {
-            const allDevices = await navigator.mediaDevices.enumerateDevices()
-            const virtualDevice = allDevices.find(
-              (d) =>
-                d.kind === 'audioinput' &&
-                /blackhole|loopback|soundflower|virtual|monitor/i.test(d.label)
-            )
-            if (virtualDevice) {
-              systemAudioStream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                  deviceId: { exact: virtualDevice.deviceId },
-                  echoCancellation: false,
-                  noiseSuppression: false,
-                  autoGainControl: false
-                }
+          if (useExactDevice) {
+            try {
+              micStream = await navigator.mediaDevices.getUserMedia({
+                video: false,
+                audio: micConstraintsBase
               })
+            } catch (retryErr) {
+              console.warn('Microphone unavailable after retry, recording without mic:', retryErr)
+              micStream = null
             }
-          } catch (err) {
-            console.warn('System audio via virtual device unavailable:', err)
+          } else {
+            console.warn('Microphone unavailable, recording without mic:', micErr)
+            micStream = null
           }
         }
 
-        const audioCtx = new AudioContext({ sampleRate: 48000 })
+        const desktopAudioTracks = desktopStream.getAudioTracks()
+
+        if (desktopAudioTracks.length === 0) {
+          if (isLinuxPlatform()) {
+            systemAudioStream = await getLinuxSystemAudioStream()
+          } else if (navigator.userAgent.indexOf('Mac') !== -1) {
+            systemAudioStream = await getMacOSVirtualAudioStream()
+          }
+        }
+
+        const audioCtx = new AudioContext()
         if (audioCtx.state === 'suspended') {
-          await audioCtx.resume()
+          try {
+            await Promise.race([
+              audioCtx.resume(),
+              new Promise<void>((_, reject) =>
+                setTimeout(() => reject(new Error('AudioContext resume timeout')), 3000)
+              )
+            ])
+          } catch (resumeErr) {
+            console.warn('AudioContext resume failed or timed out:', resumeErr)
+          }
         }
         audioContextRef.current = audioCtx
         const dest = audioCtx.createMediaStreamDestination()
@@ -190,7 +225,7 @@ export function useScreenRecorder(): {
         const keepAliveGain = audioCtx.createGain()
         keepAliveGain.gain.value = 0
         keepAliveOsc.connect(keepAliveGain)
-        keepAliveGain.connect(audioCtx.destination)
+        keepAliveGain.connect(dest)
         keepAliveOsc.start()
 
         audioNodesRef.current = [dest, keepAliveOsc, keepAliveGain]
@@ -200,7 +235,11 @@ export function useScreenRecorder(): {
           return isFinite(n) && n >= 0 && n <= 100 ? n / 100 : fallback / 100
         }
 
-        const systemTracks = desktopStream.getAudioTracks()
+        const systemTracks =
+          desktopAudioTracks.length > 0
+            ? desktopAudioTracks
+            : (systemAudioStream?.getAudioTracks() ?? [])
+
         if (systemTracks.length > 0) {
           const systemSource = audioCtx.createMediaStreamSource(new MediaStream([systemTracks[0]]))
           const systemGain = audioCtx.createGain()
@@ -208,17 +247,8 @@ export function useScreenRecorder(): {
           systemSource.connect(systemGain)
           systemGain.connect(dest)
           audioNodesRef.current.push(systemSource, systemGain)
-        } else if (systemAudioStream && systemAudioStream.getAudioTracks().length > 0) {
-          const systemSource = audioCtx.createMediaStreamSource(
-            new MediaStream([systemAudioStream.getAudioTracks()[0]])
-          )
-          const systemGain = audioCtx.createGain()
-          systemGain.gain.value = safeGain(systemAudioVolume, 50)
-          systemSource.connect(systemGain)
-          systemGain.connect(dest)
-          audioNodesRef.current.push(systemSource, systemGain)
         } else {
-          console.warn('No system audio available. On macOS, install BlackHole or Loopback to capture system audio.')
+          console.warn('No system audio available. On macOS install BlackHole or grant Screen Recording to the Electron binary.')
         }
 
         if (micStream && micStream.getAudioTracks().length > 0) {
@@ -241,7 +271,6 @@ export function useScreenRecorder(): {
 
         let mimeType = 'video/webm; codecs=vp9,opus'
         if (encoder === 'libx264' || encoder === 'h264_videotoolbox') {
-          // In Chromium, h264 is requested via avc1 codec
           mimeType = 'video/webm; codecs=avc1,opus'
           if (!MediaRecorder.isTypeSupported(mimeType)) {
             mimeType = 'video/webm; codecs=h264,opus'

@@ -17,7 +17,7 @@
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
-    "postinstall": "electron-builder install-app-deps && patch-package",
+    "postinstall": "electron-builder install-app-deps && patch-package && node scripts/sign-dev.mjs",
     "release": "npm run build && node scripts/extract-release-notes.mjs && dotenv -e .env -- electron-builder --mac --arm64 --win --x64 --linux APPIMAGE --linux deb --publish always",
     "release:prepare": "node scripts/prepare-release.mjs",
     "release:linux": "npm run build && node scripts/extract-release-notes.mjs && electron-builder --linux --x64 --publish always",

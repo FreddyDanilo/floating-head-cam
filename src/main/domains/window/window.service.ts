@@ -6,10 +6,17 @@ import { t } from '../../../shared/i18n'
 import { getIsCameraOn } from '../camera/camera.service'
 import { currentState, saveSettings } from '../settings/settings.service'
 let _settingsWindow: BrowserWindow | null = null
+let _recordingWorker: BrowserWindow | null = null
 let positionSaveTimer: ReturnType<typeof setTimeout> | null = null
+
 export function getSettingsWindow(): BrowserWindow | null {
   return _settingsWindow
 }
+
+export function getRecordingWorker(): BrowserWindow | null {
+  return _recordingWorker
+}
+
 type WindowCallbacks = {
   onFocus: (win: BrowserWindow) => void
   onBlur: () => void
@@ -45,104 +52,55 @@ export function createSettingsWindow(): void {
     _settingsWindow = null
   })
 }
-export function setWindowPosition(pos: string): void {
-  const sw = _settingsWindow
-  BrowserWindow.getAllWindows().forEach((win) => {
-    if (win === sw) return
-    const bounds = win.getContentBounds()
-    const display = screen.getDisplayMatching(bounds)
-    if (!display) return
-    const { workArea } = display
-    let newX = bounds.x
-    let newY = bounds.y
-    const { width, height } = bounds
-    switch (pos) {
-      case 'top-left':
-        newX = workArea.x
-        newY = workArea.y
-        break
-      case 'top-right':
-        newX = workArea.x + workArea.width - width
-        newY = workArea.y
-        break
-      case 'bottom-left':
-        newX = workArea.x
-        newY = workArea.y + workArea.height - height
-        break
-      case 'bottom-right':
-        newX = workArea.x + workArea.width - width
-        newY = workArea.y + workArea.height - height
-        break
-      case 'left-middle':
-        newX = workArea.x
-        newY = workArea.y + workArea.height / 2 - height / 2
-        break
-      case 'right-middle':
-        newX = workArea.x + workArea.width - width
-        newY = workArea.y + workArea.height / 2 - height / 2
-        break
-      case 'center':
-        newX = workArea.x + workArea.width / 2 - width / 2
-        newY = workArea.y + workArea.height / 2 - height / 2
-        break
+
+export function createRecordingWorker(): void {
+  if (_recordingWorker) return
+
+  _recordingWorker = new BrowserWindow({
+    show: false,
+    webPreferences: {
+      preload: join(__dirname, '../preload/index.js'),
+      sandbox: false,
+      autoplayPolicy: 'no-user-gesture-required',
+      backgroundThrottling: false,
+      devTools: false
     }
-    win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
+  })
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    _recordingWorker.loadURL(process.env['ELECTRON_RENDERER_URL'] + '#/worker')
+  } else {
+    _recordingWorker.loadFile(join(__dirname, '../renderer/index.html'), { hash: '/worker' })
+  }
+
+  _recordingWorker.on('closed', () => {
+    _recordingWorker = null
   })
 }
-export function resizeWindow(sizeObj: {
+export function setWindowPosition(pos: string): void {
+  BrowserWindow.getAllWindows().forEach((win) => {
+    if (win !== _settingsWindow && win !== _recordingWorker) {
+      win.webContents.send('set-camera-position', pos)
+    }
+  })
+}
+
+export function resizeWindow(_sizeObj: {
   width: number
   height: number
   position?: 'right' | 'fullscreen'
 }): void {
-  const sw = _settingsWindow
-  BrowserWindow.getAllWindows().forEach((win) => {
-    if (win === sw) return
-    const isFS = win.isFullScreen() || (process.platform === 'darwin' && win.isSimpleFullScreen())
-    const bounds = isFS ? win.getNormalBounds() : win.getContentBounds()
-    const display = screen.getDisplayMatching(bounds)
-    let newX = bounds.x
-    let newY = bounds.y
-    const { width, height, position } = sizeObj
-    
-    if (position === 'fullscreen') {
-      if (process.platform === 'darwin') {
-        win.setSimpleFullScreen(true)
-      } else {
-        win.setFullScreen(true)
-      }
-      return
-    }
-
-    const { workArea } = display
-    if (position === 'right') {
-      newX = workArea.x + workArea.width - width
-      newY = workArea.y
-    } else {
-      if (newX + width > workArea.x + workArea.width) newX = workArea.x + workArea.width - width
-      if (newX < workArea.x) newX = workArea.x
-      if (newY + height > workArea.y + workArea.height) newY = workArea.y + workArea.height - height
-      if (newY < workArea.y) newY = workArea.y
-    }
-
-    if (isFS) {
-      win.setContentBounds(display.bounds, false)
-      if (process.platform === 'darwin') {
-        win.setSimpleFullScreen(false)
-      } else {
-        win.setFullScreen(false)
-      }
-      win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
-    } else {
-      win.setContentBounds({ x: Math.round(newX), y: Math.round(newY), width, height }, true)
-    }
-  })
+  // Ignored in Full-Screen architecture
 }
 export function createWindow(callbacks: WindowCallbacks): void {
+  const primaryDisplay = screen.getPrimaryDisplay()
+  const { bounds } = primaryDisplay
+  
   const mainWindow = new BrowserWindow({
-    width: 300,
-    height: 300,
-    x: currentState.x,
-    y: currentState.y,
+    width: bounds.width,
+    height: bounds.height,
+    x: bounds.x,
+    y: bounds.y,
     useContentSize: true,
     show: false,
     autoHideMenuBar: true,
@@ -161,6 +119,7 @@ export function createWindow(callbacks: WindowCallbacks): void {
       devTools: false
     }
   })
+  mainWindow.setIgnoreMouseEvents(true, { forward: true })
   mainWindow.setAlwaysOnTop(true, 'screen-saver')
   mainWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true })
   mainWindow.on('ready-to-show', () => {

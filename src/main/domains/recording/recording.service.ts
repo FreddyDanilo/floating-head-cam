@@ -122,22 +122,19 @@ export function setupRecordingIPC(): void {
 
       const vf = `scale=${dims.width}:${dims.height}:flags=lanczos,fps=fps=${targetFps}`
 
-      const safeVol = (v: unknown, fallback: number): number => {
-        const n = Number(v)
-        return isFinite(n) && n >= 0 && n <= 100 ? n : fallback
-      }
-      const sysVol = safeVol(systemAudioVolume, 50) / 100
-      const micVol = safeVol(microphoneAudioVolume, 100) / 100
-      const masterVol = Math.max(sysVol, micVol)
+      void systemAudioVolume
+      void microphoneAudioVolume
 
       const outputOptions = [
+        '-map 0:v:0',
+        '-map 0:a:0?',
         '-pix_fmt yuv420p',
         `-vf ${vf}`,
         `-b:v ${targetBitrate}k`,
         '-maxrate:v ' + Math.round(targetBitrate * 1.5) + 'k',
         '-bufsize:v ' + Math.round(targetBitrate * 2) + 'k',
         '-ar 48000',
-        `-af volume=${masterVol.toFixed(3)},dynaudnorm=p=0.9:m=100:s=12`,
+        '-ac 2',
         '-movflags +faststart'
       ]
 

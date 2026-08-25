@@ -30,7 +30,9 @@ import {
   createWindow,
   getSettingsWindow,
   resizeWindow,
-  setWindowPosition
+  setWindowPosition,
+  getRecordingWorker,
+  createRecordingWorker
 } from './domains/window/window.service'
 import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
 
@@ -69,14 +71,13 @@ async function startRecordingFlow(): Promise<void> {
     if (!currentState.isRecording) {
       await showCountdown()
     }
-    BrowserWindow.getAllWindows().forEach((win) => {
-      if (win !== getSettingsWindow() && win.webContents) {
-        win.webContents.send(
-          currentState.isRecording ? 'stop-recording' : 'start-recording',
-          buildRecordingPayload()
-        )
-      }
-    })
+    const worker = getRecordingWorker()
+    if (worker && worker.webContents) {
+      worker.webContents.send(
+        currentState.isRecording ? 'stop-recording' : 'start-recording',
+        buildRecordingPayload()
+      )
+    }
   } finally {
     isRecordingFlowInFlight = false
   }
@@ -104,23 +105,27 @@ app.whenReady().then(() => {
     callback(true)
   )
   session.defaultSession.setPermissionCheckHandler(() => true)
-  const supportsLoopbackAudio = process.platform === 'darwin' || process.platform === 'win32'
   session.defaultSession.setDisplayMediaRequestHandler(
     (_request, callback) => {
       desktopCapturer
         .getSources({ types: ['screen'] })
         .then((sources) => {
+          if (!sources.length) {
+            callback({})
+            return
+          }
           const primaryDisplay = screen.getPrimaryDisplay()
           const primarySource =
             sources.find((s) => s.display_id === String(primaryDisplay.id)) ?? sources[0]
-          callback(
-            supportsLoopbackAudio
-              ? { video: primarySource, audio: 'loopback' }
-              : { video: primarySource }
-          )
+          if (process.platform === 'darwin' || process.platform === 'win32') {
+            callback({ video: primarySource, audio: 'loopback' })
+          } else {
+            callback({ video: primarySource })
+          }
         })
         .catch((err) => {
           console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
+          callback({})
         })
     },
     { useSystemPicker: false }
@@ -261,6 +266,15 @@ app.whenReady().then(() => {
 
   ipcMain.on('recording-stopped', () => setRecordingState(false))
 
+  ipcMain.on('recording-permission-denied', (_, payload) => {
+    setRecordingState(false)
+    BrowserWindow.getAllWindows().forEach((w) => {
+      if (w !== getRecordingWorker()) {
+        w.webContents.send('recording-permission-denied', payload)
+      }
+    })
+  })
+
   setOnRecordingAborted(() => setRecordingState(false))
 
   ;(app as any).on('tray-toggle-recording', () => startRecordingFlow())
@@ -270,11 +284,9 @@ app.whenReady().then(() => {
   ipcMain.handle('check-media-permission', async (_, mediaType: 'camera' | 'microphone') => {
     if (process.platform === 'darwin') {
       const status = systemPreferences.getMediaAccessStatus(mediaType)
-      if (status === 'not-determined') {
-        const success = await systemPreferences.askForMediaAccess(mediaType)
-        return success ? 'granted' : 'denied'
-      }
-      return status
+      if (status === 'granted') return 'granted'
+      const success = await systemPreferences.askForMediaAccess(mediaType)
+      return success ? 'granted' : 'denied'
     }
     return 'granted'
   })
@@ -334,7 +346,19 @@ app.whenReady().then(() => {
 
   setupRecordingIPC()
 
+  ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) {
+      if (options) {
+        win.setIgnoreMouseEvents(ignore, options)
+      } else {
+        win.setIgnoreMouseEvents(ignore)
+      }
+    }
+  })
+
   createWindow(windowCallbacks)
+  createRecordingWorker()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow(windowCallbacks)
