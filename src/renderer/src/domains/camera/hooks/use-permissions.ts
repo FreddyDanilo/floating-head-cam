@@ -5,10 +5,12 @@ export type PermissionStatus = 'granted' | 'denied' | 'restricted' | 'unknown' |
 export function usePermissions(): {
   cameraPermission: PermissionStatus
   microphonePermission: PermissionStatus
+  screenPermission: PermissionStatus
   checkPermissions: () => Promise<void>
 } {
   const [cameraPermission, setCameraPermission] = useState<PermissionStatus>('unknown')
   const [microphonePermission, setMicrophonePermission] = useState<PermissionStatus>('unknown')
+  const [screenPermission, setScreenPermission] = useState<PermissionStatus>('unknown')
 
   const checkPermissions = async (): Promise<void> => {
     try {
@@ -20,6 +22,9 @@ export function usePermissions(): {
         'microphone'
       )
       setMicrophonePermission(micStatus)
+
+      const screenStatus = await window.electron.ipcRenderer.invoke('check-screen-permission')
+      setScreenPermission(screenStatus)
     } catch (err) {
       console.error('Failed to check permissions via IPC', err)
     }
@@ -40,6 +45,9 @@ export function usePermissions(): {
           'microphone'
         )
         if (!cancelled) setMicrophonePermission(micStatus)
+
+        const screenStatus = await window.electron.ipcRenderer.invoke('check-screen-permission')
+        if (!cancelled) setScreenPermission(screenStatus)
       } catch (err) {
         console.error('Failed to check permissions via IPC', err)
       }
@@ -49,5 +57,5 @@ export function usePermissions(): {
     }
   }, [])
 
-  return { cameraPermission, microphonePermission, checkPermissions }
+  return { cameraPermission, microphonePermission, screenPermission, checkPermissions }
 }

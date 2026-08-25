@@ -58,7 +58,7 @@ export function useShortcuts(): UseShortcutsReturn {
     isBorderAnimated: false,
     recordingFolder: '',
     recordingResolution: '1080p',
-    recordingFps: '30',
+    recordingFps: '60',
     recordingEncoder: 'libx264',
     systemAudioVolume: 50,
     microphoneAudioVolume: 100,

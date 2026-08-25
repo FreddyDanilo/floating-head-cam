@@ -56,6 +56,20 @@ function abortIfOrphaned(contentsId: number): void {
   recordingStream.end()
 }
 
+const RESOLUTION_DIMENSIONS: Record<string, { width: number; height: number }> = {
+  '720p': { width: 1280, height: 720 },
+  '1080p': { width: 1920, height: 1080 },
+  '1440p': { width: 2560, height: 1440 },
+  '2160p': { width: 3840, height: 2160 }
+}
+
+const RESOLUTION_BITRATES: Record<string, number> = {
+  '720p': 5000,
+  '1080p': 8000,
+  '1440p': 14000,
+  '2160p': 24000
+}
+
 export function setupRecordingIPC(): void {
   app.on('web-contents-created', (_event, contents) => {
     const maybeAbort = (): void => abortIfOrphaned(contents.id)
@@ -64,54 +78,93 @@ export function setupRecordingIPC(): void {
     contents.on('did-navigate', maybeAbort)
   })
 
-  ipcMain.handle('recording-start', (event, { encoder }: { encoder?: string } = {}) => {
-    if (recordingStream || ffmpegProcess) {
-      console.warn('recording-start ignored: a recording is already in progress')
-      return false
-    }
-    recordingStream = new PassThrough()
-    recordingOwnerContentsId = event.sender.id
-    isAborted = false
+  ipcMain.handle(
+    'recording-start',
+    (
+      event,
+      {
+        encoder,
+        resolution,
+        fps
+      }: { encoder?: string; resolution?: string; fps?: string } = {}
+    ) => {
+      if (recordingStream || ffmpegProcess) {
+        console.warn('recording-start ignored: a recording is already in progress')
+        return false
+      }
+      recordingStream = new PassThrough()
+      recordingOwnerContentsId = event.sender.id
+      isAborted = false
 
-    let videosFolder: string
-    try {
-      videosFolder = getRecordingTargetFolder()
-    } catch (err) {
-      console.error('Failed to resolve a writable recording folder:', err)
-      cleanup()
-      return false
-    }
-    const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mp4`
-    const filePath = path.join(videosFolder, fileName)
-
-    ffmpegProcess = ffmpeg(recordingStream)
-      .inputFormat('webm')
-      .videoCodec(encoder || 'libx264')
-      .outputOptions(['-pix_fmt yuv420p'])
-      .audioCodec('aac')
-      .output(filePath)
-      .on('end', () => {
-        const wasAborted = isAborted
-        if (currentResolve) currentResolve({ success: true, filePath })
+      let videosFolder: string
+      try {
+        videosFolder = getRecordingTargetFolder()
+      } catch (err) {
+        console.error('Failed to resolve a writable recording folder:', err)
         cleanup()
-        if (wasAborted) onRecordingAborted?.()
-      })
-      .on('error', (err, _stdout, stderr) => {
-        console.error('FFmpeg encoding error:', err, stderr)
-        const wasAborted = isAborted
-        if (currentReject) currentReject(err)
-        cleanup()
-        if (wasAborted) {
-          onRecordingAborted?.()
-        } else {
-          // Tell a still-alive renderer to stop instead of ghost-recording
-          BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('stop-recording'))
-        }
-      })
+        return false
+      }
+      const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mp4`
+      const filePath = path.join(videosFolder, fileName)
 
-    ffmpegProcess.run()
-    return true
-  })
+      const resolvedEncoder = encoder || 'libx264'
+      const targetFps = parseInt(fps || '60', 10) || 60
+      const dims = RESOLUTION_DIMENSIONS[resolution || '1080p'] ?? RESOLUTION_DIMENSIONS['1080p']
+      const targetBitrate = RESOLUTION_BITRATES[resolution || '1080p'] ?? 8000
+
+      const vf = `scale=${dims.width}:${dims.height}:flags=lanczos,fps=fps=${targetFps}`
+
+      const outputOptions = [
+        '-pix_fmt yuv420p',
+        `-vf ${vf}`,
+        `-b:v ${targetBitrate}k`,
+        '-maxrate:v ' + Math.round(targetBitrate * 1.5) + 'k',
+        '-bufsize:v ' + Math.round(targetBitrate * 2) + 'k',
+        '-movflags +faststart'
+      ]
+
+      if (resolvedEncoder === 'libx264') {
+        outputOptions.push('-preset ultrafast', '-tune zerolatency')
+      } else if (resolvedEncoder === 'h264_videotoolbox') {
+        outputOptions.push('-allow_sw 1', '-realtime 1')
+      } else if (resolvedEncoder === 'h264_nvenc') {
+        outputOptions.push('-preset p1', '-tune ll')
+      } else if (resolvedEncoder === 'h264_qsv') {
+        outputOptions.push('-preset veryfast')
+      } else if (resolvedEncoder === 'h264_amf') {
+        outputOptions.push('-quality speed')
+      }
+
+      ffmpegProcess = ffmpeg(recordingStream)
+        .inputFormat('webm')
+        .videoCodec(resolvedEncoder)
+        .outputOptions(outputOptions)
+        .audioCodec('aac')
+        .audioBitrate('192k')
+        .output(filePath)
+        .on('end', () => {
+          const wasAborted = isAborted
+          if (currentResolve) currentResolve({ success: true, filePath })
+          cleanup()
+          if (wasAborted) onRecordingAborted?.()
+        })
+        .on('error', (err, _stdout, stderr) => {
+          console.error('FFmpeg encoding error:', err, stderr)
+          const wasAborted = isAborted
+          if (currentReject) currentReject(err)
+          cleanup()
+          if (wasAborted) {
+            onRecordingAborted?.()
+          } else {
+            BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('stop-recording'))
+          }
+        })
+
+      ffmpegProcess.run()
+      return true
+    }
+  )
+
 
   ipcMain.on('recording-chunk', (_, chunk: ArrayBuffer) => {
     if (recordingStream && !recordingStream.writableEnded) {

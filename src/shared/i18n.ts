@@ -112,7 +112,7 @@ const translations: Translations = {
     'camera.off': 'Camera Off',
     'camera.status.denied': 'Status: Denied by OS',
 
-    'settings.recording': 'Screen Recording',
+    'settings.recording': 'Screen Recording [Beta]',
     'settings.recordingResolution': 'Resolution',
     'settings.recordingFps': 'Framerate',
     'settings.recording.720p': '720p (HD)',
@@ -137,8 +137,17 @@ const translations: Translations = {
     'settings.recordingFolderDefault': 'System default (Videos)',
     'settings.recordingFolderChoose': 'Choose...',
 
-    'tray.startRecording': 'Start Recording',
-    'tray.stopRecording': 'Stop Recording'
+    'tray.startRecording': 'Start Recording [Beta]',
+    'tray.stopRecording': 'Stop Recording [Beta]',
+
+    'screen.error.title': 'Screen Recording Blocked',
+    'screen.error.message': 'The app needs permission to record the screen.',
+    'screen.error.mac':
+      'Open System Settings > Privacy & Security > Screen Recording and allow access. Then restart the app.',
+    'screen.error.win': 'Open Settings > Privacy > Screen Recording and allow access.',
+    'screen.error.default': 'Check your system privacy settings to allow screen recording access.',
+    'screen.error.tryAgain': 'Try Again',
+    'screen.status.denied': 'Status: Denied by OS'
   },
   pt: {
     'settings.title': 'Floating Head Cam',
@@ -252,7 +261,7 @@ const translations: Translations = {
     'camera.off': 'Câmera Desligada',
     'camera.status.denied': 'Status: Negado pelo SO',
 
-    'settings.recording': 'Gravação de Tela',
+    'settings.recording': 'Gravação de Tela [Beta]',
     'settings.recordingResolution': 'Resolução',
     'settings.recordingFps': 'Taxa de Quadros',
     'settings.recording.720p': '720p (HD)',
@@ -277,8 +286,18 @@ const translations: Translations = {
     'settings.recordingFolderDefault': 'Padrão do sistema (Vídeos)',
     'settings.recordingFolderChoose': 'Escolher...',
 
-    'tray.startRecording': 'Iniciar Gravação',
-    'tray.stopRecording': 'Parar Gravação'
+    'tray.startRecording': 'Iniciar Gravação [Beta]',
+    'tray.stopRecording': 'Parar Gravação [Beta]',
+
+    'screen.error.title': 'Gravação de Tela Bloqueada',
+    'screen.error.message': 'O aplicativo precisa de permissão para gravar a tela.',
+    'screen.error.mac':
+      'Abra Ajustes do Sistema > Privacidade e Segurança > Gravação de Tela e permita o acesso. Depois reinicie o app.',
+    'screen.error.win': 'Abra Configurações > Privacidade > Gravação de Tela e permita o acesso.',
+    'screen.error.default':
+      'Verifique as configurações de privacidade do sistema para liberar a gravação de tela.',
+    'screen.error.tryAgain': 'Tentar Novamente',
+    'screen.status.denied': 'Status: Negado pelo SO'
   }
 }
 

@@ -104,6 +104,13 @@ export function buildTrayMenu(state: TrayState): void {
         ]
       : []),
     { type: 'separator' },
+    {
+      label: isRecording ? t('tray.stopRecording', lang) : t('tray.startRecording', lang),
+      accelerator: shortcuts.startRecording,
+      registerAccelerator: false,
+      click: () => app.emit('tray-toggle-recording')
+    },
+    { type: 'separator' },
     { label: t('tray.preferences', lang), click: () => createSettingsWindow() },
     { type: 'separator' },
     {

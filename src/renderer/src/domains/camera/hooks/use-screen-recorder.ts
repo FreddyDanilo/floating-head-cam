@@ -49,10 +49,12 @@ type StartRecordingFn = (payload: StartRecordingPayload) => Promise<void>
 
 export function useScreenRecorder(): {
   isRecording: boolean
+  screenPermissionDenied: boolean
   startRecording: StartRecordingFn
   stopRecording: () => void
 } {
   const [isRecording, setIsRecording] = useState(false)
+  const [screenPermissionDenied, setScreenPermissionDenied] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const audioNodesRef = useRef<AudioNode[]>([])
@@ -84,7 +86,10 @@ export function useScreenRecorder(): {
         if (!ipc) throw new Error('No IPC found')
 
         const permission = await ipc.invoke('check-screen-permission')
-        if (permission !== 'granted') throw new Error('Screen permission denied')
+        if (permission !== 'granted') {
+          setScreenPermissionDenied(true)
+          throw new Error('Screen permission denied')
+        }
 
         const micPermission = await ipc.invoke('check-media-permission', 'microphone')
         if (micPermission !== 'granted') throw new Error('Microphone permission denied')
@@ -107,10 +112,26 @@ export function useScreenRecorder(): {
           video: {
             width: { ideal: width },
             height: { ideal: height },
-            frameRate: { ideal: parsedFps }
-          },
+            frameRate: { ideal: parsedFps },
+            displaySurface: 'monitor'
+          } as MediaTrackConstraints,
           audio: true
         })
+
+        const videoTrack = desktopStream.getVideoTracks()[0]
+        if (videoTrack) {
+          try {
+            await videoTrack.applyConstraints({
+              width: { ideal: width },
+              height: { ideal: height },
+              frameRate: { ideal: parsedFps }
+            })
+          } catch (constraintErr) {
+            console.warn('applyConstraints failed (will rely on FFmpeg scale):', constraintErr)
+          }
+        }
+
+        setScreenPermissionDenied(false)
 
         micStream = await navigator.mediaDevices.getUserMedia({
           video: false,
@@ -234,11 +255,11 @@ export function useScreenRecorder(): {
           mediaRecorderRef.current = null
         }
 
-        const started = await ipc.invoke('recording-start', { encoder })
+        const started = await ipc.invoke('recording-start', { encoder, resolution, fps })
         if (!started) {
           throw new Error('Recording could not start (destination folder unavailable?)')
         }
-        mediaRecorder.start(1000)
+        mediaRecorder.start(250)
         mediaRecorderRef.current = mediaRecorder
 
         ipc.send('recording-started')
@@ -312,5 +333,5 @@ export function useScreenRecorder(): {
     }
   }, [startRecording, stopRecording])
 
-  return { isRecording, startRecording, stopRecording }
+  return { isRecording, screenPermissionDenied, startRecording, stopRecording }
 }

@@ -5,6 +5,7 @@ import {
   dialog,
   globalShortcut,
   ipcMain,
+  screen,
   session,
   systemPreferences,
   desktopCapturer
@@ -105,15 +106,20 @@ app.whenReady().then(() => {
       desktopCapturer
         .getSources({ types: ['screen'] })
         .then((sources) => {
+          const primaryDisplay = screen.getPrimaryDisplay()
+          const primarySource =
+            sources.find((s) => s.display_id === String(primaryDisplay.id)) ?? sources[0]
           callback(
-            supportsLoopbackAudio ? { video: sources[0], audio: 'loopback' } : { video: sources[0] }
+            supportsLoopbackAudio
+              ? { video: primarySource, audio: 'loopback' }
+              : { video: primarySource }
           )
         })
         .catch((err) => {
           console.error('Error getting sources in setDisplayMediaRequestHandler:', err)
         })
     },
-    { useSystemPicker: process.platform === 'darwin' }
+    { useSystemPicker: false }
   )
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
@@ -240,6 +246,8 @@ app.whenReady().then(() => {
   ipcMain.on('recording-stopped', () => setRecordingState(false))
 
   setOnRecordingAborted(() => setRecordingState(false))
+
+  ;(app as any).on('tray-toggle-recording', () => startRecordingFlow())
 
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))
   ipcMain.handle('get-shortcuts', () => shortcuts)

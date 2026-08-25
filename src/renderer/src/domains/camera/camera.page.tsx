@@ -4,6 +4,7 @@ import { useCameraDevices } from './hooks/use-camera-devices'
 import { useCameraStream } from './hooks/use-camera-stream'
 import { useTrayEvents } from './hooks/use-tray-events'
 import { PermissionErrorOverlay } from './components/permission-error-overlay'
+import { ScreenPermissionErrorOverlay } from './components/screen-permission-error-overlay'
 import { useScreenRecorder } from './hooks/use-screen-recorder'
 
 const SIZES = [300, 450, 600]
@@ -36,7 +37,7 @@ export function CameraPage(): React.JSX.Element {
   const [currentGradient, setCurrentGradient] = useState<string>('none')
   const [fade, setFade] = useState(false)
 
-  useScreenRecorder()
+  const { screenPermissionDenied } = useScreenRecorder()
 
   const { videoRef, permissionError: streamError } = useCameraStream(
     selectedDeviceId,
@@ -259,6 +260,9 @@ export function CameraPage(): React.JSX.Element {
       />
       {hasPermissionError && (
         <PermissionErrorOverlay language={language} onRetry={handleDetectionRetry} />
+      )}
+      {screenPermissionDenied && !hasPermissionError && (
+        <ScreenPermissionErrorOverlay language={language} />
       )}
     </div>
   )
