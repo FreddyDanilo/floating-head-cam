@@ -702,15 +702,66 @@ export function SettingsPage(): React.JSX.Element {
         )}
 
         {activeTab === 'recording' && (
-          <RecordingSettings
-            language={language}
-            visualState={visualState}
-            updateVisualState={updateVisualState}
-          />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <RecordingSettings
+              language={language}
+              visualState={visualState}
+              updateVisualState={updateVisualState}
+            />
+            {sections
+              .filter((section) => section.key === 'recording')
+              .map((section) => (
+                <div key={section.title} className="settings-section">
+                  <div className="settings-list">
+                    {section.actions.map((action) => (
+                      <React.Fragment key={action.key}>
+                        <div className="settings-row">
+                          <span
+                            className="settings-label"
+                            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+                          >
+                            {action.icon}
+                            {action.label}
+                          </span>
+                          <div
+                            className={`settings-shortcut ${listeningKey === action.key ? 'listening' : ''}`}
+                            onClick={() => setListeningKey(action.key)}
+                          >
+                            {listeningKey === action.key
+                              ? t('settings.pressKeys', language)
+                              : formatMacShortcut(shortcuts[action.key]) === 'Unbound'
+                                ? t('settings.unbound', language)
+                                : formatMacShortcut(shortcuts[action.key])}
+                            <Keyboard size={14} className="shortcut-icon" />
+                          </div>
+                        </div>
+                        {action.key === 'startRecording' && (
+                          <div
+                            className="settings-global-warning"
+                            style={{
+                              fontSize: '12px',
+                              color: '#ffcc00',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              marginTop: '4px',
+                              marginBottom: '8px'
+                            }}
+                          >
+                            <TriangleAlert size={14} />
+                            {t('settings.globalShortcutWarning', language)}
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </div>
         )}
 
         {sections
-          .filter((section) => section.key === activeTab)
+          .filter((section) => section.key === activeTab && section.key !== 'recording')
           .map((section) => (
             <div key={section.title} className="settings-section">
               <div className="settings-list">
