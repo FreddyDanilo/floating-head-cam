@@ -10,7 +10,7 @@ _Posiciona a tua câmera do jeito mais simples possível._
 
 ---
 
-O **Floating Head Cam** é um aplicativo que coloca a tua webcam em uma janela flutuante. 
+O **Floating Head Cam** é um aplicativo que coloca a tua webcam em uma janela flutuante.
 
 Feito para criadores de conteúdo que não têm domínio de programas de edição ou pretendem econimazar tempo de edição.
 

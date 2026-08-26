@@ -460,9 +460,7 @@ export function SettingsPage(): React.JSX.Element {
       window.electron.ipcRenderer
         .invoke('get-screen-sources')
         .then((data) => setScreens(data || []))
-      window.electron.ipcRenderer
-        .invoke('get-displays')
-        .then((data) => setDisplays(data || []))
+      window.electron.ipcRenderer.invoke('get-displays').then((data) => setDisplays(data || []))
     }
   }, [])
 

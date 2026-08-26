@@ -9,6 +9,19 @@ import { MicPermissionErrorOverlay } from './components/mic-permission-error-ove
 
 const SIZES = [300, 450, 600]
 
+const isLinux =
+  typeof navigator !== 'undefined' &&
+  (navigator.platform.toLowerCase().includes('linux') ||
+    navigator.userAgent.toLowerCase().includes('linux'))
+
+function getScreenWidth(): number {
+  return window.screen?.availWidth ?? window.innerWidth
+}
+
+function getScreenHeight(): number {
+  return window.screen?.availHeight ?? window.innerHeight
+}
+
 export function CameraPage(): React.JSX.Element {
   const {
     devices,
@@ -70,6 +83,8 @@ export function CameraPage(): React.JSX.Element {
   }, [cameraX, cameraY, cameraWidth, cameraHeight])
 
   useEffect(() => {
+    if (isLinux) return
+
     const handleGlobalMouseMove = (e: MouseEvent): void => {
       mousePos.current = { x: e.clientX, y: e.clientY }
     }
@@ -104,43 +119,73 @@ export function CameraPage(): React.JSX.Element {
     }
   }, [])
 
-  const applySize = useCallback((index: number, currentShape: string) => {
-    isAnimating.current = true
-    setTimeout(() => {
-      isAnimating.current = false
-    }, 450)
-    if (index === 4) {
-      setCameraWidth(window.innerWidth)
-      setCameraHeight(window.innerHeight)
-      setCameraX(0)
-      setCameraY(0)
-      return
-    }
-    if (index === 3) {
-      const w = Math.round(window.innerWidth * 0.25)
-      setCameraWidth(w)
-      setCameraHeight(window.innerHeight)
-      setCameraX(window.innerWidth - w)
-      setCameraY(0)
-      return
-    }
-    const size = SIZES[index]
-    if (!size) return
-    let w = size
-    let h = size
-    if (currentShape === 'vertical-rect') {
-      w = Math.round(size * (3 / 4))
-      h = size
-    } else if (currentShape === 'horizontal-rect') {
-      w = size
-      h = Math.round(size * (9 / 16))
-    }
-    setCameraWidth(w)
-    setCameraHeight(h)
+  const applySize = useCallback(
+    (index: number, currentShape: string) => {
+      isAnimating.current = true
+      setTimeout(() => {
+        isAnimating.current = false
+      }, 450)
 
-    setCameraX((prev) => Math.min(Math.max(0, prev), window.innerWidth - w))
-    setCameraY((prev) => Math.min(Math.max(0, prev), window.innerHeight - h))
-  }, [])
+      const sw = getScreenWidth()
+      const sh = getScreenHeight()
+
+      if (index === 4) {
+        const w = isLinux ? sw : window.innerWidth
+        const h = isLinux ? sh : window.innerHeight
+        setCameraWidth(w)
+        setCameraHeight(h)
+        setCameraX(0)
+        setCameraY(0)
+        if (isLinux && window.electron) {
+          window.electron.ipcRenderer.send('resize-camera-window', w, h)
+          window.electron.ipcRenderer.send('move-camera-window', 0, 0)
+        }
+        return
+      }
+      if (index === 3) {
+        const w = isLinux ? Math.round(sw * 0.25) : Math.round(window.innerWidth * 0.25)
+        const h = isLinux ? sh : window.innerHeight
+        const x = isLinux ? sw - w : window.innerWidth - w
+        setCameraWidth(w)
+        setCameraHeight(h)
+        setCameraX(x)
+        setCameraY(0)
+        if (isLinux && window.electron) {
+          window.electron.ipcRenderer.send('resize-camera-window', w, h)
+          window.electron.ipcRenderer.send('move-camera-window', x, 0)
+        }
+        return
+      }
+      const size = SIZES[index]
+      if (!size) return
+      let w = size
+      let h = size
+      if (currentShape === 'vertical-rect') {
+        w = Math.round(size * (3 / 4))
+        h = size
+      } else if (currentShape === 'horizontal-rect') {
+        w = size
+        h = Math.round(size * (9 / 16))
+      }
+
+      const hasBorder = index !== 4 && borderGradient !== 'none'
+      const totalW = hasBorder ? w + borderWidth * 2 : w
+      const totalH = hasBorder ? h + borderWidth * 2 : h
+
+      setCameraWidth(w)
+      setCameraHeight(h)
+
+      if (isLinux) {
+        if (window.electron) {
+          window.electron.ipcRenderer.send('resize-camera-window', totalW, totalH)
+        }
+      } else {
+        setCameraX((prev) => Math.min(Math.max(0, prev), window.innerWidth - w))
+        setCameraY((prev) => Math.min(Math.max(0, prev), window.innerHeight - h))
+      }
+    },
+    [borderGradient, borderWidth]
+  )
 
   useEffect(() => {
     if (window.electron) {
@@ -195,9 +240,13 @@ export function CameraPage(): React.JSX.Element {
         containerRef.current.style.transition = 'none'
       }
       currentDragPos.current = { x: cameraX, y: cameraY }
-      dragOffset.current = {
-        x: e.clientX - cameraX,
-        y: e.clientY - cameraY
+      if (isLinux) {
+        dragOffset.current = { x: e.clientX, y: e.clientY }
+      } else {
+        dragOffset.current = {
+          x: e.clientX - cameraX,
+          y: e.clientY - cameraY
+        }
       }
     },
     [cameraX, cameraY]
@@ -206,25 +255,34 @@ export function CameraPage(): React.JSX.Element {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent): void => {
       if (!isDragging.current) return
-      const newX = Math.min(
-        Math.max(0, e.clientX - dragOffset.current.x),
-        window.innerWidth - cameraWidth
-      )
-      const newY = Math.min(
-        Math.max(0, e.clientY - dragOffset.current.y),
-        window.innerHeight - cameraHeight
-      )
 
-      currentDragPos.current = { x: newX, y: newY }
-      if (containerRef.current) {
-        containerRef.current.style.left = `${newX}px`
-        containerRef.current.style.top = `${newY}px`
+      if (isLinux) {
+        const newX = e.screenX - dragOffset.current.x
+        const newY = e.screenY - dragOffset.current.y
+        currentDragPos.current = { x: newX, y: newY }
+        if (window.electron) {
+          window.electron.ipcRenderer.send('move-camera-window', newX, newY)
+        }
+      } else {
+        const newX = Math.min(
+          Math.max(0, e.clientX - dragOffset.current.x),
+          window.innerWidth - cameraWidth
+        )
+        const newY = Math.min(
+          Math.max(0, e.clientY - dragOffset.current.y),
+          window.innerHeight - cameraHeight
+        )
+        currentDragPos.current = { x: newX, y: newY }
+        if (containerRef.current) {
+          containerRef.current.style.left = `${newX}px`
+          containerRef.current.style.top = `${newY}px`
+        }
       }
     }
     const handleMouseUp = (): void => {
       if (isDragging.current) {
         isDragging.current = false
-        if (containerRef.current) {
+        if (!isLinux && containerRef.current) {
           containerRef.current.style.transition =
             'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease'
         }
@@ -274,6 +332,8 @@ export function CameraPage(): React.JSX.Element {
       setMicPermissionDenied(payload.mic)
     }
     const handleCameraPosition = (_e: unknown, pos: string): void => {
+      const sw = getScreenWidth()
+      const sh = getScreenHeight()
       let newX = cameraX
       let newY = cameraY
       switch (pos) {
@@ -282,32 +342,35 @@ export function CameraPage(): React.JSX.Element {
           newY = 0
           break
         case 'top-right':
-          newX = window.innerWidth - cameraWidth
+          newX = sw - cameraWidth
           newY = 0
           break
         case 'bottom-left':
           newX = 0
-          newY = window.innerHeight - cameraHeight
+          newY = sh - cameraHeight
           break
         case 'bottom-right':
-          newX = window.innerWidth - cameraWidth
-          newY = window.innerHeight - cameraHeight
+          newX = sw - cameraWidth
+          newY = sh - cameraHeight
           break
         case 'left-middle':
           newX = 0
-          newY = (window.innerHeight - cameraHeight) / 2
+          newY = (sh - cameraHeight) / 2
           break
         case 'right-middle':
-          newX = window.innerWidth - cameraWidth
-          newY = (window.innerHeight - cameraHeight) / 2
+          newX = sw - cameraWidth
+          newY = (sh - cameraHeight) / 2
           break
         case 'center':
-          newX = (window.innerWidth - cameraWidth) / 2
-          newY = (window.innerHeight - cameraHeight) / 2
+          newX = (sw - cameraWidth) / 2
+          newY = (sh - cameraHeight) / 2
           break
       }
       setCameraX(newX)
       setCameraY(newY)
+      if (isLinux && window.electron) {
+        window.electron.ipcRenderer.send('move-camera-window', newX, newY)
+      }
       if (window.electron) {
         window.electron.ipcRenderer.send('sync-tray', { x: newX, y: newY })
       }
@@ -384,6 +447,88 @@ export function CameraPage(): React.JSX.Element {
   if (!initialized) return <div className="app-container" />
 
   const computedRadius = sizeIndex === 4 ? '0' : shape === 'circle' ? '50%' : `${rounding}px`
+
+  if (isLinux) {
+    return (
+      <div
+        ref={containerRef}
+        className="app-container"
+        onMouseDown={handleMouseDown}
+        style={{
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'auto',
+          padding: sizeIndex === 4 || borderGradient === 'none' ? '0px' : `${borderWidth}px`,
+          borderRadius: computedRadius,
+          WebkitMaskImage:
+            sizeIndex === 4
+              ? 'none'
+              : shape === 'circle'
+                ? '-webkit-radial-gradient(white, black)'
+                : 'none',
+          boxSizing: 'border-box',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1
+        }}
+      >
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: getGradient(prevGradient, isBorderAnimated),
+            borderRadius: 'inherit',
+            opacity: fade || currentGradient !== 'none' ? 1 : 0,
+            transition: fade ? 'none' : 'opacity 0.4s ease',
+            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
+            zIndex: -2
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: getGradient(currentGradient, isBorderAnimated),
+            borderRadius: 'inherit',
+            opacity: fade ? 0 : 1,
+            transition: fade ? 'none' : 'opacity 0.4s ease',
+            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
+            zIndex: -1
+          }}
+        />
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="camera-view"
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius:
+              sizeIndex === 4
+                ? '0'
+                : shape === 'circle'
+                  ? '50%'
+                  : `${Math.max(0, rounding - borderWidth)}px`,
+            transform: isMirrored ? 'scaleX(-1)' : 'scaleX(1)',
+            display: hasPermissionError ? 'none' : 'block'
+          }}
+        />
+        {hasPermissionError && (
+          <PermissionErrorOverlay language={language} onRetry={handleDetectionRetry} />
+        )}
+        {screenPermissionDenied && !hasPermissionError && (
+          <ScreenPermissionErrorOverlay language={language} />
+        )}
+        {micPermissionDenied && !hasPermissionError && !screenPermissionDenied && (
+          <MicPermissionErrorOverlay language={language} />
+        )}
+      </div>
+    )
+  }
 
   return (
     <div style={{ width: '100vw', height: '100vh', pointerEvents: 'none', position: 'relative' }}>
