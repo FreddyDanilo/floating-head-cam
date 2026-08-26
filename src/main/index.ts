@@ -342,6 +342,14 @@ app.whenReady().then(() => {
     return sources.map((s) => ({ id: s.id, name: s.name, display_id: s.display_id }))
   })
 
+  ipcMain.handle('get-displays', () => {
+    return screen.getAllDisplays().map((d) => ({
+      id: d.id.toString(),
+      label: d.label || `Display ${d.id}`,
+      bounds: d.bounds
+    }))
+  })
+
   ipcMain.on('update-shortcut', (_, key, value) => {
     shortcuts[key] = value
     saveSettings()

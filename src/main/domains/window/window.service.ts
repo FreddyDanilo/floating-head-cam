@@ -179,6 +179,10 @@ export function moveCameraToScreen(screenId: string): void {
         width: bounds.width,
         height: bounds.height
       })
+      win.webContents.send('screen-changed', {
+        width: bounds.width,
+        height: bounds.height
+      })
     }
   })
 }

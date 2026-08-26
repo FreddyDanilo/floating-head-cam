@@ -312,13 +312,18 @@ export function CameraPage(): React.JSX.Element {
         window.electron.ipcRenderer.send('sync-tray', { x: newX, y: newY })
       }
     }
+    const handleScreenChanged = (): void => {
+      applySize(sizeIndex, shape)
+    }
     ipc.on('recording-permission-denied', handlePermissionDenied)
     ipc.on('set-camera-position', handleCameraPosition)
+    ipc.on('screen-changed', handleScreenChanged)
     return () => {
       ipc.removeAllListeners('recording-permission-denied')
       ipc.removeAllListeners('set-camera-position')
+      ipc.removeAllListeners('screen-changed')
     }
-  }, [cameraX, cameraY, cameraWidth, cameraHeight])
+  }, [cameraX, cameraY, cameraWidth, cameraHeight, applySize, sizeIndex, shape])
 
   useEffect(() => {
     if (window.electron && initialized) {
