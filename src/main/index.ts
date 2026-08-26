@@ -34,7 +34,9 @@ import {
   setWindowPosition,
   getRecordingWorker,
   createRecordingWorker,
-  moveCameraToScreen
+  moveCameraToScreen,
+  moveCameraWindow,
+  resizeCameraWindow
 } from './domains/window/window.service'
 import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
 
@@ -84,6 +86,7 @@ async function startRecordingFlow(): Promise<void> {
     isRecordingFlowInFlight = false
   }
 }
+
 app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 if (process.platform === 'win32') {
@@ -194,7 +197,9 @@ app.whenReady().then(() => {
     'rounding',
     'alwaysOnTop',
     'language',
-    'cameraScreenId'
+    'cameraScreenId',
+    'x',
+    'y'
   ])
   ipcMain.on('sync-tray', (_, state) => {
     for (const key of Object.keys(state)) {
@@ -325,9 +330,18 @@ app.whenReady().then(() => {
   ipcMain.handle('open-system-settings', async (_, type: 'camera' | 'microphone' | 'screen') => {
     try {
       if (process.platform === 'darwin') {
-        if (type === 'camera') shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Camera')
-        else if (type === 'microphone') shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone')
-        else if (type === 'screen') shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture')
+        if (type === 'camera')
+          shell.openExternal(
+            'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera'
+          )
+        else if (type === 'microphone')
+          shell.openExternal(
+            'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'
+          )
+        else if (type === 'screen')
+          shell.openExternal(
+            'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
+          )
       } else if (process.platform === 'win32') {
         if (type === 'camera') shell.openExternal('ms-settings:privacy-webcam')
         else if (type === 'microphone') shell.openExternal('ms-settings:privacy-microphone')
@@ -377,6 +391,7 @@ app.whenReady().then(() => {
   setupRecordingIPC()
 
   ipcMain.on('set-ignore-mouse-events', (event, ignore, options) => {
+    if (process.platform === 'linux') return
     const win = BrowserWindow.fromWebContents(event.sender)
     if (win) {
       if (options) {
@@ -387,8 +402,17 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.on('move-camera-window', (_, x: number, y: number) => {
+    moveCameraWindow(x, y)
+  })
+
+  ipcMain.on('resize-camera-window', (_, width: number, height: number, x?: number, y?: number) => {
+    resizeCameraWindow(width, height, x, y)
+  })
+
   createWindow(windowCallbacks)
   createRecordingWorker()
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow(windowCallbacks)
