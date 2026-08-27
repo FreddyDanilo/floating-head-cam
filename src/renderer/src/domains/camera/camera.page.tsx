@@ -14,11 +14,18 @@ const isLinux =
   (navigator.platform.toLowerCase().includes('linux') ||
     navigator.userAgent.toLowerCase().includes('linux'))
 
+const isWindows =
+  typeof navigator !== 'undefined' &&
+  (navigator.platform.toLowerCase().includes('win') ||
+    navigator.userAgent.toLowerCase().includes('windows'))
+
 function getScreenWidth(): number {
+  if (isWindows) return window.screen?.availWidth ?? window.innerWidth
   return window.screen?.width ?? window.innerWidth
 }
 
 function getScreenHeight(): number {
+  if (isWindows) return window.screen?.availHeight ?? window.innerHeight
   return window.screen?.height ?? window.innerHeight
 }
 
@@ -218,11 +225,6 @@ export function CameraPage(): React.JSX.Element {
         if (state.sidebarPosition !== undefined) setSidebarPosition(state.sidebarPosition as string)
 
         setInitialized(true)
-        // Note: applySize uses current states, but since it depends on sidebar states,
-        // it might capture old values on first run if we just call it directly.
-        // It's safer to let the useEffect trigger it if needed, or pass them explicitly.
-        // But since we just set states, they won't be applied synchronously.
-        // We will call applySize in a separate effect below.
       })
     }
   }, [])

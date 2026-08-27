@@ -41,7 +41,7 @@ export function toggleCamera(state: TrayState): void {
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win !== sw) {
       if (newState) {
-        win.showInactive()
+        win.show()
       } else {
         setTimeout(() => {
           if (!getIsCameraOn()) win.hide()

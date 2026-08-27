@@ -51,7 +51,12 @@ vi.mock('electron', () => ({
   screen: {
     getAllDisplays: vi.fn(() => [
       { id: 1, label: 'Display 1', bounds: { x: 0, y: 0, width: 1920, height: 1080 } }
-    ])
+    ]),
+    getPrimaryDisplay: vi.fn(() => ({
+      id: 1,
+      label: 'Display 1',
+      bounds: { x: 0, y: 0, width: 1920, height: 1080 }
+    }))
   }
 }))
 vi.mock('electron-updater', () => ({ autoUpdater: { quitAndInstall: vi.fn() } }))
@@ -157,9 +162,12 @@ describe('tray.service', () => {
       expect(mockHide).not.toHaveBeenCalled()
     })
     it('hides window when turning off', () => {
-      vi.mocked(getIsCameraOn).mockReturnValue(true)
+      vi.useFakeTimers()
+      vi.mocked(getIsCameraOn).mockReturnValueOnce(true).mockReturnValue(false)
       initTray()
       toggleCamera(state)
+      vi.runAllTimers()
+      vi.useRealTimers()
       expect(mockHide).toHaveBeenCalled()
       expect(mockShow).not.toHaveBeenCalled()
     })
