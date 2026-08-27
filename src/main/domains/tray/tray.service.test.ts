@@ -47,6 +47,11 @@ vi.mock('electron', () => ({
     createFromDataURL: vi.fn().mockReturnValue({
       resize: vi.fn().mockReturnThis()
     })
+  },
+  screen: {
+    getAllDisplays: vi.fn(() => [
+      { id: 1, label: 'Display 1', bounds: { x: 0, y: 0, width: 1920, height: 1080 } }
+    ])
   }
 }))
 vi.mock('electron-updater', () => ({ autoUpdater: { quitAndInstall: vi.fn() } }))
@@ -58,7 +63,8 @@ vi.mock('../camera/camera.service', () => ({
 vi.mock('../window/window.service', () => ({
   getSettingsWindow: vi.fn(() => null),
   createSettingsWindow: vi.fn(),
-  setWindowPosition: vi.fn()
+  setWindowPosition: vi.fn(),
+  moveCameraToScreen: vi.fn()
 }))
 vi.mock('../recording/countdown.service', () => ({
   showCountdown: vi.fn(() => Promise.resolve())
@@ -81,7 +87,11 @@ vi.mock('../settings/settings.service', () => ({
     shapeSquare: '',
     shapeVertical: '',
     shapeHorizontal: ''
-  }
+  },
+  currentState: {
+    cameraScreenId: ''
+  },
+  saveSettings: vi.fn()
 }))
 import { initTray, buildTrayMenu, toggleCamera, setUpdateReady } from './tray.service'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'

@@ -114,7 +114,9 @@ export function MicPermissionErrorOverlay({
       <div style={{ display: 'flex', gap: '12px' }}>
         {(platform === 'mac' || platform === 'win') && (
           <button
-            onClick={() => window.electron?.ipcRenderer.invoke('open-system-settings', 'microphone')}
+            onClick={() =>
+              window.electron?.ipcRenderer.invoke('open-system-settings', 'microphone')
+            }
             style={styles.retryButton}
             onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.35)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255, 159, 10, 0.2)')}

@@ -39,23 +39,52 @@ beforeEach(() => {
       removeEventListener: vi.fn()
     }
   })
-  mockInvoke.mockResolvedValue({
-    topLeft: 'Alt+Q',
-    topRight: 'Alt+E',
-    leftMiddle: 'Alt+A',
-    center: 'Alt+S',
-    rightMiddle: 'Alt+D',
-    bottomLeft: 'Alt+Z',
-    bottomRight: 'Alt+C',
-    mirror: 'Alt+M',
-    alwaysOnTop: 'Alt+T',
-    shapeCircle: '',
-    shapeSquare: '',
-    shapeVertical: '',
-    shapeHorizontal: '',
-    sizeSmall: '1',
-    sizeMedium: '2',
-    sizeLarge: '3'
+  mockInvoke.mockImplementation((channel: string) => {
+    if (channel === 'get-shortcuts') {
+      return Promise.resolve({
+        topLeft: 'Alt+Q',
+        topRight: 'Alt+E',
+        leftMiddle: 'Alt+A',
+        center: 'Alt+S',
+        rightMiddle: 'Alt+D',
+        bottomLeft: 'Alt+Z',
+        bottomRight: 'Alt+C',
+        mirror: 'Alt+M',
+        alwaysOnTop: 'Alt+T',
+        shapeCircle: '',
+        shapeSquare: '',
+        shapeVertical: '',
+        shapeHorizontal: '',
+        sizeSmall: '1',
+        sizeMedium: '2',
+        sizeLarge: '3'
+      })
+    }
+    if (channel === 'get-initial-state') {
+      return Promise.resolve({
+        shape: 'circle',
+        rounding: 24,
+        borderGradient: 'none',
+        borderWidth: 4,
+        isBorderAnimated: false,
+        recordingFolder: '',
+        recordingResolution: '1080p',
+        recordingFps: '60',
+        recordingEncoder: 'libx264',
+        systemAudioVolume: 50,
+        microphoneAudioVolume: 100,
+        selectedMicrophoneId: 'default',
+        cameraScreenId: '',
+        recordingScreenId: ''
+      })
+    }
+    if (channel === 'get-screen-sources') {
+      return Promise.resolve([])
+    }
+    if (channel === 'get-displays') {
+      return Promise.resolve([])
+    }
+    return Promise.resolve(null)
   })
 })
 import { SettingsPage } from './settings.page'
@@ -107,11 +136,37 @@ describe('SettingsPage', () => {
     })
   })
   it('shows Unbound for empty shortcut values', async () => {
-    mockInvoke.mockResolvedValue({
-      topLeft: '',
-      shapeSquare: '',
-      shapeVertical: '',
-      shapeHorizontal: ''
+    mockInvoke.mockImplementation((channel: string) => {
+      if (channel === 'get-shortcuts') {
+        return Promise.resolve({
+          topLeft: '',
+          shapeSquare: '',
+          shapeVertical: '',
+          shapeHorizontal: ''
+        })
+      }
+      if (channel === 'get-initial-state') {
+        return Promise.resolve({
+          shape: 'circle',
+          rounding: 24,
+          borderGradient: 'none',
+          borderWidth: 4,
+          isBorderAnimated: false,
+          recordingFolder: '',
+          recordingResolution: '1080p',
+          recordingFps: '60',
+          recordingEncoder: 'libx264',
+          systemAudioVolume: 50,
+          microphoneAudioVolume: 100,
+          selectedMicrophoneId: 'default',
+          cameraScreenId: '',
+          recordingScreenId: ''
+        })
+      }
+      if (channel === 'get-screen-sources' || channel === 'get-displays') {
+        return Promise.resolve([])
+      }
+      return Promise.resolve(null)
     })
     const { container } = render(<SettingsPage />)
     fireEvent.click(screen.getByText('Positioning'))

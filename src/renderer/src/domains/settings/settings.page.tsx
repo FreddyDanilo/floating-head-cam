@@ -453,12 +453,14 @@ export function SettingsPage(): React.JSX.Element {
     'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'
   >('visuals')
   const [screens, setScreens] = useState<{ id: string; name: string; display_id: string }[]>([])
+  const [displays, setDisplays] = useState<{ id: string; label: string }[]>([])
 
   React.useEffect(() => {
     if (window.electron) {
       window.electron.ipcRenderer
         .invoke('get-screen-sources')
         .then((data) => setScreens(data || []))
+      window.electron.ipcRenderer.invoke('get-displays').then((data) => setDisplays(data || []))
     }
   }, [])
 
@@ -1000,9 +1002,9 @@ export function SettingsPage(): React.JSX.Element {
                   <option value="">
                     {t('settings.screenDefault', language) || 'Primary Display'}
                   </option>
-                  {(Array.isArray(screens) ? screens : []).map((s) => (
-                    <option key={s.display_id} value={s.display_id}>
-                      {s.name} ({s.display_id})
+                  {displays.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label}
                     </option>
                   ))}
                 </select>

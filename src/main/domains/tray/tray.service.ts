@@ -1,12 +1,13 @@
-import { app, BrowserWindow, Menu, nativeImage, Tray, shell } from 'electron'
+import { app, BrowserWindow, Menu, nativeImage, screen, Tray, shell } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import icon from '../../../../resources/icon.png?asset'
 import { t } from '../../../shared/i18n'
 import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
-import { saveSettings, shortcuts, DeviceInfo } from '../settings/settings.service'
+import { saveSettings, shortcuts, currentState, DeviceInfo } from '../settings/settings.service'
 import {
   createSettingsWindow,
   getSettingsWindow,
+  moveCameraToScreen,
   setWindowPosition
 } from '../window/window.service'
 
@@ -119,6 +120,24 @@ export function buildTrayMenu(state: TrayState): void {
         cameraItems.length > 0
           ? cameraItems
           : [{ label: t('tray.noCameras', lang), enabled: false }]
+    },
+    { type: 'separator' },
+    {
+      label: t('tray.monitors', lang) || 'Monitors',
+      submenu: (() => {
+        const displays = screen.getAllDisplays()
+        return displays.map((d) => ({
+          label: d.label || `Display ${d.id}`,
+          type: 'radio' as const,
+          checked: d.id.toString() === (state as Record<string, unknown>).cameraScreenId,
+          click: () => {
+            currentState.cameraScreenId = d.id.toString()
+            saveSettings()
+            moveCameraToScreen(d.id.toString())
+            buildTrayMenu(state)
+          }
+        }))
+      })()
     },
     { type: 'separator' },
     {
