@@ -89,6 +89,7 @@ async function startRecordingFlow(): Promise<void> {
 
 app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+app.commandLine.appendSwitch('force-color-profile', 'srgb')
 if (process.platform === 'win32') {
   app.disableHardwareAcceleration()
 }

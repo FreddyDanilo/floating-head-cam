@@ -125,7 +125,7 @@ export function setupRecordingIPC(): void {
       const dims = RESOLUTION_DIMENSIONS[resolution || '1080p'] ?? RESOLUTION_DIMENSIONS['1080p']
       const targetBitrate = RESOLUTION_BITRATES[resolution || '1080p'] ?? 8000
 
-      const vf = `scale=${dims.width}:${dims.height}:flags=fast_bilinear,fps=fps=${targetFps}`
+      const vf = `scale=${dims.width}:${dims.height}:flags=accurate_rnd+full_chroma_int:out_color_matrix=bt709:out_range=tv,fps=fps=${targetFps}`
 
       void systemAudioVolume
       void microphoneAudioVolume
@@ -134,6 +134,10 @@ export function setupRecordingIPC(): void {
         '-map 0:v:0',
         '-map 0:a:0?',
         '-pix_fmt yuv420p',
+        '-color_primaries bt709',
+        '-color_trc bt709',
+        '-colorspace bt709',
+        '-color_range tv',
         `-vf ${vf}`,
         `-b:v ${targetBitrate}k`,
         '-maxrate:v ' + Math.round(targetBitrate * 1.5) + 'k',
