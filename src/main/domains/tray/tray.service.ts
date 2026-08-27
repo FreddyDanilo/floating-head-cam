@@ -126,15 +126,24 @@ export function buildTrayMenu(state: TrayState): void {
       label: t('tray.monitors', lang) || 'Monitors',
       submenu: (() => {
         const displays = screen.getAllDisplays()
+        const primaryId = screen.getPrimaryDisplay().id.toString()
+        const currentScreenId = (state as Record<string, unknown>).cameraScreenId || primaryId
         return displays.map((d) => ({
           label: d.label || `Display ${d.id}`,
           type: 'radio' as const,
-          checked: d.id.toString() === (state as Record<string, unknown>).cameraScreenId,
+          checked: d.id.toString() === currentScreenId,
           click: () => {
-            currentState.cameraScreenId = d.id.toString()
+            const id = d.id.toString()
+            currentState.cameraScreenId = id
+            currentState.recordingScreenId = id
             saveSettings()
-            moveCameraToScreen(d.id.toString())
+            moveCameraToScreen(id)
             buildTrayMenu(state)
+
+            // Sync with frontend settings window
+            BrowserWindow.getAllWindows().forEach((win) => {
+              win.webContents.send('sync-setting', { key: 'recordingScreenId', value: id })
+            })
           }
         }))
       })()

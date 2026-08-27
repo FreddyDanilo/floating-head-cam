@@ -207,23 +207,6 @@ function RecordingSettings({
   return (
     <div className="settings-section">
       <div className="settings-list">
-        <div className="settings-row settings-row--column">
-          <span className="settings-label">
-            {t('settings.recordingScreen', language) || 'Recording Screen'}
-          </span>
-          <select
-            className="settings-select"
-            value={visualState.recordingScreenId || ''}
-            onChange={(e) => updateVisualState('recordingScreenId', e.target.value)}
-          >
-            <option value="">{t('settings.screenDefault', language) || 'Primary Display'}</option>
-            {(Array.isArray(screens) ? screens : []).map((s) => (
-              <option key={s.display_id} value={s.display_id}>
-                {s.name} ({s.display_id})
-              </option>
-            ))}
-          </select>
-        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div className="settings-row settings-row--column">
@@ -987,31 +970,6 @@ export function SettingsPage(): React.JSX.Element {
           </div>
         )}
 
-        {activeTab === 'positioning' && (
-          <div className="settings-section" style={{ marginBottom: '-17px' }}>
-            <div className="settings-list">
-              <div className="settings-row settings-row--column">
-                <span className="settings-label">
-                  {t('settings.cameraScreen', language) || 'Camera Screen'}
-                </span>
-                <select
-                  className="settings-select"
-                  value={visualState.cameraScreenId || ''}
-                  onChange={(e) => updateVisualState('cameraScreenId', e.target.value)}
-                >
-                  <option value="">
-                    {t('settings.screenDefault', language) || 'Primary Display'}
-                  </option>
-                  {displays.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
 
         {sections
           .filter((section) => section.key === activeTab && section.key !== 'recording')
