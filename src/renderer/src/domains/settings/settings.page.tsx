@@ -107,14 +107,12 @@ type RecordingSettingsProps = {
   language: 'en' | 'pt'
   visualState: VisualState
   updateVisualState: (key: keyof VisualState, value: string | number | boolean) => void
-  screens: { id: string; name: string; display_id: string }[]
 }
 
 function RecordingSettings({
   language,
   visualState,
-  updateVisualState,
-  screens
+  updateVisualState
 }: RecordingSettingsProps): React.JSX.Element {
   const { devices } = useAudioDevices()
   const encoderOptions = getEncoderOptions()
@@ -207,24 +205,6 @@ function RecordingSettings({
   return (
     <div className="settings-section">
       <div className="settings-list">
-        <div className="settings-row settings-row--column">
-          <span className="settings-label">
-            {t('settings.recordingScreen', language) || 'Recording Screen'}
-          </span>
-          <select
-            className="settings-select"
-            value={visualState.recordingScreenId || ''}
-            onChange={(e) => updateVisualState('recordingScreenId', e.target.value)}
-          >
-            <option value="">{t('settings.screenDefault', language) || 'Primary Display'}</option>
-            {(Array.isArray(screens) ? screens : []).map((s) => (
-              <option key={s.display_id} value={s.display_id}>
-                {s.name} ({s.display_id})
-              </option>
-            ))}
-          </select>
-        </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
           <div className="settings-row settings-row--column">
             <span className="settings-label">{t('settings.recordingResolution', language)}</span>
@@ -452,17 +432,6 @@ export function SettingsPage(): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<
     'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'
   >('visuals')
-  const [screens, setScreens] = useState<{ id: string; name: string; display_id: string }[]>([])
-  const [displays, setDisplays] = useState<{ id: string; label: string }[]>([])
-
-  React.useEffect(() => {
-    if (window.electron) {
-      window.electron.ipcRenderer
-        .invoke('get-screen-sources')
-        .then((data) => setScreens(data || []))
-      window.electron.ipcRenderer.invoke('get-displays').then((data) => setDisplays(data || []))
-    }
-  }, [])
 
   const [showGradientEditor, setShowGradientEditor] = useState(false)
   const [gradColor1, setGradColor1] = useState('#ff6b6b')
@@ -933,7 +902,6 @@ export function SettingsPage(): React.JSX.Element {
               language={language}
               visualState={visualState}
               updateVisualState={updateVisualState}
-              screens={screens}
             />
             {sections
               .filter((section) => section.key === 'recording')
@@ -987,40 +955,22 @@ export function SettingsPage(): React.JSX.Element {
           </div>
         )}
 
-        {activeTab === 'positioning' && (
-          <div className="settings-section" style={{ marginBottom: '-17px' }}>
-            <div className="settings-list">
-              <div className="settings-row settings-row--column">
-                <span className="settings-label">
-                  {t('settings.cameraScreen', language) || 'Camera Screen'}
-                </span>
-                <select
-                  className="settings-select"
-                  value={visualState.cameraScreenId || ''}
-                  onChange={(e) => updateVisualState('cameraScreenId', e.target.value)}
-                >
-                  <option value="">
-                    {t('settings.screenDefault', language) || 'Primary Display'}
-                  </option>
-                  {displays.map((d) => (
-                    <option key={d.id} value={d.id}>
-                      {d.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
-
         {sections
           .filter((section) => section.key === activeTab && section.key !== 'recording')
           .map((section) => (
             <div key={section.title} className="settings-section">
               <div className="settings-list">
-                {section.actions.map((action) => (
-                  <React.Fragment key={action.key}>
-                    <div className="settings-row">
+                {section.actions.map((action) => {
+                  const isSidebar = action.key === 'sizeSidebar'
+                  const rowHeader = (
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        width: '100%'
+                      }}
+                    >
                       <span
                         className="settings-label"
                         style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
@@ -1040,25 +990,130 @@ export function SettingsPage(): React.JSX.Element {
                         <Keyboard size={14} className="shortcut-icon" />
                       </div>
                     </div>
-                    {(action.key === 'toggleCamera' || action.key === 'startRecording') && (
-                      <div
-                        className="settings-global-warning"
-                        style={{
-                          fontSize: '12px',
-                          color: '#ffcc00',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          marginTop: '4px',
-                          marginBottom: '8px'
-                        }}
-                      >
-                        <TriangleAlert size={14} />
-                        {t('settings.globalShortcutWarning', language)}
-                      </div>
-                    )}
-                  </React.Fragment>
-                ))}
+                  )
+
+                  return (
+                    <React.Fragment key={action.key}>
+                      {!isSidebar ? (
+                        <div className="settings-row">{rowHeader}</div>
+                      ) : (
+                        <div
+                          className="settings-row settings-row--column"
+                          style={{ width: '100%', alignItems: 'stretch' }}
+                        >
+                          {rowHeader}
+                          <div
+                            style={{
+                              background: 'rgba(0, 0, 0, 0.2)',
+                              padding: '16px',
+                              borderRadius: '12px',
+                              marginTop: '4px',
+                              width: '100%'
+                            }}
+                          >
+                            <div style={{ width: '100%', marginBottom: '16px' }}>
+                              <div className="rounding-header">
+                                <span
+                                  className="settings-label"
+                                  style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}
+                                >
+                                  {t('settings.width', language)}
+                                </span>
+                                <span className="rounding-value">
+                                  {visualState.sidebarWidthPercentage || 35}%
+                                </span>
+                              </div>
+                              <div className="slider-wrap" style={{ marginTop: '4px' }}>
+                                <input
+                                  type="range"
+                                  min={20}
+                                  max={50}
+                                  step={5}
+                                  value={visualState.sidebarWidthPercentage || 35}
+                                  className="rounding-slider"
+                                  onChange={(e) =>
+                                    updateVisualState(
+                                      'sidebarWidthPercentage',
+                                      Number(e.target.value)
+                                    )
+                                  }
+                                />
+                                <div className="slider-ticks">
+                                  {[
+                                    { val: 20, label: '20' },
+                                    { val: 25, label: '25' },
+                                    { val: 30, label: '30' },
+                                    { val: 35, label: '35' },
+                                    { val: 40, label: '40' },
+                                    { val: 45, label: '45' },
+                                    { val: 50, label: '50' }
+                                  ].map((tick) => (
+                                    <button
+                                      key={tick.val}
+                                      className={`slider-tick ${visualState.sidebarWidthPercentage === tick.val ? 'slider-tick--active' : ''}`}
+                                      onClick={() =>
+                                        updateVisualState('sidebarWidthPercentage', tick.val)
+                                      }
+                                    >
+                                      {tick.label}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div style={{ width: '100%' }}>
+                              <span
+                                className="settings-label"
+                                style={{
+                                  fontSize: '13px',
+                                  color: 'rgba(255,255,255,0.7)',
+                                  display: 'block',
+                                  marginBottom: '8px'
+                                }}
+                              >
+                                {t('settings.position', language)}
+                              </span>
+                              <div className="option-pills" style={{ width: '100%' }}>
+                                <button
+                                  className={`option-pill ${visualState.sidebarPosition === 'left' ? 'option-pill--active' : ''}`}
+                                  onClick={() => updateVisualState('sidebarPosition', 'left')}
+                                  style={{ flex: 1 }}
+                                >
+                                  {t('settings.sidebarLeft', language)}
+                                </button>
+                                <button
+                                  className={`option-pill ${!visualState.sidebarPosition || visualState.sidebarPosition === 'right' ? 'option-pill--active' : ''}`}
+                                  onClick={() => updateVisualState('sidebarPosition', 'right')}
+                                  style={{ flex: 1 }}
+                                >
+                                  {t('settings.sidebarRight', language)}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      {(action.key === 'toggleCamera' || action.key === 'startRecording') && (
+                        <div
+                          className="settings-global-warning"
+                          style={{
+                            fontSize: '12px',
+                            color: '#ffcc00',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            marginTop: '4px',
+                            marginBottom: '8px'
+                          }}
+                        >
+                          <TriangleAlert size={14} />
+                          {t('settings.globalShortcutWarning', language)}
+                        </div>
+                      )}
+                    </React.Fragment>
+                  )
+                })}
               </div>
             </div>
           ))}

@@ -125,23 +125,8 @@ export function useScreenRecorder(): {
         setMicPermissionDenied(false)
 
         const parsedFps = parseInt(fps, 10) || 30
-        let width = 1280
-        let height = 720
-        if (resolution === '1080p') {
-          width = 1920
-          height = 1080
-        } else if (resolution === '1440p') {
-          width = 2560
-          height = 1440
-        } else if (resolution === '2160p') {
-          width = 3840
-          height = 2160
-        }
-
         desktopStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            width: { ideal: width },
-            height: { ideal: height },
             frameRate: { ideal: parsedFps },
             displaySurface: 'monitor'
           } as MediaTrackConstraints,
@@ -156,8 +141,6 @@ export function useScreenRecorder(): {
         if (videoTrack) {
           try {
             await videoTrack.applyConstraints({
-              width: { ideal: width },
-              height: { ideal: height },
               frameRate: { ideal: parsedFps }
             })
           } catch (constraintErr) {

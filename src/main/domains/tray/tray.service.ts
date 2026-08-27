@@ -40,7 +40,13 @@ export function toggleCamera(state: TrayState): void {
   const sw = getSettingsWindow()
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win !== sw) {
-      newState ? win.show() : win.hide()
+      if (newState) {
+        win.show()
+      } else {
+        setTimeout(() => {
+          if (!getIsCameraOn()) win.hide()
+        }, 300)
+      }
       win.webContents.send('power-state', newState)
     }
   })
@@ -123,18 +129,26 @@ export function buildTrayMenu(state: TrayState): void {
     },
     { type: 'separator' },
     {
-      label: t('tray.monitors', lang) || 'Monitors',
+      label: t('tray.monitors', lang),
       submenu: (() => {
         const displays = screen.getAllDisplays()
+        const primaryId = screen.getPrimaryDisplay().id.toString()
+        const currentScreenId = (state as Record<string, unknown>).cameraScreenId || primaryId
         return displays.map((d) => ({
           label: d.label || `Display ${d.id}`,
           type: 'radio' as const,
-          checked: d.id.toString() === (state as Record<string, unknown>).cameraScreenId,
+          checked: d.id.toString() === currentScreenId,
           click: () => {
-            currentState.cameraScreenId = d.id.toString()
+            const id = d.id.toString()
+            currentState.cameraScreenId = id
+            currentState.recordingScreenId = id
             saveSettings()
-            moveCameraToScreen(d.id.toString())
+            moveCameraToScreen(id)
             buildTrayMenu(state)
+
+            BrowserWindow.getAllWindows().forEach((win) => {
+              win.webContents.send('sync-setting', { key: 'recordingScreenId', value: id })
+            })
           }
         }))
       })()
@@ -142,6 +156,7 @@ export function buildTrayMenu(state: TrayState): void {
     { type: 'separator' },
     {
       label: t('tray.position', lang),
+      enabled: currentState.sizeIndex < 3,
       submenu: [
         {
           label: t('settings.topLeft', lang),
@@ -279,7 +294,7 @@ export function buildTrayMenu(state: TrayState): void {
         })
     },
     {
-      label: t('settings.language', lang) || 'Language',
+      label: t('settings.language', lang),
       submenu: [
         {
           label: 'English',

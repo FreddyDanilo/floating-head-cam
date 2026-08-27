@@ -89,6 +89,7 @@ async function startRecordingFlow(): Promise<void> {
 
 app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+app.commandLine.appendSwitch('force-color-profile', 'srgb')
 if (process.platform === 'win32') {
   app.disableHardwareAcceleration()
 }
@@ -199,7 +200,9 @@ app.whenReady().then(() => {
     'language',
     'cameraScreenId',
     'x',
-    'y'
+    'y',
+    'sidebarWidthPercentage',
+    'sidebarPosition'
   ])
   ipcMain.on('sync-tray', (_, state) => {
     for (const key of Object.keys(state)) {
@@ -229,7 +232,9 @@ app.whenReady().then(() => {
     'microphoneAudioVolume',
     'selectedMicrophoneId',
     'cameraScreenId',
-    'recordingScreenId'
+    'recordingScreenId',
+    'sidebarWidthPercentage',
+    'sidebarPosition'
   ])
   ipcMain.on('update-setting', (_, { key, value }) => {
     if (!allowedSettingKeys.has(key)) return
@@ -249,6 +254,10 @@ app.whenReady().then(() => {
         win.webContents.send('tray-action', { type: 'set-border-width', payload: value })
       } else if (key === 'isBorderAnimated') {
         win.webContents.send('tray-action', { type: 'set-border-animated', payload: value })
+      } else if (key === 'sidebarWidthPercentage') {
+        win.webContents.send('tray-action', { type: 'set-sidebar-width', payload: value })
+      } else if (key === 'sidebarPosition') {
+        win.webContents.send('tray-action', { type: 'set-sidebar-position', payload: value })
       }
     })
 
