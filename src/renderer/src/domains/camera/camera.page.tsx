@@ -15,11 +15,11 @@ const isLinux =
     navigator.userAgent.toLowerCase().includes('linux'))
 
 function getScreenWidth(): number {
-  return window.screen?.availWidth ?? window.innerWidth
+  return window.screen?.width ?? window.innerWidth
 }
 
 function getScreenHeight(): number {
-  return window.screen?.availHeight ?? window.innerHeight
+  return window.screen?.height ?? window.innerHeight
 }
 
 export function CameraPage(): React.JSX.Element {
@@ -489,6 +489,8 @@ export function CameraPage(): React.JSX.Element {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          opacity: powerOn ? 1 : 0,
+          transition: 'opacity 0.3s ease',
           zIndex: 1
         }}
       >
@@ -574,8 +576,9 @@ export function CameraPage(): React.JSX.Element {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          opacity: powerOn ? 1 : 0,
           transition:
-            'left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease',
+            'opacity 0.3s ease, left 0.4s cubic-bezier(0.16, 1, 0.3, 1), top 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.3s ease',
           zIndex: 1
         }}
       >

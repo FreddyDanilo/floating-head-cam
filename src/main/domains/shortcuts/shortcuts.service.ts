@@ -11,13 +11,18 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
       }
     }
   }
-  register(shortcuts.topLeft, () => setWindowPosition('top-left'))
-  register(shortcuts.topRight, () => setWindowPosition('top-right'))
-  register(shortcuts.leftMiddle, () => setWindowPosition('left-middle'))
-  register(shortcuts.center, () => setWindowPosition('center'))
-  register(shortcuts.rightMiddle, () => setWindowPosition('right-middle'))
-  register(shortcuts.bottomLeft, () => setWindowPosition('bottom-left'))
-  register(shortcuts.bottomRight, () => setWindowPosition('bottom-right'))
+  const handlePosition = (pos: string): void => {
+    if (currentState.sizeIndex >= 3) return
+    setWindowPosition(pos)
+  }
+
+  register(shortcuts.topLeft, () => handlePosition('top-left'))
+  register(shortcuts.topRight, () => handlePosition('top-right'))
+  register(shortcuts.leftMiddle, () => handlePosition('left-middle'))
+  register(shortcuts.center, () => handlePosition('center'))
+  register(shortcuts.rightMiddle, () => handlePosition('right-middle'))
+  register(shortcuts.bottomLeft, () => handlePosition('bottom-left'))
+  register(shortcuts.bottomRight, () => handlePosition('bottom-right'))
   register(shortcuts.sizeSmall, () =>
     win.webContents.send('tray-action', { type: 'set-size-index', payload: 0 })
   )

@@ -40,7 +40,13 @@ export function toggleCamera(state: TrayState): void {
   const sw = getSettingsWindow()
   BrowserWindow.getAllWindows().forEach((win) => {
     if (win !== sw) {
-      newState ? win.show() : win.hide()
+      if (newState) {
+        win.showInactive()
+      } else {
+        setTimeout(() => {
+          if (!getIsCameraOn()) win.hide()
+        }, 300)
+      }
       win.webContents.send('power-state', newState)
     }
   })
@@ -150,6 +156,7 @@ export function buildTrayMenu(state: TrayState): void {
     { type: 'separator' },
     {
       label: t('tray.position', lang),
+      enabled: currentState.sizeIndex < 3,
       submenu: [
         {
           label: t('settings.topLeft', lang),
