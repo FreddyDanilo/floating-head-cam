@@ -123,7 +123,7 @@ export function buildTrayMenu(state: TrayState): void {
     },
     { type: 'separator' },
     {
-      label: t('tray.monitors', lang) || 'Monitors',
+      label: t('tray.monitors', lang),
       submenu: (() => {
         const displays = screen.getAllDisplays()
         const primaryId = screen.getPrimaryDisplay().id.toString()
@@ -140,7 +140,6 @@ export function buildTrayMenu(state: TrayState): void {
             moveCameraToScreen(id)
             buildTrayMenu(state)
 
-            // Sync with frontend settings window
             BrowserWindow.getAllWindows().forEach((win) => {
               win.webContents.send('sync-setting', { key: 'recordingScreenId', value: id })
             })
@@ -288,7 +287,7 @@ export function buildTrayMenu(state: TrayState): void {
         })
     },
     {
-      label: t('settings.language', lang) || 'Language',
+      label: t('settings.language', lang),
       submenu: [
         {
           label: 'English',

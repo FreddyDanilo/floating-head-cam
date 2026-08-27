@@ -13,6 +13,8 @@ type TrayAction =
   | { type: 'set-border-width'; payload: number }
   | { type: 'set-border-animated'; payload: boolean }
   | { type: 'set-language'; payload: 'en' | 'pt' }
+  | { type: 'set-sidebar-width'; payload: number }
+  | { type: 'set-sidebar-position'; payload: string }
 
 interface ResetStatePayload {
   state: {
@@ -40,6 +42,8 @@ export type TrayEventHandlers = {
   setBorderWidth: (w: number) => void
   setIsBorderAnimated: (v: boolean) => void
   setLanguage: (lang: 'en' | 'pt') => void
+  setSidebarWidthPercentage: (w: number) => void
+  setSidebarPosition: (p: string) => void
   applySize: (index: number, shape: string) => void
   sizeIndex: number
   shape: string
@@ -57,6 +61,8 @@ export function useTrayEvents({
   setBorderWidth,
   setIsBorderAnimated,
   setLanguage,
+  setSidebarWidthPercentage,
+  setSidebarPosition,
   applySize,
   sizeIndex,
   shape
@@ -98,6 +104,12 @@ export function useTrayEvents({
           break
         case 'set-language':
           setLanguage(action.payload)
+          break
+        case 'set-sidebar-width':
+          setSidebarWidthPercentage(action.payload)
+          break
+        case 'set-sidebar-position':
+          setSidebarPosition(action.payload)
           break
       }
     }
@@ -151,6 +163,8 @@ export function useTrayEvents({
     setBorderGradient,
     setBorderWidth,
     setIsBorderAnimated,
-    setLanguage
+    setLanguage,
+    setSidebarWidthPercentage,
+    setSidebarPosition
   ])
 }

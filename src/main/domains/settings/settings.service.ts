@@ -92,7 +92,9 @@ export const defaultState = {
   microphoneAudioVolume: 100,
   selectedMicrophoneId: 'default',
   cameraScreenId: '',
-  recordingScreenId: ''
+  recordingScreenId: '',
+  sidebarWidthPercentage: 35,
+  sidebarPosition: 'right'
 }
 export const shortcuts: typeof defaultShortcuts = { ...defaultShortcuts }
 export const currentState: typeof defaultState & { [key: string]: unknown } = { ...defaultState }
@@ -172,5 +174,7 @@ export function resetToDefaults(tab?: SettingsTab | unknown): void {
     const sizeKeys = ['sizeSmall', 'sizeMedium', 'sizeLarge', 'sizeSidebar', 'sizeFullscreen']
     sizeKeys.forEach((k) => (shortcuts[k] = defaultShortcuts[k]))
     currentState.sizeIndex = defaultState.sizeIndex
+    currentState.sidebarWidthPercentage = defaultState.sidebarWidthPercentage
+    currentState.sidebarPosition = defaultState.sidebarPosition
   }
 }

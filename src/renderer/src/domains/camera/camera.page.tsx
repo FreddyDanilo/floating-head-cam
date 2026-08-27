@@ -36,6 +36,8 @@ export function CameraPage(): React.JSX.Element {
     'circle'
   )
   const [sizeIndex, setSizeIndex] = useState<number>(0)
+  const [sidebarWidthPercentage, setSidebarWidthPercentage] = useState<number>(35)
+  const [sidebarPosition, setSidebarPosition] = useState<string>('right')
   const [rounding, setRounding] = useState<number>(24)
   const [alwaysOnTop, setAlwaysOnTop] = useState<boolean>(true)
   const [powerOn, setPowerOn] = useState<boolean>(false)
@@ -143,9 +145,10 @@ export function CameraPage(): React.JSX.Element {
         return
       }
       if (index === 3) {
-        const w = isLinux ? Math.round(sw * 0.25) : Math.round(window.innerWidth * 0.25)
+        const pct = sidebarWidthPercentage / 100
+        const w = isLinux ? Math.round(sw * pct) : Math.round(window.innerWidth * pct)
         const h = isLinux ? sh : window.innerHeight
-        const x = isLinux ? sw - w : window.innerWidth - w
+        const x = sidebarPosition === 'left' ? 0 : isLinux ? sw - w : window.innerWidth - w
         setCameraWidth(w)
         setCameraHeight(h)
         setCameraX(x)
@@ -184,7 +187,7 @@ export function CameraPage(): React.JSX.Element {
         setCameraY((prev) => Math.min(Math.max(0, prev), window.innerHeight - h))
       }
     },
-    [borderGradient, borderWidth]
+    [borderGradient, borderWidth, sidebarWidthPercentage, sidebarPosition]
   )
 
   useEffect(() => {
@@ -210,12 +213,26 @@ export function CameraPage(): React.JSX.Element {
         }
         if (state.borderWidth !== undefined) setBorderWidth(state.borderWidth)
         if (state.language) setLanguage(state.language)
+        if (state.sidebarWidthPercentage !== undefined)
+          setSidebarWidthPercentage(state.sidebarWidthPercentage as number)
+        if (state.sidebarPosition !== undefined) setSidebarPosition(state.sidebarPosition as string)
 
         setInitialized(true)
-        applySize(state.sizeIndex, state.shape)
+        // Note: applySize uses current states, but since it depends on sidebar states,
+        // it might capture old values on first run if we just call it directly.
+        // It's safer to let the useEffect trigger it if needed, or pass them explicitly.
+        // But since we just set states, they won't be applied synchronously.
+        // We will call applySize in a separate effect below.
       })
     }
-  }, [applySize])
+  }, [])
+
+  useEffect(() => {
+    if (initialized) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      applySize(sizeIndex, shape)
+    }
+  }, [initialized, sizeIndex, shape, applySize, sidebarWidthPercentage, sidebarPosition])
 
   if (borderGradient !== currentGradient) {
     setPrevGradient(currentGradient)
@@ -316,6 +333,8 @@ export function CameraPage(): React.JSX.Element {
     setBorderWidth,
     setIsBorderAnimated,
     setLanguage,
+    setSidebarWidthPercentage,
+    setSidebarPosition,
     applySize,
     sizeIndex,
     shape

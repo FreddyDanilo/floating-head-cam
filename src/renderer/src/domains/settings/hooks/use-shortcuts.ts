@@ -24,6 +24,9 @@ export type VisualState = {
   borderGradient: string
   borderWidth: number
   isBorderAnimated: boolean
+  sizeIndex?: number
+  sidebarWidthPercentage?: number
+  sidebarPosition?: string
   recordingFolder: string
   recordingResolution: string
   recordingFps: string
@@ -58,6 +61,9 @@ export function useShortcuts(): UseShortcutsReturn {
     borderGradient: 'none',
     borderWidth: 6,
     isBorderAnimated: false,
+    sizeIndex: 0,
+    sidebarWidthPercentage: 35,
+    sidebarPosition: 'right',
     recordingFolder: '',
     recordingResolution: '1080p',
     recordingFps: '60',
@@ -83,6 +89,9 @@ export function useShortcuts(): UseShortcutsReturn {
         borderGradient: data.borderGradient || 'none',
         borderWidth: data.borderWidth ?? 4,
         isBorderAnimated: data.isBorderAnimated || false,
+        sizeIndex: data.sizeIndex ?? 0,
+        sidebarWidthPercentage: data.sidebarWidthPercentage ?? 35,
+        sidebarPosition: data.sidebarPosition || 'right',
         recordingFolder: typeof data.recordingFolder === 'string' ? data.recordingFolder : '',
         recordingResolution: data.recordingResolution || '1080p',
         recordingFps: data.recordingFps || '60',
@@ -110,6 +119,9 @@ export function useShortcuts(): UseShortcutsReturn {
           borderGradient: payload.state.borderGradient || 'none',
           borderWidth: payload.state.borderWidth ?? 4,
           isBorderAnimated: payload.state.isBorderAnimated || false,
+          sizeIndex: payload.state.sizeIndex ?? 0,
+          sidebarWidthPercentage: payload.state.sidebarWidthPercentage ?? 35,
+          sidebarPosition: payload.state.sidebarPosition || 'right',
           recordingFolder:
             typeof payload.state.recordingFolder === 'string' ? payload.state.recordingFolder : '',
           recordingResolution: payload.state.recordingResolution || '1080p',

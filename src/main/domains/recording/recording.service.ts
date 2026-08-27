@@ -140,7 +140,10 @@ export function setupRecordingIPC(): void {
       ]
 
       if (isH264) {
-        outputOptions.push('-bsf:v', 'h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1')
+        outputOptions.push(
+          '-bsf:v',
+          'h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1'
+        )
       } else {
         outputOptions.push(
           '-pix_fmt yuv420p',

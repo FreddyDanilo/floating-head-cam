@@ -18,11 +18,13 @@ function makeHandlers(): TrayEventHandlers {
     setRounding: vi.fn(),
     setAlwaysOnTop: vi.fn(),
     setPowerOn: vi.fn(),
+    setLanguage: vi.fn(),
+    setSidebarWidthPercentage: vi.fn(),
+    setSidebarPosition: vi.fn(),
     applySize: vi.fn(),
     setBorderGradient: vi.fn(),
     setBorderWidth: vi.fn(),
     setIsBorderAnimated: vi.fn(),
-    setLanguage: vi.fn(),
     sizeIndex: 0,
     shape: 'circle'
   }

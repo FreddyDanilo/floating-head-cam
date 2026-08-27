@@ -2,7 +2,7 @@ import { is } from '@electron-toolkit/utils'
 import { app, BrowserWindow, screen, shell } from 'electron'
 import { join } from 'path'
 import winIcon from '../../../../build/icon.ico?asset'
-import icon from '../../../../resources/icon.png?asset' 
+import icon from '../../../../resources/icon.png?asset'
 import { t } from '../../../shared/i18n'
 import { getIsCameraOn } from '../camera/camera.service'
 import { currentState, saveSettings } from '../settings/settings.service'
@@ -119,7 +119,8 @@ export function getCameraDimensions(): { width: number; height: number } {
     const display =
       displays.find((d) => d.id.toString() === currentState.cameraScreenId) ??
       screen.getPrimaryDisplay()
-    return { width: Math.round(display.bounds.width * 0.25), height: display.bounds.height }
+    const pct = (currentState.sidebarWidthPercentage as number) ?? 25
+    return { width: Math.round(display.bounds.width * (pct / 100)), height: display.bounds.height }
   }
 
   const size = SIZES[sizeIndex] || 300
