@@ -91,7 +91,7 @@ app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 app.commandLine.appendSwitch('force-color-profile', 'srgb')
 if (process.platform === 'win32') {
-  app.disableHardwareAcceleration()
+  // app.disableHardwareAcceleration() // Disabled for performance with Cam Link
 }
 app.whenReady().then(() => {
   const loginSettings = app.getLoginItemSettings()

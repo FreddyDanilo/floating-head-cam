@@ -83,8 +83,6 @@ export function CameraPage(): React.JSX.Element {
   const currentDragPos = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
   const isAnimating = useRef(false)
-  const mousePos = useRef({ x: 0, y: 0 })
-  const lastHoverState = useRef(false)
   const cameraRect = useRef({ x: 0, y: 0, w: 0, h: 0 })
 
   useEffect(() => {
@@ -92,40 +90,7 @@ export function CameraPage(): React.JSX.Element {
   }, [cameraX, cameraY, cameraWidth, cameraHeight])
 
   useEffect(() => {
-    if (isLinux) return
-
-    const handleGlobalMouseMove = (e: MouseEvent): void => {
-      mousePos.current = { x: e.clientX, y: e.clientY }
-    }
-    window.addEventListener('mousemove', handleGlobalMouseMove)
-
-    const interval = setInterval(() => {
-      if (isAnimating.current || isDragging.current) return
-
-      const rect = cameraRect.current
-      const pos = mousePos.current
-
-      if (rect.w === 0) return
-
-      const isOverCamera =
-        pos.x >= rect.x && pos.x <= rect.x + rect.w && pos.y >= rect.y && pos.y <= rect.y + rect.h
-
-      if (isOverCamera !== lastHoverState.current) {
-        lastHoverState.current = isOverCamera
-        if (window.electron) {
-          if (isOverCamera) {
-            window.electron.ipcRenderer.send('set-ignore-mouse-events', false)
-          } else {
-            window.electron.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true })
-          }
-        }
-      }
-    }, 50)
-
-    return () => {
-      window.removeEventListener('mousemove', handleGlobalMouseMove)
-      clearInterval(interval)
-    }
+    // Polling of mouse events removed in favor of onMouseEnter/onMouseLeave for better performance
   }, [])
 
   const applySize = useCallback(
@@ -481,12 +446,7 @@ export function CameraPage(): React.JSX.Element {
           pointerEvents: 'auto',
           padding: sizeIndex === 4 || borderGradient === 'none' ? '0px' : `${borderWidth}px`,
           borderRadius: computedRadius,
-          WebkitMaskImage:
-            sizeIndex === 4
-              ? 'none'
-              : shape === 'circle'
-                ? '-webkit-radial-gradient(white, black)'
-                : 'none',
+          overflow: 'hidden',
           boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
@@ -559,6 +519,16 @@ export function CameraPage(): React.JSX.Element {
         ref={containerRef}
         className="app-container"
         onMouseDown={handleMouseDown}
+        onMouseEnter={() => {
+          if (!isLinux && window.electron && !isDragging.current && !isAnimating.current) {
+            window.electron.ipcRenderer.send('set-ignore-mouse-events', false)
+          }
+        }}
+        onMouseLeave={() => {
+          if (!isLinux && window.electron && !isDragging.current && !isAnimating.current) {
+            window.electron.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true })
+          }
+        }}
         style={{
           position: 'absolute',
           left: `${cameraX}px`,
@@ -568,12 +538,7 @@ export function CameraPage(): React.JSX.Element {
           pointerEvents: 'auto',
           padding: sizeIndex === 4 || borderGradient === 'none' ? '0px' : `${borderWidth}px`,
           borderRadius: computedRadius,
-          WebkitMaskImage:
-            sizeIndex === 4
-              ? 'none'
-              : shape === 'circle'
-                ? '-webkit-radial-gradient(white, black)'
-                : 'none',
+          overflow: 'hidden',
           boxSizing: 'border-box',
           display: 'flex',
           alignItems: 'center',
