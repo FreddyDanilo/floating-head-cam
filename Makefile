@@ -1,51 +1,66 @@
-# Floating Head Cam - Makefile
-# Compatível com Linux/macOS e Windows (Git Bash, MSYS2, MinGW ou WSL)
+# Makefile cross-platform (CMD, PowerShell, Linux, macOS)
 
-SHELL := /bin/sh
-PM ?= npm
+PM = npm
+
+# ANSI colors
+C_RESET  = \033[0m
+C_BOLD   = \033[1m
+C_CYAN   = \033[36m
+C_GREEN  = \033[32m
+C_YELLOW = \033[33m
+C_GRAY   = \033[90m
 
 .PHONY: help install reinstall dev start build build-unpack \
-	lint format typecheck typecheck-node typecheck-web \
-	test test-watch test-coverage \
-	build-win build-mac build-linux \
-	release release-prepare release-linux \
-	clean doctor
+        lint format typecheck typecheck-node typecheck-web \
+        test test-watch test-coverage \
+        build-win build-mac build-linux \
+        release release-prepare release-linux \
+        clean doctor
 
 help:
-	@echo ""
-	@echo "Floating Head Cam - comandos disponíveis"
-	@echo ""
-	@echo "  make install         Instala dependências"
-	@echo "  make reinstall       Reinstala deps do zero"
-	@echo "  make dev             Ambiente de desenvolvimento (electron-vite dev)"
-	@echo "  make start           Preview da app (electron-vite preview)"
-	@echo "  make build           Typecheck + build"
-	@echo "  make build-unpack    Build em modo unpacked"
-	@echo ""
-	@echo "  make lint            ESLint"
-	@echo "  make format          Prettier --write ."
-	@echo "  make typecheck       Typecheck completo"
-	@echo "  make test            Testes (vitest run)"
-	@echo "  make test-watch      Testes em watch"
-	@echo "  make test-coverage   Testes com cobertura"
-	@echo ""
-	@echo "  make build-win       Empacota para Windows x64"
-	@echo "  make build-mac       Empacota para macOS arm64"
-	@echo "  make build-linux     Empacota para Linux x64"
-	@echo ""
-	@echo "  make release         Release multi-plataforma"
-	@echo "  make release-prepare Prepara release notes/versionamento"
-	@echo "  make release-linux   Release Linux"
-	@echo ""
-	@echo "  make clean           Remove artefatos temporários"
-	@echo "  make doctor          Mostra versões do ambiente"
-	@echo ""
+	@printf "$(C_BOLD)$(C_CYAN)Floating Head Cam - comandos disponiveis$(C_RESET)\n\n"
+	@printf "$(C_BOLD)Uso:$(C_RESET) $(C_GREEN)make <comando>$(C_RESET)\n\n"
+
+	@printf "$(C_BOLD)Setup$(C_RESET)\n"
+	@printf "  $(C_GREEN)make help$(C_RESET)             $(C_GRAY)-> Mostra esta ajuda com todos os comandos$(C_RESET)\n"
+	@printf "  $(C_GREEN)make install$(C_RESET)          $(C_GRAY)-> Instala as dependencias do projeto (npm install)$(C_RESET)\n"
+	@printf "  $(C_GREEN)make reinstall$(C_RESET)        $(C_GRAY)-> Remove artefatos/dependencias e reinstala tudo do zero$(C_RESET)\n\n"
+
+	@printf "$(C_BOLD)Desenvolvimento$(C_RESET)\n"
+	@printf "  $(C_GREEN)make dev$(C_RESET)              $(C_GRAY)-> Inicia o ambiente de desenvolvimento (electron-vite dev)$(C_RESET)\n"
+	@printf "  $(C_GREEN)make start$(C_RESET)            $(C_GRAY)-> Executa preview da app (electron-vite preview)$(C_RESET)\n"
+	@printf "  $(C_GREEN)make build$(C_RESET)            $(C_GRAY)-> Executa typecheck e build de producao$(C_RESET)\n"
+	@printf "  $(C_GREEN)make build-unpack$(C_RESET)     $(C_GRAY)-> Gera build unpacked (diretorio sem instalador)$(C_RESET)\n\n"
+
+	@printf "$(C_BOLD)Qualidade$(C_RESET)\n"
+	@printf "  $(C_GREEN)make lint$(C_RESET)             $(C_GRAY)-> Executa analise de codigo com ESLint$(C_RESET)\n"
+	@printf "  $(C_GREEN)make format$(C_RESET)           $(C_GRAY)-> Formata o codigo com Prettier$(C_RESET)\n"
+	@printf "  $(C_GREEN)make typecheck$(C_RESET)        $(C_GRAY)-> Executa verificacao de tipos (node + web)$(C_RESET)\n"
+	@printf "  $(C_GREEN)make typecheck-node$(C_RESET)   $(C_GRAY)-> Executa verificacao de tipos apenas do Node$(C_RESET)\n"
+	@printf "  $(C_GREEN)make typecheck-web$(C_RESET)    $(C_GRAY)-> Executa verificacao de tipos apenas do frontend/web$(C_RESET)\n"
+	@printf "  $(C_GREEN)make test$(C_RESET)             $(C_GRAY)-> Executa testes uma vez (vitest run)$(C_RESET)\n"
+	@printf "  $(C_GREEN)make test-watch$(C_RESET)       $(C_GRAY)-> Executa testes em modo observacao (watch)$(C_RESET)\n"
+	@printf "  $(C_GREEN)make test-coverage$(C_RESET)    $(C_GRAY)-> Executa testes com relatorio de cobertura$(C_RESET)\n\n"
+
+	@printf "$(C_BOLD)Empacotamento$(C_RESET)\n"
+	@printf "  $(C_GREEN)make build-win$(C_RESET)        $(C_GRAY)-> Gera pacote/build para Windows x64$(C_RESET)\n"
+	@printf "  $(C_GREEN)make build-mac$(C_RESET)        $(C_GRAY)-> Gera pacote/build para macOS arm64$(C_RESET)\n"
+	@printf "  $(C_GREEN)make build-linux$(C_RESET)      $(C_GRAY)-> Gera pacote/build para Linux x64$(C_RESET)\n\n"
+
+	@printf "$(C_BOLD)Release$(C_RESET)\n"
+	@printf "  $(C_GREEN)make release-prepare$(C_RESET)  $(C_GRAY)-> Prepara release (scripts de versao/notas)$(C_RESET)\n"
+	@printf "  $(C_GREEN)make release$(C_RESET)          $(C_GRAY)-> Executa pipeline de release completa$(C_RESET)\n"
+	@printf "  $(C_GREEN)make release-linux$(C_RESET)    $(C_GRAY)-> Executa release apenas para Linux$(C_RESET)\n\n"
+
+	@printf "$(C_BOLD)Manutencao$(C_RESET)\n"
+	@printf "  $(C_GREEN)make clean$(C_RESET)            $(C_GRAY)-> Remove pastas temporarias/artefatos de build$(C_RESET)\n"
+	@printf "  $(C_GREEN)make doctor$(C_RESET)           $(C_GRAY)-> Mostra diagnostico do ambiente (Node, npm, SO, arquitetura)$(C_RESET)\n"
 
 install:
 	$(PM) install
 
 reinstall:
-	rm -rf node_modules dist out
+	node -e "const fs=require('fs');['node_modules','dist','out','coverage','.turbo','node_modules/.cache'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}));console.log('pastas removidas')"
 	$(PM) install
 
 dev:
@@ -93,19 +108,18 @@ build-mac:
 build-linux:
 	$(PM) run build:linux
 
-release:
-	$(PM) run release
-
 release-prepare:
 	$(PM) run release:prepare
+
+release:
+	$(PM) run release
 
 release-linux:
 	$(PM) run release:linux
 
 clean:
-	rm -rf dist out node_modules/.cache .turbo coverage
+	node -e "const fs=require('fs');['dist','out','coverage','.turbo','node_modules/.cache'].forEach(p=>fs.rmSync(p,{recursive:true,force:true}));console.log('clean ok')"
 
 doctor:
-	@echo "Node: $$(node -v)"
-	@echo "npm:  $$($(PM) -v)"
-	@echo "OS:   $$(uname -s 2>/dev/null || echo Windows)"
+	node -e "const os=require('os');console.log('Node:',process.version);console.log('Platform:',process.platform);console.log('Release:',os.release());console.log('Arch:',process.arch)"
+	$(PM) -v
