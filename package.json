@@ -26,8 +26,7 @@
     "release": "npm run release:prepare && npm run build && electron-builder -wlm --publish always",
     "release:win": "npm run release:prepare && npm run build && electron-builder --win --x64 --publish always",
     "release:mac": "npm run release:prepare && npm run build && electron-builder --mac --arm64 --publish always",
-    "release:linux": "npm run release:prepare && npm run build && electron-builder --linux --publish always",
-    "setup:make": "node scripts/setup-make.mjs"
+    "release:linux": "npm run release:prepare && npm run build && electron-builder --linux --publish always"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -35,8 +34,7 @@
     "electron-updater": "^6.8.9",
     "ffmpeg-static": "^5.3.0",
     "fluent-ffmpeg": "^2.1.3",
-    "lucide-react": "latest",
-    "usehooks-ts": "^3.1.1"
+    "lucide-react": "^1.37.0"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
