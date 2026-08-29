@@ -32,17 +32,70 @@ Feito para criadores de conteúdo que não têm domínio de programas de ediçã
 
 ### Para Desenvolvedores
 
+### Para Desenvolvedores
+
 Queres dar uma olhada no código ou contribuir? O projeto é feito com **Electron, React e TypeScript**.
 
+## O que é um Makefile?
+
+Um **Makefile** é um ficheiro de automação que define comandos curtos (targets) para tarefas repetitivas do projeto, como instalar dependências, executar em desenvolvimento, validar código, testar e gerar builds.
+
+Neste projeto (Electron + Vite + TypeScript), o Makefile ajuda a padronizar o fluxo entre Windows, Linux e macOS.
+
+## Vantagens de usar Makefile
+
+- **Rapidez**: comandos curtos para tarefas frequentes.
+- **Padronização**: toda a equipa usa os mesmos comandos.
+- **Menos erros**: reduz comandos longos digitados manualmente.
+- **Produtividade**: facilita onboarding e rotina diária.
+
+---
+
+## Instalar/verificar `make` em qualquer sistema (Windows/Linux/macOS)
+
+Este projeto inclui um script único cross-platform em Node.js:
+
 ```bash
-# Instale as dependências
-npm install
+npm run setup:make
+```
 
-# Rode em ambiente de desenvolvimento
-npm run dev
+O script:
 
-# Gere os executáveis
-npm run build:mac   # Para Mac
-npm run build:win   # Para Windows
-npm run build:linux # Para Linux
+1. procura o comando `make`;
+2. informa se já está instalado;
+3. se não estiver, pergunta ao utilizador pelo nome (via variável de ambiente do sistema);
+4. tenta instalar automaticamente conforme o sistema operativo.
+
+---
+
+## Comandos base do Makefile
+
+```bash
+make help
+make install
+make dev
+make start
+make build
+make lint
+make format
+make typecheck
+make test
+make clean
+make doctor
+```
+
+### Comandos de build por plataforma
+
+```bash
+make build-win
+make build-mac
+make build-linux
+```
+
+### Comandos de release
+
+```bash
+make release-prepare
+make release
+make release-linux
 ```
