@@ -32,8 +32,6 @@ Feito para criadores de conteúdo que não têm domínio de programas de ediçã
 
 ### Para Desenvolvedores
 
-### Para Desenvolvedores
-
 Queres dar uma olhada no código ou contribuir? O projeto é feito com **Electron, React e TypeScript**.
 
 ## O que é um Makefile?
