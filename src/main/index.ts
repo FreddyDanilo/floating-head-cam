@@ -1,4 +1,4 @@
-cimport { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import {
   app,
   BrowserWindow,
