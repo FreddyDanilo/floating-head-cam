@@ -40,6 +40,31 @@ import {
 } from './domains/window/window.service'
 import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
 
+// -------------------------------------------------------
+// Safe GPU/Wayland fallback (Linux only, before app ready)
+// -------------------------------------------------------
+const isLinux = process.platform === 'linux'
+const isWayland = (process.env.XDG_SESSION_TYPE || '').toLowerCase() === 'wayland'
+const forceSafeGpu = process.env.FHC_SAFE_GPU === '1'
+
+const disabledFeatures = ['AudioServiceOutOfProcess']
+
+if (isLinux && (isWayland || forceSafeGpu)) {
+  app.disableHardwareAcceleration()
+  app.commandLine.appendSwitch('ozone-platform', 'x11')
+  app.commandLine.appendSwitch('disable-gpu')
+  app.commandLine.appendSwitch('disable-gpu-compositing')
+  disabledFeatures.push('VaapiVideoDecoder', 'VaapiVideoEncoder')
+}
+
+app.commandLine.appendSwitch('disable-features', disabledFeatures.join(','))
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
+app.commandLine.appendSwitch('force-color-profile', 'srgb')
+
+if (process.platform === 'win32') {
+  // app.disableHardwareAcceleration() // Disabled for performance with Cam Link
+}
+
 const windowCallbacks = {
   onFocus: (win: BrowserWindow) => {
     registerGlobalShortcuts(win)
@@ -87,12 +112,6 @@ async function startRecordingFlow(): Promise<void> {
   }
 }
 
-app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
-app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-app.commandLine.appendSwitch('force-color-profile', 'srgb')
-if (process.platform === 'win32') {
-  // app.disableHardwareAcceleration() // Disabled for performance with Cam Link
-}
 app.whenReady().then(() => {
   const loginSettings = app.getLoginItemSettings()
   if (loginSettings.wasOpenedAtLogin) {
@@ -100,13 +119,16 @@ app.whenReady().then(() => {
   } else {
     setIsCameraOn(true)
   }
+
   loadSettings()
   currentState.isRecording = false
   saveSettings()
+
   if (process.platform === 'darwin') {
     app.dock?.hide()
     app.setLoginItemSettings({ openAtLogin: false, openAsHidden: false })
   }
+
   session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) =>
     callback(true)
   )
@@ -153,7 +175,9 @@ app.whenReady().then(() => {
       }
     })
   })
+
   electronApp.setAppUserModelId('com.electron')
+
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
@@ -169,23 +193,28 @@ app.whenReady().then(() => {
       }
     })
   })
+
   initTray()
   buildTrayMenu(currentState)
+
   if (shortcuts.toggleCamera) {
     globalShortcut.register(shortcuts.toggleCamera, () => toggleCamera(currentState))
   }
   if (shortcuts.startRecording) {
     globalShortcut.register(shortcuts.startRecording, () => startRecordingFlow())
   }
+
   autoUpdater.on('update-downloaded', () => {
     setUpdateReady(true)
     buildTrayMenu(currentState)
   })
+
   if (app.isPackaged && (process.platform !== 'linux' || process.env.APPIMAGE)) {
     autoUpdater.checkForUpdates().catch((err: unknown) => {
       console.warn('Auto-update check failed:', err instanceof Error ? err.message : err)
     })
   }
+
   const allowedSyncTrayKeys = new Set([
     'devices',
     'selectedDeviceId',
@@ -204,6 +233,7 @@ app.whenReady().then(() => {
     'sidebarWidthPercentage',
     'sidebarPosition'
   ])
+
   ipcMain.on('sync-tray', (_, state) => {
     for (const key of Object.keys(state)) {
       if (allowedSyncTrayKeys.has(key)) {
@@ -212,6 +242,7 @@ app.whenReady().then(() => {
     }
     saveSettings()
     buildTrayMenu(currentState)
+
     const sw = getSettingsWindow()
     if (sw && state.language) {
       sw.setTitle(t('tray.preferences', state.language).replace('...', ''))
@@ -236,11 +267,13 @@ app.whenReady().then(() => {
     'sidebarWidthPercentage',
     'sidebarPosition'
   ])
+
   ipcMain.on('update-setting', (_, { key, value }) => {
     if (!allowedSettingKeys.has(key)) return
     currentState[key] = value
     saveSettings()
     buildTrayMenu(currentState)
+
     BrowserWindow.getAllWindows().forEach((win) => {
       win.webContents.send('sync-setting', { key, value })
 
@@ -265,6 +298,7 @@ app.whenReady().then(() => {
       moveCameraToScreen(value as string)
     }
   })
+
   ipcMain.handle('choose-recording-folder', async () => {
     const result = await dialog.showOpenDialog(getSettingsWindow() as BrowserWindow, {
       title: t('settings.recordingFolder', currentState.language || 'en'),
@@ -281,6 +315,7 @@ app.whenReady().then(() => {
   ipcMain.on('set-window-position', (_, pos) => {
     setWindowPosition(pos)
   })
+
   function setRecordingState(isRecording: boolean): void {
     currentState.isRecording = isRecording
     saveSettings()
@@ -291,7 +326,6 @@ app.whenReady().then(() => {
   }
 
   ipcMain.on('recording-started', () => setRecordingState(true))
-
   ipcMain.on('recording-stopped', () => setRecordingState(false))
 
   ipcMain.on('recording-permission-denied', (_, payload) => {
@@ -310,6 +344,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))
   ipcMain.handle('get-shortcuts', () => shortcuts)
+
   ipcMain.handle('check-media-permission', async (_, mediaType: 'camera' | 'microphone') => {
     if (process.platform === 'darwin') {
       const status = systemPreferences.getMediaAccessStatus(mediaType)
@@ -377,6 +412,7 @@ app.whenReady().then(() => {
     shortcuts[key] = value
     saveSettings()
     buildTrayMenu(currentState)
+
     const sw = getSettingsWindow()
     const floatingHead = BrowserWindow.getAllWindows().find((w) => w !== sw)
     if (floatingHead) {
@@ -392,6 +428,7 @@ app.whenReady().then(() => {
       }
     }
   })
+
   ipcMain.on('reset-settings', (_, tab) => {
     resetToDefaults(tab)
     saveSettings()
@@ -400,6 +437,7 @@ app.whenReady().then(() => {
       win.webContents.send('settings-reset', { shortcuts, state: currentState })
     })
   })
+
   ipcMain.on('close-window', () => app.quit())
   ipcMain.on('resize-window', (_, sizeObj) => {
     resizeWindow(sizeObj)
@@ -436,6 +474,7 @@ app.whenReady().then(() => {
     }
   })
 })
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
