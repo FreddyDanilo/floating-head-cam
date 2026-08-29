@@ -24,7 +24,8 @@
     "build:unpack": "npm run build && dotenv -e .env -- electron-builder --dir",
     "build:win": "npm run build && dotenv -e .env -- electron-builder --win --x64",
     "build:mac": "npm run build && dotenv -e .env -- electron-builder --mac --arm64",
-    "build:linux": "npm run build && electron-builder --linux --x64"
+    "build:linux": "npm run build && electron-builder --linux --x64",
+    "setup:make": "node scripts/setup-make.mjs"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
