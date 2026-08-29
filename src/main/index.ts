@@ -41,22 +41,13 @@ import {
 import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
 
 // -------------------------------------------------------
-// Safe GPU/Wayland fallback (Linux only, before app ready)
+// SAFE MODE GLOBAL (simples e estável)
 // -------------------------------------------------------
-const isLinux = process.platform === 'linux'
-const isWayland = (process.env.XDG_SESSION_TYPE || '').toLowerCase() === 'wayland'
-const forceSafeGpu = process.env.FHC_SAFE_GPU === '1'
+const disabledFeatures = ['AudioServiceOutOfProcess', 'VaapiVideoDecoder', 'VaapiVideoEncoder']
 
-const disabledFeatures = ['AudioServiceOutOfProcess']
-
-if (isLinux && (isWayland || forceSafeGpu)) {
-  app.disableHardwareAcceleration()
-  app.commandLine.appendSwitch('ozone-platform', 'x11')
-  app.commandLine.appendSwitch('disable-gpu')
-  app.commandLine.appendSwitch('disable-gpu-compositing')
-  disabledFeatures.push('VaapiVideoDecoder', 'VaapiVideoEncoder')
-}
-
+app.disableHardwareAcceleration()
+app.commandLine.appendSwitch('disable-gpu')
+app.commandLine.appendSwitch('disable-gpu-compositing')
 app.commandLine.appendSwitch('disable-features', disabledFeatures.join(','))
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 app.commandLine.appendSwitch('force-color-profile', 'srgb')
@@ -461,9 +452,12 @@ app.whenReady().then(() => {
     moveCameraWindow(x, y)
   })
 
-  ipcMain.on('resize-camera-window', (_, width: number, height: number, x?: number, y?: number) => {
-    resizeCameraWindow(width, height, x, y)
-  })
+  ipcMain.on(
+    'resize-camera-window',
+    (_, width: number, height: number, x?: number, y?: number) => {
+      resizeCameraWindow(width, height, x, y)
+    }
+  )
 
   createWindow(windowCallbacks)
   createRecordingWorker()
