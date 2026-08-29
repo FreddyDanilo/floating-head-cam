@@ -38,7 +38,7 @@ Queres dar uma olhada no código ou contribuir? O projeto é feito com **Electro
 
 Um **Makefile** é um ficheiro de automação que define comandos curtos (targets) para tarefas repetitivas do projeto, como instalar dependências, executar em desenvolvimento, validar código, testar e gerar builds.
 
-Neste projeto (Electron + Vite + TypeScript), o Makefile ajuda a padronizar o fluxo entre Windows, Linux e macOS.
+Neste projeto, o Makefile foi pensado para funcionar em **Windows (CMD/PowerShell)**, **Linux** e **macOS**.
 
 ## Vantagens de usar Makefile
 
@@ -71,18 +71,24 @@ O script:
 ```bash
 make help
 make install
+make reinstall
 make dev
 make start
 make build
+make build-unpack
 make lint
 make format
 make typecheck
+make typecheck-node
+make typecheck-web
 make test
+make test-watch
+make test-coverage
 make clean
 make doctor
 ```
 
-### Comandos de build por plataforma
+### Builds por plataforma
 
 ```bash
 make build-win
@@ -90,7 +96,7 @@ make build-mac
 make build-linux
 ```
 
-### Comandos de release
+### Releases
 
 ```bash
 make release-prepare
