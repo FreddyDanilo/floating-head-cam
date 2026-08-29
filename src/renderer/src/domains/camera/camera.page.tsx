@@ -520,12 +520,12 @@ export function CameraPage(): React.JSX.Element {
         className="app-container"
         onMouseDown={handleMouseDown}
         onMouseEnter={() => {
-          if (!isLinux && window.electron && !isDragging.current && !isAnimating.current) {
+          if (!isLinux && window.electron && !isDragging.current) {
             window.electron.ipcRenderer.send('set-ignore-mouse-events', false)
           }
         }}
         onMouseLeave={() => {
-          if (!isLinux && window.electron && !isDragging.current && !isAnimating.current) {
+          if (!isLinux && window.electron && !isDragging.current) {
             window.electron.ipcRenderer.send('set-ignore-mouse-events', true, { forward: true })
           }
         }}

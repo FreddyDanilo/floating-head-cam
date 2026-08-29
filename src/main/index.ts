@@ -89,10 +89,8 @@ async function startRecordingFlow(): Promise<void> {
 
 app.commandLine.appendSwitch('disable-features', 'AudioServiceOutOfProcess')
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
-app.commandLine.appendSwitch('force-color-profile', 'srgb')
-if (process.platform === 'win32') {
-  // app.disableHardwareAcceleration() // Disabled for performance with Cam Link
-}
+app.commandLine.appendSwitch('disable-color-correct-rendering')
+
 app.whenReady().then(() => {
   const loginSettings = app.getLoginItemSettings()
   if (loginSettings.wasOpenedAtLogin) {
