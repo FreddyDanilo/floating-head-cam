@@ -33,9 +33,10 @@ describe('useCameraStream', () => {
     expect(mockGetUserMedia).toHaveBeenCalledWith({
       video: {
         deviceId: { exact: 'cam1' },
-        width: { ideal: 1920 },
-        height: { ideal: 1080 },
-        aspectRatio: { ideal: 16 / 9 }
+        width: { ideal: 1920, max: 1920 },
+        height: { ideal: 1080, max: 1080 },
+        aspectRatio: { ideal: 16 / 9 },
+        frameRate: { ideal: 30, max: 60 }
       },
       audio: false
     })
