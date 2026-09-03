@@ -6,6 +6,7 @@ import { useTrayEvents } from './hooks/use-tray-events'
 import { PermissionErrorOverlay } from './components/permission-error-overlay'
 import { ScreenPermissionErrorOverlay } from './components/screen-permission-error-overlay'
 import { MicPermissionErrorOverlay } from './components/mic-permission-error-overlay'
+import { RecordingErrorOverlay } from './components/recording-error-overlay'
 
 const SIZES = [300, 450, 600]
 
@@ -61,6 +62,7 @@ export function CameraPage(): React.JSX.Element {
 
   const [screenPermissionDenied, setScreenPermissionDenied] = useState(false)
   const [micPermissionDenied, setMicPermissionDenied] = useState(false)
+  const [recordingError, setRecordingError] = useState<{ code: string } | null>(null)
 
   const { videoRef, permissionError: streamError } = useCameraStream(
     selectedDeviceId,
@@ -375,6 +377,23 @@ export function CameraPage(): React.JSX.Element {
   }, [cameraX, cameraY, cameraWidth, cameraHeight, applySize, sizeIndex, shape])
 
   useEffect(() => {
+    const ipc = window.electron?.ipcRenderer
+    if (!ipc) return
+    const handleRecordingError = (_e: unknown, payload: { code: string }): void => {
+      setRecordingError({ code: payload.code })
+    }
+    const handleRecordingStarted = (): void => {
+      setRecordingError(null)
+    }
+    ipc.on('recording-error', handleRecordingError)
+    ipc.on('recording-started', handleRecordingStarted)
+    return () => {
+      ipc.removeAllListeners('recording-error')
+      ipc.removeAllListeners('recording-started')
+    }
+  }, [])
+
+  useEffect(() => {
     if (window.electron && initialized) {
       window.electron.ipcRenderer.send('sync-tray', {
         devices: devices.map((d) => ({ deviceId: d.deviceId, label: d.label })),
@@ -509,6 +528,13 @@ export function CameraPage(): React.JSX.Element {
         {micPermissionDenied && !hasPermissionError && !screenPermissionDenied && (
           <MicPermissionErrorOverlay language={language} />
         )}
+        {recordingError && !hasPermissionError && !screenPermissionDenied && !micPermissionDenied && (
+          <RecordingErrorOverlay
+            code={recordingError.code}
+            language={language}
+            onDismiss={() => setRecordingError(null)}
+          />
+        )}
       </div>
     )
   }
@@ -601,6 +627,13 @@ export function CameraPage(): React.JSX.Element {
         )}
         {micPermissionDenied && !hasPermissionError && !screenPermissionDenied && (
           <MicPermissionErrorOverlay language={language} />
+        )}
+        {recordingError && !hasPermissionError && !screenPermissionDenied && !micPermissionDenied && (
+          <RecordingErrorOverlay
+            code={recordingError.code}
+            language={language}
+            onDismiss={() => setRecordingError(null)}
+          />
         )}
       </div>
     </div>

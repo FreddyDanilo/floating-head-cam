@@ -14,6 +14,27 @@ if (ffmpegPath) {
   ffmpeg.setFfmpegPath(ffmpegPath)
 }
 
+type FfmpegErrorCode = 'disk-full' | 'codec-unavailable' | 'permission-denied' | 'unknown'
+
+function classifyFfmpegError(stderr: string): FfmpegErrorCode {
+  const s = (stderr ?? '').toLowerCase()
+  if (s.includes('no space left') || s.includes('not enough space') || s.includes('enospc')) {
+    return 'disk-full'
+  }
+  if (
+    s.includes('unknown encoder') ||
+    s.includes('encoder not found') ||
+    s.includes('codec not found') ||
+    s.includes('no such encoder')
+  ) {
+    return 'codec-unavailable'
+  }
+  if (s.includes('permission denied') || s.includes('access denied') || s.includes('eperm')) {
+    return 'permission-denied'
+  }
+  return 'unknown'
+}
+
 export function getRecordingTargetFolder(): string {
   const fallback = app.getPath('videos')
   try {
@@ -75,6 +96,14 @@ const RESOLUTION_BITRATES: Record<string, number> = {
 }
 
 export function setupRecordingIPC(): void {
+  app.on('before-quit', (event) => {
+    if (recordingStream && !recordingStream.writableEnded) {
+      event.preventDefault()
+      isAborted = true
+      recordingStream.end()
+    }
+  })
+
   app.on('web-contents-created', (_event, contents) => {
     const maybeAbort = (): void => abortIfOrphaned(contents.id)
     contents.on('destroyed', maybeAbort)
@@ -118,6 +147,7 @@ export function setupRecordingIPC(): void {
       }
       const fileName = `Recording-${new Date().toISOString().replace(/:/g, '-')}.mov`
       const filePath = path.join(videosFolder, fileName)
+      const tempPath = filePath + '.tmp'
 
       const isMac = process.platform === 'darwin'
       const resolvedEncoder = encoder || (isMac ? 'h264_videotoolbox' : 'libx264')
@@ -167,22 +197,34 @@ export function setupRecordingIPC(): void {
         .outputOptions(outputOptions)
         .audioCodec('aac')
         .audioBitrate('192k')
-        .output(filePath)
+        .output(tempPath)
         .on('end', () => {
           const wasAborted = isAborted
+          try {
+            fs.renameSync(tempPath, filePath)
+          } catch (renameErr) {
+            console.error('Failed to rename temp recording file:', renameErr)
+          }
           if (currentResolve) currentResolve({ success: true, filePath })
           cleanup()
           if (wasAborted) onRecordingAborted?.()
         })
         .on('error', (err, _stdout, stderr) => {
           console.error('FFmpeg encoding error:', err, stderr)
+          const code = classifyFfmpegError(stderr ?? '')
+          try {
+            if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath)
+          } catch {}
           const wasAborted = isAborted
           if (currentReject) currentReject(err)
           cleanup()
           if (wasAborted) {
             onRecordingAborted?.()
           } else {
-            BrowserWindow.getAllWindows().forEach((w) => w.webContents.send('stop-recording'))
+            BrowserWindow.getAllWindows().forEach((w) => {
+              w.webContents.send('stop-recording')
+              w.webContents.send('recording-error', { code, message: err.message })
+            })
           }
         })
 

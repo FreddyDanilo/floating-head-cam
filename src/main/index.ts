@@ -73,7 +73,7 @@ async function startRecordingFlow(): Promise<void> {
   isRecordingFlowInFlight = true
   try {
     if (!currentState.isRecording) {
-      await showCountdown()
+      await showCountdown(currentState.recordingScreenId as string | undefined)
     }
     const worker = getRecordingWorker()
     if (worker && worker.webContents) {
