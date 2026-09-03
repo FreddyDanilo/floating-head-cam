@@ -206,14 +206,7 @@ export function useScreenRecorder(): {
         audioContextRef.current = audioCtx
         const dest = audioCtx.createMediaStreamDestination()
 
-        const keepAliveOsc = audioCtx.createOscillator()
-        const keepAliveGain = audioCtx.createGain()
-        keepAliveGain.gain.value = 0
-        keepAliveOsc.connect(keepAliveGain)
-        keepAliveGain.connect(dest)
-        keepAliveOsc.start()
-
-        audioNodesRef.current = [dest, keepAliveOsc, keepAliveGain]
+        audioNodesRef.current = [dest]
 
         function safeGain(value: unknown, fallback: number): number {
           const n = Number(value)
@@ -273,15 +266,13 @@ export function useScreenRecorder(): {
 
         const mediaRecorder = new MediaRecorder(mixedStream, {
           mimeType,
-          videoBitsPerSecond: RESOLUTION_BITRATES[resolution] ?? 8000000
+          videoBitsPerSecond: RESOLUTION_BITRATES[resolution] ?? 8000000,
+          audioBitsPerSecond: 192000
         })
-
-        let chunkPromiseChain = Promise.resolve()
 
         mediaRecorder.ondataavailable = (e) => {
           if (e.data.size > 0) {
-            chunkPromiseChain = chunkPromiseChain.then(async () => {
-              const buffer = await e.data.arrayBuffer()
+            e.data.arrayBuffer().then((buffer) => {
               ipc.send('recording-chunk', buffer)
             })
           }
@@ -297,7 +288,6 @@ export function useScreenRecorder(): {
             audioContextRef.current = null
           }
           audioNodesRef.current = []
-          await chunkPromiseChain
           ipc.send('recording-stopped')
           try {
             await ipc.invoke('recording-stop')
@@ -317,7 +307,7 @@ export function useScreenRecorder(): {
         if (!started) {
           throw new Error('Recording could not start (destination folder unavailable?)')
         }
-        mediaRecorder.start(2000)
+        mediaRecorder.start(250)
         mediaRecorderRef.current = mediaRecorder
 
         ipc.send('recording-started')

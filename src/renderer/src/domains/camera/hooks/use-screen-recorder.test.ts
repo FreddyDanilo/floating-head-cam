@@ -36,10 +36,6 @@ describe('useScreenRecorder', () => {
           gain: { value: 1 },
           connect: vi.fn().mockReturnValue({ connect: vi.fn() })
         })
-        createOscillator = vi.fn().mockReturnValue({
-          connect: vi.fn().mockReturnValue({ connect: vi.fn() }),
-          start: vi.fn()
-        })
         state = 'running'
         resume = vi.fn().mockResolvedValue(undefined)
         destination = {}
