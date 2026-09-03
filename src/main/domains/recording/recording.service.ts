@@ -118,13 +118,11 @@ export function setupRecordingIPC(): void {
       {
         encoder,
         resolution,
-        fps,
         systemAudioVolume,
         microphoneAudioVolume
       }: {
         encoder?: string
         resolution?: string
-        fps?: string
         systemAudioVolume?: number
         microphoneAudioVolume?: number
       } = {}
@@ -151,20 +149,17 @@ export function setupRecordingIPC(): void {
 
       const isMac = process.platform === 'darwin'
       const resolvedEncoder = encoder || (isMac ? 'h264_videotoolbox' : 'libx264')
-      const targetFps = parseInt(fps || '60', 10) || 60
       const dims = RESOLUTION_DIMENSIONS[resolution || '1080p'] ?? RESOLUTION_DIMENSIONS['1080p']
       const targetBitrate = RESOLUTION_BITRATES[resolution || '1080p'] ?? 8000
 
       const vf = `scale=${dims.width}:${dims.height}:force_original_aspect_ratio=decrease:flags=bilinear:out_color_matrix=bt709:out_range=tv,pad=ceil(iw/2)*2:ceil(ih/2)*2`
-
-      void systemAudioVolume
-      void microphoneAudioVolume
 
       const outputOptions = [
         '-map 0:v:0',
         '-map 0:a:0?',
         '-ar 48000',
         '-ac 2',
+        '-f mov',
         '-movflags +faststart',
         '-pix_fmt yuv420p',
         '-color_primaries bt709',
@@ -212,9 +207,7 @@ export function setupRecordingIPC(): void {
         .on('error', (err, _stdout, stderr) => {
           console.error('FFmpeg encoding error:', err, stderr)
           const code = classifyFfmpegError(stderr ?? '')
-          try {
-            if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath)
-          } catch {}
+          fs.rmSync(tempPath, { force: true })
           const wasAborted = isAborted
           if (currentReject) currentReject(err)
           cleanup()
@@ -223,7 +216,11 @@ export function setupRecordingIPC(): void {
           } else {
             BrowserWindow.getAllWindows().forEach((w) => {
               w.webContents.send('stop-recording')
-              w.webContents.send('recording-error', { code, message: err.message })
+              w.webContents.send('recording-error', {
+                code,
+                message: err.message,
+                stderr: stderr ?? ''
+              })
             })
           }
         })

@@ -47,4 +47,3 @@ export function showCountdown(recordingScreenId?: string): Promise<void> {
     }, 3000)
   })
 }
-

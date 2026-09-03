@@ -17,9 +17,11 @@ vi.mock('electron', () => ({
     on: vi.fn().mockImplementation((channel: string, handler: (...args: unknown[]) => unknown) => {
       ipcListeners[channel] = handler
     }),
-    handle: vi.fn().mockImplementation((channel: string, handler: (...args: unknown[]) => unknown) => {
-      ipcHandlers[channel] = handler
-    })
+    handle: vi
+      .fn()
+      .mockImplementation((channel: string, handler: (...args: unknown[]) => unknown) => {
+        ipcHandlers[channel] = handler
+      })
   },
   dialog: {
     showSaveDialog: vi.fn().mockResolvedValue({ canceled: false, filePath: 'test-recording.mp4' })

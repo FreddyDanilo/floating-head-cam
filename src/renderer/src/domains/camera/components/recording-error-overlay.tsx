@@ -56,10 +56,14 @@ const styles = {
 export function RecordingErrorOverlay({
   code,
   language = 'en',
+  message,
+  stderr,
   onDismiss
 }: {
   code: string
   language?: string
+  message?: string
+  stderr?: string
   onDismiss: () => void
 }): ReactElement {
   const lang = (language === 'pt' ? 'pt' : 'en') as 'en' | 'pt'
@@ -72,6 +76,23 @@ export function RecordingErrorOverlay({
       </div>
       <h2 style={styles.title}>{t('recording.error.title', lang)}</h2>
       <p style={styles.message}>{t(messageKey, lang)}</p>
+      {(message || stderr) && (
+        <pre
+          style={{
+            fontSize: '10px',
+            color: 'rgba(255,255,255,0.4)',
+            maxWidth: '300px',
+            overflowX: 'auto',
+            textAlign: 'left',
+            marginBottom: '16px',
+            whiteSpace: 'pre-wrap',
+            wordBreak: 'break-all'
+          }}
+        >
+          {message}
+          {stderr ? `\n---\n${stderr}` : ''}
+        </pre>
+      )}
       <button
         onClick={onDismiss}
         style={styles.dismissButton}

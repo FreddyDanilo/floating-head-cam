@@ -174,7 +174,8 @@ const translations: Translations = {
 
     'recording.error.title': 'Recording Failed',
     'recording.error.disk-full': 'Not enough disk space to save the recording.',
-    'recording.error.codec-unavailable': 'The selected video encoder is not available on this system.',
+    'recording.error.codec-unavailable':
+      'The selected video encoder is not available on this system.',
     'recording.error.permission-denied': 'Permission denied writing to the recording folder.',
     'recording.error.unknown': 'An unexpected error occurred while encoding the video.',
     'recording.error.dismiss': 'Dismiss'
@@ -356,7 +357,8 @@ const translations: Translations = {
 
     'recording.error.title': 'Falha na Gravação',
     'recording.error.disk-full': 'Espaço em disco insuficiente para salvar a gravação.',
-    'recording.error.codec-unavailable': 'O codificador de vídeo selecionado não está disponível neste sistema.',
+    'recording.error.codec-unavailable':
+      'O codificador de vídeo selecionado não está disponível neste sistema.',
     'recording.error.permission-denied': 'Permissão negada para escrever na pasta de gravação.',
     'recording.error.unknown': 'Ocorreu um erro inesperado ao codificar o vídeo.',
     'recording.error.dismiss': 'Fechar'
