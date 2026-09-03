@@ -127,7 +127,7 @@ export function useScreenRecorder(): {
         const parsedFps = parseInt(fps, 10) || 30
         desktopStream = await navigator.mediaDevices.getDisplayMedia({
           video: {
-            frameRate: { ideal: parsedFps },
+            frameRate: { ideal: parsedFps, max: parsedFps },
             displaySurface: 'monitor'
           } as MediaTrackConstraints,
           audio: {

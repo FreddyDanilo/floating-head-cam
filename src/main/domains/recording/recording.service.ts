@@ -104,7 +104,7 @@ export function setupRecordingIPC(): void {
         console.warn('recording-start ignored: a recording is already in progress')
         return false
       }
-      recordingStream = new PassThrough()
+      recordingStream = new PassThrough({ highWaterMark: 8 * 1024 * 1024 })
       recordingOwnerContentsId = event.sender.id
       isAborted = false
 
@@ -125,52 +125,41 @@ export function setupRecordingIPC(): void {
       const dims = RESOLUTION_DIMENSIONS[resolution || '1080p'] ?? RESOLUTION_DIMENSIONS['1080p']
       const targetBitrate = RESOLUTION_BITRATES[resolution || '1080p'] ?? 8000
 
-      const vf = `scale=${dims.width}:${dims.height}:force_original_aspect_ratio=decrease:flags=lanczos+accurate_rnd+full_chroma_int:out_color_matrix=bt709:out_range=tv,pad=ceil(iw/2)*2:ceil(ih/2)*2,fps=fps=${targetFps}`
+      const vf = `scale=${dims.width}:${dims.height}:force_original_aspect_ratio=decrease:flags=bilinear:out_color_matrix=bt709:out_range=tv,pad=ceil(iw/2)*2:ceil(ih/2)*2`
 
       void systemAudioVolume
       void microphoneAudioVolume
 
-      const isH264 = resolvedEncoder.includes('264') || resolvedEncoder.includes('avc')
       const outputOptions = [
         '-map 0:v:0',
         '-map 0:a:0?',
         '-ar 48000',
         '-ac 2',
-        '-movflags +faststart'
+        '-movflags +faststart',
+        '-pix_fmt yuv420p',
+        '-color_primaries bt709',
+        '-color_trc bt709',
+        '-colorspace bt709',
+        '-color_range tv',
+        `-vf ${vf}`,
+        `-b:v ${targetBitrate}k`,
+        '-maxrate:v ' + Math.round(targetBitrate * 1.5) + 'k',
+        '-bufsize:v ' + Math.round(targetBitrate * 2) + 'k'
       ]
 
-      if (isH264) {
-        outputOptions.push(
-          '-bsf:v',
-          'h264_metadata=colour_primaries=1:transfer_characteristics=1:matrix_coefficients=1'
-        )
-      } else {
-        outputOptions.push(
-          '-pix_fmt yuv420p',
-          '-color_primaries bt709',
-          '-color_trc bt709',
-          '-colorspace bt709',
-          '-color_range tv',
-          `-vf ${vf}`,
-          `-b:v ${targetBitrate}k`,
-          '-maxrate:v ' + Math.round(targetBitrate * 1.5) + 'k',
-          '-bufsize:v ' + Math.round(targetBitrate * 2) + 'k'
-        )
-
-        if (resolvedEncoder === 'libx264') {
-          outputOptions.push('-preset ultrafast', '-tune zerolatency')
-        } else if (resolvedEncoder === 'h264_videotoolbox') {
-          outputOptions.push('-allow_sw 1', '-realtime 1')
-        } else if (resolvedEncoder === 'h264_nvenc') {
-          outputOptions.push('-preset p1', '-tune ll')
-        } else if (resolvedEncoder === 'h264_qsv') {
-          outputOptions.push('-preset veryfast')
-        } else if (resolvedEncoder === 'h264_amf') {
-          outputOptions.push('-quality speed')
-        }
+      if (resolvedEncoder === 'libx264') {
+        outputOptions.push('-preset ultrafast', '-tune zerolatency')
+      } else if (resolvedEncoder === 'h264_videotoolbox') {
+        outputOptions.push('-allow_sw 1', '-realtime 1')
+      } else if (resolvedEncoder === 'h264_nvenc') {
+        outputOptions.push('-preset p1', '-tune ll')
+      } else if (resolvedEncoder === 'h264_qsv') {
+        outputOptions.push('-preset veryfast')
+      } else if (resolvedEncoder === 'h264_amf') {
+        outputOptions.push('-quality speed')
       }
 
-      const finalVideoCodec = isH264 ? 'copy' : resolvedEncoder
+      const finalVideoCodec = resolvedEncoder
 
       ffmpegProcess = ffmpeg(recordingStream)
         .inputFormat('webm')
