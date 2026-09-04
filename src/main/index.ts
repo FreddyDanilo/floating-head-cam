@@ -89,6 +89,7 @@ async function startRecordingFlow(): Promise<void> {
 
 app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 app.commandLine.appendSwitch('disable-color-correct-rendering')
+app.commandLine.appendSwitch('disable-renderer-backgrounding')
 
 app.whenReady().then(() => {
   const loginSettings = app.getLoginItemSettings()

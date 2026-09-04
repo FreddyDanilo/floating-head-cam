@@ -198,6 +198,7 @@ export function createWindow(callbacks: WindowCallbacks): void {
         preload: join(__dirname, '../preload/index.js'),
         sandbox: false,
         autoplayPolicy: 'no-user-gesture-required',
+        backgroundThrottling: false,
         devTools: false
       }
     })
@@ -254,6 +255,7 @@ export function createWindow(callbacks: WindowCallbacks): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
       autoplayPolicy: 'no-user-gesture-required',
+      backgroundThrottling: false,
       devTools: false
     }
   })
