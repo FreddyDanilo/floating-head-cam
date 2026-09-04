@@ -117,9 +117,7 @@ export function setupRecordingIPC(): void {
       event,
       {
         encoder,
-        resolution,
-        systemAudioVolume,
-        microphoneAudioVolume
+        resolution
       }: {
         encoder?: string
         resolution?: string

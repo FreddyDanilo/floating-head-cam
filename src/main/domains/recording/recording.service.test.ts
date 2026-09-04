@@ -68,6 +68,7 @@ vi.mock('fs', () => ({
     existsSync: vi.fn().mockReturnValue(false),
     unlinkSync: vi.fn(),
     renameSync: vi.fn(),
+    rmSync: vi.fn(),
     constants: { W_OK: 2 }
   }
 }))
@@ -146,7 +147,8 @@ describe('recording.service', () => {
     expect(mockSend).toHaveBeenCalledWith('stop-recording')
     expect(mockSend).toHaveBeenCalledWith('recording-error', {
       code: 'codec-unavailable',
-      message: 'encoding failed'
+      message: 'encoding failed',
+      stderr: 'unknown encoder libx264'
     })
   })
 
@@ -159,7 +161,8 @@ describe('recording.service', () => {
 
     expect(mockSend).toHaveBeenCalledWith('recording-error', {
       code: 'disk-full',
-      message: 'write error'
+      message: 'write error',
+      stderr: 'no space left on device'
     })
   })
 
