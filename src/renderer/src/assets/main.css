@@ -101,6 +101,11 @@ html[data-platform='darwin'] .settings-header {
   padding: 48px 0 16px 0;
 }
 
+html[data-platform='win32'] .settings-header,
+html[data-platform='linux'] .settings-header {
+  padding: 48px 0 16px 0;
+}
+
 html[data-platform='win32'] .settings-header {
   padding-right: 160px;
 }
@@ -719,6 +724,24 @@ html[data-platform='win32'] .settings-header {
   border-color: #0a84ff;
 }
 
+.settings-select--inline {
+  width: auto;
+  padding: 6px 32px 6px 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.settings-select--inline:hover {
+  border-color: transparent;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.settings-select--inline:focus {
+  border-color: transparent;
+  outline: none;
+}
+
 .settings-folder-row {
   display: flex;
   align-items: center;
@@ -756,4 +779,63 @@ html[data-platform='win32'] .settings-header {
 
 .settings-folder-actions .option-pill {
   flex: none;
+}
+
+.lang-dropdown {
+  position: relative;
+  -webkit-app-region: no-drag;
+}
+
+.lang-dropdown__trigger {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lang-dropdown__trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lang-dropdown__menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #1c1c1e;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 4px;
+  min-width: 120px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  z-index: 200;
+}
+
+.lang-dropdown__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.lang-dropdown__item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.lang-dropdown__item--active {
+  color: #0a84ff;
 }

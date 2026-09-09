@@ -225,6 +225,7 @@ export function CameraPage(): React.JSX.Element {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      if (e.button !== 0) return
       isDragging.current = true
       if (containerRef.current) {
         containerRef.current.style.transition = 'none'

@@ -7,6 +7,7 @@ import { saveSettings, shortcuts, currentState, DeviceInfo } from '../settings/s
 import {
   createSettingsWindow,
   getSettingsWindow,
+  getCameraWindow,
   moveCameraToScreen,
   setWindowPosition
 } from '../window/window.service'
@@ -29,27 +30,32 @@ export function setUpdateReady(value: boolean): void {
 }
 
 export function initTray(): void {
-  const trayIcon = nativeImage.createFromPath(icon).resize({ width: 16, height: 16 })
-  tray = new Tray(trayIcon)
-  tray.setToolTip('Floating Head Cam')
+  try {
+    const trayIcon = nativeImage.createFromPath(icon).resize({ width: 16, height: 16 })
+    tray = new Tray(trayIcon)
+    tray.setToolTip('Floating Head Cam')
+  } catch (err) {
+    console.warn(
+      'System tray unavailable (Linux/XFCE?). Use Ctrl+Shift+C or right-click on camera to access settings.',
+      err
+    )
+    tray = null
+  }
 }
 
 export function toggleCamera(state: TrayState): void {
   const newState = !getIsCameraOn()
   setIsCameraOn(newState)
-  const sw = getSettingsWindow()
-  BrowserWindow.getAllWindows().forEach((win) => {
-    if (win !== sw) {
-      if (newState) {
-        win.show()
-      } else {
-        setTimeout(() => {
-          if (!getIsCameraOn()) win.hide()
-        }, 300)
-      }
-      win.webContents.send('power-state', newState)
+  const cameraWin = getCameraWindow()
+  if (cameraWin && !cameraWin.isDestroyed()) {
+    if (newState) {
+      cameraWin.show()
+      cameraWin.focus()
+    } else {
+      cameraWin.hide()
     }
-  })
+    cameraWin.webContents.send('power-state', newState)
+  }
   buildTrayMenu(state)
 }
 

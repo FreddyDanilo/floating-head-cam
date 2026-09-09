@@ -15,7 +15,7 @@ import {
   TriangleAlert,
   FolderOpen
 } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { GRADIENTS, GradientKey } from '../../../../shared/colors'
 import { t } from '../../../../shared/i18n'
 import { useShortcuts, VisualState } from './hooks/use-shortcuts'
@@ -426,12 +426,26 @@ export function SettingsPage(): React.JSX.Element {
     resetSettings,
     formatMacShortcut,
     language,
+    setAppLanguage,
     visualState,
     updateVisualState
   } = useShortcuts()
   const [activeTab, setActiveTab] = useState<
     'visuals' | 'positioning' | 'cameraControl' | 'sizing' | 'recording'
   >('visuals')
+
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false)
+  const langDropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent): void => {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(e.target as Node)) {
+        setLangDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const [showGradientEditor, setShowGradientEditor] = useState(false)
   const [gradColor1, setGradColor1] = useState('#ff6b6b')
@@ -560,6 +574,36 @@ export function SettingsPage(): React.JSX.Element {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Clapperboard size={28} className="settings-icon" />
             <h1>{t('settings.title', language)}</h1>
+          </div>
+          <div className="lang-dropdown" ref={langDropdownRef}>
+            <button
+              className="lang-dropdown__trigger"
+              onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+            >
+              {language === 'en' ? 'English' : 'Português'}
+            </button>
+            {langDropdownOpen && (
+              <div className="lang-dropdown__menu">
+                <button
+                  className={`lang-dropdown__item ${language === 'en' ? 'lang-dropdown__item--active' : ''}`}
+                  onClick={() => {
+                    setAppLanguage('en')
+                    setLangDropdownOpen(false)
+                  }}
+                >
+                  English
+                </button>
+                <button
+                  className={`lang-dropdown__item ${language === 'pt' ? 'lang-dropdown__item--active' : ''}`}
+                  onClick={() => {
+                    setAppLanguage('pt')
+                    setLangDropdownOpen(false)
+                  }}
+                >
+                  Português
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <p className="settings-description">{t('settings.description', language)}</p>

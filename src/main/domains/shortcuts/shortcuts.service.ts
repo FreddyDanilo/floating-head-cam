@@ -1,6 +1,6 @@
 import { BrowserWindow, globalShortcut } from 'electron'
 import { currentState, shortcuts } from '../settings/settings.service'
-import { setWindowPosition } from '../window/window.service'
+import { setWindowPosition, createSettingsWindow } from '../window/window.service'
 export function registerGlobalShortcuts(win: BrowserWindow): void {
   const register = (key: string, action: () => void): void => {
     if (key) {
@@ -59,6 +59,7 @@ export function registerGlobalShortcuts(win: BrowserWindow): void {
   register(shortcuts.shapeHorizontal, () =>
     win.webContents.send('tray-action', { type: 'set-shape', payload: 'horizontal-rect' })
   )
+  register('CommandOrControl+Shift+C', () => createSettingsWindow())
 }
 export function unregisterGlobalShortcuts(): void {
   const keysToUnregister = Object.entries(shortcuts)

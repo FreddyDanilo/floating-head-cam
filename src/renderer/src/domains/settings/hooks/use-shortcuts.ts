@@ -1,15 +1,29 @@
 import { useEffect, useState } from 'react'
+
+const isMac =
+  typeof navigator !== 'undefined' &&
+  (navigator.platform.toLowerCase().includes('mac') ||
+    navigator.userAgent.toLowerCase().includes('mac'))
+
 export function formatMacShortcut(shortcut: string): string {
   if (!shortcut) return 'Unbound'
-  return shortcut
-    .replace(/CmdOrCtrl/g, '⌘')
-    .replace(/Command/g, '⌘')
-    .replace(/CommandOrControl/g, '⌘')
-    .replace(/Alt/g, '⌥')
-    .replace(/Shift/g, '⇧')
-    .replace(/Control/g, '⌃')
-    .replace(/Ctrl/g, '⌃')
-    .replace(/\+/g, ' ')
+  let result = shortcut
+  if (isMac) {
+    result = result
+      .replace(/CmdOrCtrl/g, '⌘')
+      .replace(/Command/g, '⌘')
+      .replace(/CommandOrControl/g, '⌘')
+      .replace(/Alt/g, '⌥')
+      .replace(/Shift/g, '⇧')
+      .replace(/Control/g, '⌃')
+      .replace(/Ctrl/g, '⌃')
+  } else {
+    result = result
+      .replace(/CmdOrCtrl/g, 'Ctrl')
+      .replace(/Command/g, 'Ctrl')
+      .replace(/CommandOrControl/g, 'Ctrl')
+  }
+  return result.replace(/\+/g, ' ')
 }
 function codeToKey(code: string): string {
   if (code.startsWith('Key')) return code.replace('Key', '')
