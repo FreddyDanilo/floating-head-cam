@@ -10,7 +10,8 @@ vi.mock('fs', () => ({
   default: {
     existsSync: vi.fn(() => false),
     readFileSync: vi.fn(() => '{}'),
-    writeFileSync: vi.fn()
+    writeFileSync: vi.fn(),
+    renameSync: vi.fn()
   }
 }))
 import fs from 'fs'
@@ -54,14 +55,42 @@ describe('settings.service', () => {
       expect(() => loadSettings()).not.toThrow()
       expect(shortcuts.topLeft).toBe(defaultShortcuts.topLeft)
     })
+    it('drops invalid state values instead of corrupting runtime state', async () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true)
+      vi.mocked(fs.readFileSync).mockReturnValue(
+        JSON.stringify({
+          shortcuts: { topLeft: 42 },
+          state: {
+            shape: 'triangle',
+            borderWidth: 'huge',
+            sizeIndex: 99,
+            systemAudioVolume: 5000,
+            recordingResolution: '8k',
+            language: 'fr'
+          }
+        })
+      )
+      const { loadSettings, currentState, defaultState } = await import('./settings.service')
+      loadSettings()
+      expect(currentState.shape).toBe(defaultState.shape)
+      expect(currentState.borderWidth).toBe(defaultState.borderWidth)
+      expect(currentState.sizeIndex).toBe(4)
+      expect(currentState.systemAudioVolume).toBe(100)
+      expect(currentState.recordingResolution).toBe(defaultState.recordingResolution)
+      expect(currentState.language).toBe(defaultState.language)
+    })
   })
   describe('saveSettings', () => {
-    it('writes settings JSON to the correct path', async () => {
+    it('writes settings JSON atomically and renames into place', async () => {
       const { saveSettings } = await import('./settings.service')
       saveSettings()
       expect(fs.writeFileSync).toHaveBeenCalledWith(
-        join('/mock/userData', 'settings.json'),
+        join('/mock/userData', 'settings.json.tmp'),
         expect.stringContaining('"shortcuts"')
+      )
+      expect(fs.renameSync).toHaveBeenCalledWith(
+        join('/mock/userData', 'settings.json.tmp'),
+        join('/mock/userData', 'settings.json')
       )
     })
     it('JSON contains both shortcuts and state', async () => {
