@@ -85,7 +85,7 @@ export function createRecordingWorker(): void {
 }
 export function setWindowPosition(pos: string): void {
   BrowserWindow.getAllWindows().forEach((win) => {
-    if (win !== _settingsWindow && win !== _recordingWorker) {
+    if (win !== _settingsWindow && win !== _recordingWorker && !win.isDestroyed()) {
       win.webContents.send('set-camera-position', pos)
     }
   })

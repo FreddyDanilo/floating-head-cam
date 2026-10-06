@@ -39,6 +39,7 @@ vi.mock('electron', () => ({
         setSimpleFullScreen: mockSetSimpleFullScreen,
         setFullScreen: mockSetFullScreen,
         getNormalBounds: mockGetContentBounds,
+        isDestroyed: vi.fn(() => false),
         webContents: {
           send: mockWebContentsSend
         }
