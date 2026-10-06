@@ -12,10 +12,9 @@
     "jsx": "react-jsx",
     "esModuleInterop": true,
     "noImplicitAny": true,
-    "baseUrl": ".",
     "paths": {
       "@renderer/*": [
-        "src/renderer/src/*"
+        "./src/renderer/src/*"
       ]
     }
   }
