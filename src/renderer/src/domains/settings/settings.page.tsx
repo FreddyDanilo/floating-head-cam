@@ -472,7 +472,18 @@ export function SettingsPage(): React.JSX.Element {
     { val: 100, i18nKey: 'settings.rounding.max' }
   ]
 
-  const sections = [
+  type SectionAction = {
+    key: string
+    label: string
+    icon?: React.ReactNode
+  }
+  type Section = {
+    key: string
+    title: string
+    actions: SectionAction[]
+  }
+
+  const sections: Section[] = [
     {
       key: 'positioning',
       title: t('settings.positioning', language),

@@ -11,6 +11,7 @@
     "composite": true,
     "jsx": "react-jsx",
     "esModuleInterop": true,
+    "noImplicitAny": true,
     "baseUrl": ".",
     "paths": {
       "@renderer/*": [
