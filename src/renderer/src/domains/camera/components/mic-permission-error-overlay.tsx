@@ -134,8 +134,13 @@ export function MicPermissionErrorOverlay({
         </button>
       </div>
 
-      {microphonePermission === 'denied' && (
-        <div style={styles.deniedStatus}>{t('mic.status.denied', lang)}</div>
+      {(microphonePermission === 'denied' || microphonePermission === 'restricted') && (
+        <div style={styles.deniedStatus}>
+          {t(
+            microphonePermission === 'restricted' ? 'mic.status.restricted' : 'mic.status.denied',
+            lang
+          )}
+        </div>
       )}
     </div>
   )

@@ -122,6 +122,7 @@ const translations: Translations = {
     'camera.error.openSettings': 'Open Settings',
     'camera.off': 'Camera Off',
     'camera.status.denied': 'Status: Denied by OS',
+    'camera.status.restricted': 'Status: Blocked by system policy',
 
     'settings.recording': 'Screen Recording [Beta]',
     'settings.recordingScreen': 'Recording Screen',
@@ -161,6 +162,7 @@ const translations: Translations = {
     'mic.error.tryAgain': 'Try Again',
     'mic.error.openSettings': 'Open Settings',
     'mic.status.denied': 'Status: Denied by OS',
+    'mic.status.restricted': 'Status: Blocked by system policy',
 
     'screen.error.title': 'Screen Recording Blocked',
     'screen.error.message': 'The app needs permission to record the screen.',
@@ -171,6 +173,7 @@ const translations: Translations = {
     'screen.error.tryAgain': 'Try Again',
     'screen.error.openSettings': 'Open Settings',
     'screen.status.denied': 'Status: Denied by OS',
+    'screen.status.restricted': 'Status: Blocked by system policy',
 
     'recording.error.title': 'Recording Failed',
     'recording.error.disk-full': 'Not enough disk space to save the recording.',
@@ -302,6 +305,7 @@ const translations: Translations = {
     'camera.error.openSettings': 'Abrir Configurações',
     'camera.off': 'Câmera Desligada',
     'camera.status.denied': 'Status: Negado pelo SO',
+    'camera.status.restricted': 'Status: Bloqueado por política do sistema',
 
     'settings.recording': 'Gravação de Tela [Beta]',
     'settings.recordingScreen': 'Monitor de Gravação',
@@ -343,6 +347,7 @@ const translations: Translations = {
     'mic.error.tryAgain': 'Tentar Novamente',
     'mic.error.openSettings': 'Abrir Configurações',
     'mic.status.denied': 'Status: Negado pelo SO',
+    'mic.status.restricted': 'Status: Bloqueado por política do sistema',
 
     'screen.error.title': 'Gravação de Tela Bloqueada',
     'screen.error.message': 'O aplicativo precisa de permissão para gravar a tela.',
@@ -354,6 +359,7 @@ const translations: Translations = {
     'screen.error.tryAgain': 'Tentar Novamente',
     'screen.error.openSettings': 'Abrir Configurações',
     'screen.status.denied': 'Status: Negado pelo SO',
+    'screen.status.restricted': 'Status: Bloqueado por política do sistema',
 
     'recording.error.title': 'Falha na Gravação',
     'recording.error.disk-full': 'Espaço em disco insuficiente para salvar a gravação.',

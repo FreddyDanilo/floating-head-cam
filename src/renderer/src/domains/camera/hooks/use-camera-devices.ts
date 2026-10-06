@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { isCameraRetryableError } from '../camera-errors'
 
 // A freshly hot-plugged webcam can take a moment to register with Chromium,
 // which may also cache an empty device list until something triggers a rescan.
@@ -57,9 +58,9 @@ export function useCameraDevices(): {
             break
           } catch (err) {
             lastError = err
-            const errName = (err as { name?: string })?.name
-            const isMissing = errName === 'NotFoundError' || errName === 'DevicesNotFoundError'
-            if (!isMissing || !mountedRef.current) break
+            // Retry while the device is still registering or temporarily busy;
+            // a hard permission denial should not be retried in a tight loop.
+            if (!isCameraRetryableError(err) || !mountedRef.current) break
             await sleep(HOTPLUG_RETRY_DELAY_MS)
           }
         }

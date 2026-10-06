@@ -132,8 +132,13 @@ export function ScreenPermissionErrorOverlay({
         </button>
       </div>
 
-      {screenPermission === 'denied' && (
-        <div style={styles.deniedStatus}>{t('screen.status.denied', lang)}</div>
+      {(screenPermission === 'denied' || screenPermission === 'restricted') && (
+        <div style={styles.deniedStatus}>
+          {t(
+            screenPermission === 'restricted' ? 'screen.status.restricted' : 'screen.status.denied',
+            lang
+          )}
+        </div>
       )}
     </div>
   )

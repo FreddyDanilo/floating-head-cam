@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { isCameraBlockingError } from '../camera-errors'
 
 export function useCameraStream(
   selectedDeviceId: string,
@@ -50,8 +51,10 @@ export function useCameraStream(
         }
         setPermissionError(false)
       } catch (err) {
-        const errName = (err as { name?: string })?.name
-        if (errName === 'NotAllowedError' || errName === 'NotFoundError') {
+        // Broaden beyond NotAllowed/NotFound: a camera that is busy, removed
+        // mid-session or blocked by policy should also surface the guidance
+        // overlay instead of a black rectangle.
+        if (isCameraBlockingError(err)) {
           setPermissionError(true)
         }
         console.error('Error starting video stream:', err)

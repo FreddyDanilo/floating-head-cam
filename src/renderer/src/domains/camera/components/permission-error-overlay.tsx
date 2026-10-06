@@ -130,8 +130,13 @@ export function PermissionErrorOverlay({
         </button>
       </div>
 
-      {cameraPermission === 'denied' && (
-        <div style={styles.deniedStatus}>{t('camera.status.denied', lang)}</div>
+      {(cameraPermission === 'denied' || cameraPermission === 'restricted') && (
+        <div style={styles.deniedStatus}>
+          {t(
+            cameraPermission === 'restricted' ? 'camera.status.restricted' : 'camera.status.denied',
+            lang
+          )}
+        </div>
       )}
     </div>
   )

@@ -1,7 +1,28 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 export type PermissionStatus = 'granted' | 'denied' | 'restricted' | 'unknown' | 'not-determined'
 
+function normalizeStatus(value: unknown): PermissionStatus {
+  if (
+    value === 'granted' ||
+    value === 'denied' ||
+    value === 'restricted' ||
+    value === 'not-determined' ||
+    value === 'unknown'
+  ) {
+    return value
+  }
+  return 'unknown'
+}
+
+/**
+ * Tracks the OS permission state for camera, microphone and screen capture.
+ *
+ * `checkPermissions()` performs an *active* check (macOS may show a native
+ * consent prompt) and is meant to be called from a user gesture - e.g. the
+ * "Try Again" button. The initial load only *reads* the current status so
+ * simply rendering an overlay never triggers a permission dialog.
+ */
 export function usePermissions(): {
   cameraPermission: PermissionStatus
   microphonePermission: PermissionStatus
@@ -12,44 +33,40 @@ export function usePermissions(): {
   const [microphonePermission, setMicrophonePermission] = useState<PermissionStatus>('unknown')
   const [screenPermission, setScreenPermission] = useState<PermissionStatus>('unknown')
 
-  const checkPermissions = async (): Promise<void> => {
+  const checkPermissions = useCallback(async (): Promise<void> => {
+    const ipc = window.electron?.ipcRenderer
+    if (!ipc) return
     try {
-      const camStatus = await window.electron.ipcRenderer.invoke('check-media-permission', 'camera')
-      setCameraPermission(camStatus)
-
-      const micStatus = await window.electron.ipcRenderer.invoke(
-        'check-media-permission',
-        'microphone'
-      )
-      setMicrophonePermission(micStatus)
-
-      const screenStatus = await window.electron.ipcRenderer.invoke('check-screen-permission')
-      setScreenPermission(screenStatus)
+      const [camStatus, micStatus, screenStatus] = await Promise.all([
+        ipc.invoke('check-media-permission', 'camera'),
+        ipc.invoke('check-media-permission', 'microphone'),
+        ipc.invoke('check-screen-permission')
+      ])
+      setCameraPermission(normalizeStatus(camStatus))
+      setMicrophonePermission(normalizeStatus(micStatus))
+      setScreenPermission(normalizeStatus(screenStatus))
     } catch (err) {
       console.error('Failed to check permissions via IPC', err)
     }
-  }
+  }, [])
 
   useEffect(() => {
     let cancelled = false
+    const ipc = window.electron?.ipcRenderer
+    if (!ipc) return
     void (async () => {
       try {
-        const camStatus = await window.electron.ipcRenderer.invoke(
-          'check-media-permission',
-          'camera'
-        )
-        if (!cancelled) setCameraPermission(camStatus)
-
-        const micStatus = await window.electron.ipcRenderer.invoke(
-          'check-media-permission',
-          'microphone'
-        )
-        if (!cancelled) setMicrophonePermission(micStatus)
-
-        const screenStatus = await window.electron.ipcRenderer.invoke('check-screen-permission')
-        if (!cancelled) setScreenPermission(screenStatus)
+        const [camStatus, micStatus, screenStatus] = await Promise.all([
+          ipc.invoke('get-media-permission-status', 'camera'),
+          ipc.invoke('get-media-permission-status', 'microphone'),
+          ipc.invoke('get-screen-permission-status')
+        ])
+        if (cancelled) return
+        setCameraPermission(normalizeStatus(camStatus))
+        setMicrophonePermission(normalizeStatus(micStatus))
+        setScreenPermission(normalizeStatus(screenStatus))
       } catch (err) {
-        console.error('Failed to check permissions via IPC', err)
+        console.error('Failed to read permission status via IPC', err)
       }
     })()
     return () => {
