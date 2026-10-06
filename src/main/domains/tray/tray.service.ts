@@ -6,6 +6,7 @@ import { getIsCameraOn, setIsCameraOn } from '../camera/camera.service'
 import { saveSettings, shortcuts, currentState, DeviceInfo } from '../settings/settings.service'
 import {
   createSettingsWindow,
+  getRecordingWorker,
   getSettingsWindow,
   moveCameraToScreen,
   setWindowPosition
@@ -23,9 +24,14 @@ export interface TrayState {
 
 let tray: Tray | null = null
 let _updateReady = false
+let onToggleRecording: (() => void) | null = null
 
 export function setUpdateReady(value: boolean): void {
   _updateReady = value
+}
+
+export function setOnToggleRecording(callback: (() => void) | null): void {
+  onToggleRecording = callback
 }
 
 export function initTray(): void {
@@ -38,17 +44,19 @@ export function toggleCamera(state: TrayState): void {
   const newState = !getIsCameraOn()
   setIsCameraOn(newState)
   const sw = getSettingsWindow()
+  const worker = getRecordingWorker()
   BrowserWindow.getAllWindows().forEach((win) => {
-    if (win !== sw) {
-      if (newState) {
-        win.show()
-      } else {
-        setTimeout(() => {
-          if (!getIsCameraOn()) win.hide()
-        }, 300)
-      }
-      win.webContents.send('power-state', newState)
+    // Never touch the settings window or the hidden recording worker. Showing
+    // the worker here would pop up a blank window to the user.
+    if (win === sw || win === worker || win.isDestroyed()) return
+    if (newState) {
+      win.show()
+    } else {
+      setTimeout(() => {
+        if (!getIsCameraOn() && !win.isDestroyed()) win.hide()
+      }, 300)
     }
+    win.webContents.send('power-state', newState)
   })
   buildTrayMenu(state)
 }
@@ -75,11 +83,11 @@ export function buildTrayMenu(state: TrayState): void {
   tray.setImage(isRecording ? recordingIcon : defaultIcon)
 
   const sw = getSettingsWindow()
+  const worker = getRecordingWorker()
   BrowserWindow.getAllWindows().forEach((win) => {
-    if (win !== sw) {
-      win.setAlwaysOnTop(alwaysOnTop, 'screen-saver')
-      win.setVisibleOnAllWorkspaces(alwaysOnTop, { visibleOnFullScreen: alwaysOnTop })
-    }
+    if (win === sw || win === worker || win.isDestroyed()) return
+    win.setAlwaysOnTop(alwaysOnTop, 'screen-saver')
+    win.setVisibleOnAllWorkspaces(alwaysOnTop, { visibleOnFullScreen: alwaysOnTop })
   })
 
   const lang = state.language || 'en'
@@ -115,7 +123,7 @@ export function buildTrayMenu(state: TrayState): void {
       label: isRecording ? t('tray.stopRecording', lang) : t('tray.startRecording', lang),
       accelerator: shortcuts.startRecording,
       registerAccelerator: false,
-      click: () => app.emit('tray-toggle-recording')
+      click: () => onToggleRecording?.()
     },
     { type: 'separator' },
     { label: t('tray.preferences', lang), click: () => createSettingsWindow() },

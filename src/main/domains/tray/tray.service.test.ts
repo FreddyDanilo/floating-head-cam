@@ -33,7 +33,8 @@ const fakeWin = {
   show: mockShow,
   hide: mockHide,
   setAlwaysOnTop: mockSetAlwaysOnTop,
-  setVisibleOnAllWorkspaces: mockSetVisibleOnAllWorkspaces
+  setVisibleOnAllWorkspaces: mockSetVisibleOnAllWorkspaces,
+  isDestroyed: vi.fn(() => false)
 }
 vi.mock('electron', () => ({
   app: { quit: vi.fn() },
@@ -67,6 +68,7 @@ vi.mock('../camera/camera.service', () => ({
 }))
 vi.mock('../window/window.service', () => ({
   getSettingsWindow: vi.fn(() => null),
+  getRecordingWorker: vi.fn(() => null),
   createSettingsWindow: vi.fn(),
   setWindowPosition: vi.fn(),
   moveCameraToScreen: vi.fn()

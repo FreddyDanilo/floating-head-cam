@@ -7,9 +7,7 @@ import {
   ipcMain,
   screen,
   session,
-  systemPreferences,
-  desktopCapturer,
-  shell
+  desktopCapturer
 } from 'electron'
 import { autoUpdater } from 'electron-updater'
 import { getIsCameraOn, setIsCameraOn } from './domains/camera/camera.service'
@@ -25,7 +23,13 @@ import {
   registerGlobalShortcuts,
   unregisterGlobalShortcuts
 } from './domains/shortcuts/shortcuts.service'
-import { buildTrayMenu, initTray, setUpdateReady, toggleCamera } from './domains/tray/tray.service'
+import {
+  buildTrayMenu,
+  initTray,
+  setOnToggleRecording,
+  setUpdateReady,
+  toggleCamera
+} from './domains/tray/tray.service'
 import { showCountdown } from './domains/recording/countdown.service'
 import {
   createWindow,
@@ -39,6 +43,14 @@ import {
   resizeCameraWindow
 } from './domains/window/window.service'
 import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
+import {
+  getMediaPermissionStatus,
+  isTrustedOrigin,
+  openSystemSettings,
+  readScreenPermissionStatus,
+  requestMediaAccess,
+  requestScreenPermission
+} from './domains/permissions/permissions.service'
 
 const windowCallbacks = {
   onFocus: (win: BrowserWindow) => {
@@ -105,12 +117,25 @@ app.whenReady().then(() => {
     app.dock?.hide()
     app.setLoginItemSettings({ openAtLogin: false, openAsHidden: false })
   }
-  session.defaultSession.setPermissionRequestHandler((_webContents, _permission, callback) =>
-    callback(true)
-  )
-  session.defaultSession.setPermissionCheckHandler(() => true)
+  // Only auto-grant the permissions this app actually uses, and only to our
+  // own renderer. Granting everything to every renderer is needless attack
+  // surface.
+  const ALLOWED_PERMISSIONS = new Set(['media', 'display-capture', 'fullscreen'])
+  session.defaultSession.setPermissionRequestHandler((webContents, permission, callback) => {
+    if (!ALLOWED_PERMISSIONS.has(permission)) return callback(false)
+    callback(isTrustedOrigin(webContents?.getURL() ?? ''))
+  })
+  session.defaultSession.setPermissionCheckHandler((webContents, permission) => {
+    if (!ALLOWED_PERMISSIONS.has(permission)) return false
+    return isTrustedOrigin(webContents?.getURL() ?? '')
+  })
   session.defaultSession.setDisplayMediaRequestHandler(
-    (_request, callback) => {
+    (request, callback) => {
+      if (!isTrustedOrigin(request.securityOrigin)) {
+        console.warn('[main] denied display media request from untrusted origin')
+        callback({})
+        return
+      }
       desktopCapturer
         .getSources({ types: ['screen'] })
         .then((sources) => {
@@ -147,7 +172,11 @@ app.whenReady().then(() => {
     callback({
       responseHeaders: {
         ...details.responseHeaders,
-        'Content-Security-Policy': [scriptSrc]
+        // object-src/base-uri/frame-src are additive hardening; they cannot
+        // conflict with the renderer's own meta CSP.
+        'Content-Security-Policy': [
+          `${scriptSrc}; object-src 'none'; base-uri 'none'; frame-src 'none'; form-action 'none'`
+        ]
       }
     })
   })
@@ -202,20 +231,6 @@ app.whenReady().then(() => {
     'sidebarWidthPercentage',
     'sidebarPosition'
   ])
-  ipcMain.on('sync-tray', (_, state) => {
-    for (const key of Object.keys(state)) {
-      if (allowedSyncTrayKeys.has(key)) {
-        currentState[key] = state[key]
-      }
-    }
-    saveSettings()
-    buildTrayMenu(currentState)
-    const sw = getSettingsWindow()
-    if (sw && state.language) {
-      sw.setTitle(t('tray.preferences', state.language).replace('...', ''))
-    }
-  })
-
   const allowedSettingKeys = new Set([
     'shape',
     'rounding',
@@ -234,33 +249,90 @@ app.whenReady().then(() => {
     'sidebarWidthPercentage',
     'sidebarPosition'
   ])
+
+  const ENUM_VALUES: Record<string, string[]> = {
+    shape: ['circle', 'square', 'vertical-rect', 'horizontal-rect'],
+    language: ['en', 'pt'],
+    sidebarPosition: ['left', 'right'],
+    recordingResolution: ['720p', '1080p', '1440p', '2160p'],
+    recordingFps: ['30', '60']
+  }
+  const BOOLEAN_KEYS = new Set(['isMirrored', 'alwaysOnTop', 'isBorderAnimated'])
+  const NUMBER_RANGES: Record<string, [number, number]> = {
+    borderWidth: [0, 100],
+    sizeIndex: [0, 4],
+    rounding: [0, 9999],
+    sidebarWidthPercentage: [0, 100],
+    systemAudioVolume: [0, 100],
+    microphoneAudioVolume: [0, 100]
+  }
+
+  function sanitizeValue(key: string, value: unknown): unknown {
+    if (ENUM_VALUES[key]) {
+      return typeof value === 'string' && ENUM_VALUES[key].includes(value)
+        ? value
+        : currentState[key]
+    }
+    if (BOOLEAN_KEYS.has(key)) {
+      return typeof value === 'boolean' ? value : Boolean(value)
+    }
+    if (key in NUMBER_RANGES) {
+      const [min, max] = NUMBER_RANGES[key]
+      const n = typeof value === 'number' ? value : Number(value)
+      if (!Number.isFinite(n)) return currentState[key]
+      return Math.round(Math.min(max, Math.max(min, n)))
+    }
+    if (key === 'x' || key === 'y') {
+      const n = typeof value === 'number' ? value : Number(value)
+      return Number.isFinite(n) ? n : undefined
+    }
+    return value
+  }
+
+  ipcMain.on('sync-tray', (_, state) => {
+    if (!state || typeof state !== 'object') return
+    for (const key of Object.keys(state)) {
+      if (allowedSyncTrayKeys.has(key)) {
+        currentState[key] = sanitizeValue(key, state[key])
+      }
+    }
+    saveSettings()
+    buildTrayMenu(currentState)
+    const sw = getSettingsWindow()
+    const lang = sanitizeValue('language', state.language)
+    if (sw && (lang === 'en' || lang === 'pt')) {
+      sw.setTitle(t('tray.preferences', lang as 'en' | 'pt').replace('...', ''))
+    }
+  })
+
   ipcMain.on('update-setting', (_, { key, value }) => {
     if (!allowedSettingKeys.has(key)) return
-    currentState[key] = value
+    const safeValue = sanitizeValue(key, value)
+    currentState[key] = safeValue
     saveSettings()
     buildTrayMenu(currentState)
     BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send('sync-setting', { key, value })
+      win.webContents.send('sync-setting', { key, value: safeValue })
 
       if (key === 'shape') {
-        win.webContents.send('tray-action', { type: 'set-shape', payload: value })
+        win.webContents.send('tray-action', { type: 'set-shape', payload: safeValue })
       } else if (key === 'rounding') {
-        win.webContents.send('tray-action', { type: 'set-rounding', payload: value })
+        win.webContents.send('tray-action', { type: 'set-rounding', payload: safeValue })
       } else if (key === 'borderGradient') {
-        win.webContents.send('tray-action', { type: 'set-border-gradient', payload: value })
+        win.webContents.send('tray-action', { type: 'set-border-gradient', payload: safeValue })
       } else if (key === 'borderWidth') {
-        win.webContents.send('tray-action', { type: 'set-border-width', payload: value })
+        win.webContents.send('tray-action', { type: 'set-border-width', payload: safeValue })
       } else if (key === 'isBorderAnimated') {
-        win.webContents.send('tray-action', { type: 'set-border-animated', payload: value })
+        win.webContents.send('tray-action', { type: 'set-border-animated', payload: safeValue })
       } else if (key === 'sidebarWidthPercentage') {
-        win.webContents.send('tray-action', { type: 'set-sidebar-width', payload: value })
+        win.webContents.send('tray-action', { type: 'set-sidebar-width', payload: safeValue })
       } else if (key === 'sidebarPosition') {
-        win.webContents.send('tray-action', { type: 'set-sidebar-position', payload: value })
+        win.webContents.send('tray-action', { type: 'set-sidebar-position', payload: safeValue })
       }
     })
 
-    if (key === 'cameraScreenId') {
-      moveCameraToScreen(value as string)
+    if (key === 'cameraScreenId' && typeof safeValue === 'string') {
+      moveCameraToScreen(safeValue)
     }
   })
   ipcMain.handle('choose-recording-folder', async () => {
@@ -303,60 +375,54 @@ app.whenReady().then(() => {
 
   setOnRecordingAborted(() => setRecordingState(false))
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(app as any).on('tray-toggle-recording', () => startRecordingFlow())
+  // Renderer-originated recording failures (e.g. MediaRecorder error, missing
+  // capture device) are relayed to the visible windows so the user sees them.
+  ipcMain.on('recording-error-renderer', (_event, payload: unknown) => {
+    setRecordingState(false)
+    const message =
+      payload && typeof payload === 'object' && 'message' in payload
+        ? String((payload as { message: unknown }).message)
+        : 'Recording failed'
+    BrowserWindow.getAllWindows().forEach((w) => {
+      if (w !== getRecordingWorker()) {
+        w.webContents.send('recording-error', { code: 'unknown', message, stderr: '' })
+      }
+    })
+  })
+
+  setOnToggleRecording(() => startRecordingFlow())
 
   ipcMain.handle('get-initial-state', () => ({ ...currentState, isCameraOn: getIsCameraOn() }))
   ipcMain.handle('get-shortcuts', () => shortcuts)
-  ipcMain.handle('check-media-permission', async (_, mediaType: 'camera' | 'microphone') => {
-    if (process.platform === 'darwin') {
-      const status = systemPreferences.getMediaAccessStatus(mediaType)
-      if (status === 'granted') return 'granted'
-      const success = await systemPreferences.askForMediaAccess(mediaType)
-      return success ? 'granted' : 'denied'
+
+  ipcMain.handle(
+    'check-media-permission',
+    async (_, mediaType: 'camera' | 'microphone'): Promise<string> => {
+      if (mediaType !== 'camera' && mediaType !== 'microphone') return 'unknown'
+      return requestMediaAccess(mediaType)
     }
-    return 'granted'
+  )
+
+  // Read-only variants: these never trigger an OS prompt and are safe to call
+  // from passive UI (status badges, overlays).
+  ipcMain.handle('get-media-permission-status', (_, mediaType: 'camera' | 'microphone'): string => {
+    if (mediaType !== 'camera' && mediaType !== 'microphone') return 'unknown'
+    return getMediaPermissionStatus(mediaType)
   })
 
-  ipcMain.handle('check-screen-permission', async () => {
-    if (process.platform === 'darwin') {
-      const status = systemPreferences.getMediaAccessStatus('screen')
-      if (status !== 'granted') {
-        try {
-          await desktopCapturer.getSources({ types: ['screen'] })
-        } catch {
-          return systemPreferences.getMediaAccessStatus('screen')
-        }
-        return systemPreferences.getMediaAccessStatus('screen')
-      }
-      return status
-    }
-    return 'granted'
+  ipcMain.handle('get-screen-permission-status', (): string => readScreenPermissionStatus())
+
+  ipcMain.handle('check-screen-permission', async (): Promise<string> => {
+    return requestScreenPermission()
   })
 
-  ipcMain.handle('open-system-settings', async (_, type: 'camera' | 'microphone' | 'screen') => {
-    try {
-      if (process.platform === 'darwin') {
-        if (type === 'camera')
-          shell.openExternal(
-            'x-apple.systempreferences:com.apple.preference.security?Privacy_Camera'
-          )
-        else if (type === 'microphone')
-          shell.openExternal(
-            'x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone'
-          )
-        else if (type === 'screen')
-          shell.openExternal(
-            'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture'
-          )
-      } else if (process.platform === 'win32') {
-        if (type === 'camera') shell.openExternal('ms-settings:privacy-webcam')
-        else if (type === 'microphone') shell.openExternal('ms-settings:privacy-microphone')
-      }
-    } catch (err) {
-      console.error('[main] failed to open system settings:', err)
+  ipcMain.handle(
+    'open-system-settings',
+    async (_, type: 'camera' | 'microphone' | 'screen'): Promise<boolean> => {
+      if (type !== 'camera' && type !== 'microphone' && type !== 'screen') return false
+      return openSystemSettings(type)
     }
-  })
+  )
 
   ipcMain.handle('get-screen-sources', async () => {
     const sources = await desktopCapturer.getSources({ types: ['screen'] })
@@ -372,6 +438,8 @@ app.whenReady().then(() => {
   })
 
   ipcMain.on('update-shortcut', (_, key, value) => {
+    if (typeof key !== 'string' || !(key in shortcuts)) return
+    if (typeof value !== 'string') return
     shortcuts[key] = value
     saveSettings()
     buildTrayMenu(currentState)
