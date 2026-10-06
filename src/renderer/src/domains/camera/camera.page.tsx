@@ -56,10 +56,6 @@ export function CameraPage(): React.JSX.Element {
   const [isBorderAnimated, setIsBorderAnimated] = useState<boolean>(false)
   const [language, setLanguage] = useState<'en' | 'pt'>('en')
 
-  const [prevGradient, setPrevGradient] = useState<string>('none')
-  const [currentGradient, setCurrentGradient] = useState<string>('none')
-  const [fade, setFade] = useState(false)
-
   const [screenPermissionDenied, setScreenPermissionDenied] = useState(false)
   const [micPermissionDenied, setMicPermissionDenied] = useState(false)
   const [recordingError, setRecordingError] = useState<{
@@ -88,11 +84,19 @@ export function CameraPage(): React.JSX.Element {
   const dragOffset = useRef({ x: 0, y: 0 })
   const currentDragPos = useRef({ x: 0, y: 0 })
   const containerRef = useRef<HTMLDivElement>(null)
-  const isAnimating = useRef(false)
-  const cameraRect = useRef({ x: 0, y: 0, w: 0, h: 0 })
+
+  // Latest geometry kept in refs so the drag listeners below are attached
+  // exactly once instead of being torn down/re-attached on every move.
+  const cameraXRef = useRef(cameraX)
+  const cameraYRef = useRef(cameraY)
+  const cameraWidthRef = useRef(cameraWidth)
+  const cameraHeightRef = useRef(cameraHeight)
 
   useEffect(() => {
-    cameraRect.current = { x: cameraX, y: cameraY, w: cameraWidth, h: cameraHeight }
+    cameraXRef.current = cameraX
+    cameraYRef.current = cameraY
+    cameraWidthRef.current = cameraWidth
+    cameraHeightRef.current = cameraHeight
   }, [cameraX, cameraY, cameraWidth, cameraHeight])
 
   useEffect(() => {
@@ -101,11 +105,6 @@ export function CameraPage(): React.JSX.Element {
 
   const applySize = useCallback(
     (index: number, currentShape: string) => {
-      isAnimating.current = true
-      setTimeout(() => {
-        isAnimating.current = false
-      }, 450)
-
       const sw = getScreenWidth()
       const sh = getScreenHeight()
 
@@ -183,8 +182,6 @@ export function CameraPage(): React.JSX.Element {
 
         if (state.borderGradient) {
           setBorderGradient(state.borderGradient)
-          setPrevGradient(state.borderGradient)
-          setCurrentGradient(state.borderGradient)
         }
         if (state.isBorderAnimated !== undefined) {
           setIsBorderAnimated(state.isBorderAnimated)
@@ -206,22 +203,6 @@ export function CameraPage(): React.JSX.Element {
       applySize(sizeIndex, shape)
     }
   }, [initialized, sizeIndex, shape, applySize, sidebarWidthPercentage, sidebarPosition])
-
-  if (borderGradient !== currentGradient) {
-    setPrevGradient(currentGradient)
-    setCurrentGradient(borderGradient)
-    setFade(true)
-  }
-
-  useEffect(() => {
-    if (!fade) return
-    const raf = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setFade(false)
-      })
-    })
-    return () => cancelAnimationFrame(raf)
-  }, [fade])
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
@@ -245,6 +226,9 @@ export function CameraPage(): React.JSX.Element {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent): void => {
       if (!isDragging.current) return
+
+      const cameraWidth = cameraWidthRef.current
+      const cameraHeight = cameraHeightRef.current
 
       if (isLinux) {
         const newX = e.screenX - dragOffset.current.x
@@ -292,7 +276,7 @@ export function CameraPage(): React.JSX.Element {
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [cameraX, cameraY, cameraWidth, cameraHeight])
+  }, [])
 
   useTrayEvents({
     setSelectedDeviceId,
@@ -483,26 +467,14 @@ export function CameraPage(): React.JSX.Element {
         }}
       >
         <div
+          key={borderGradient}
           style={{
             position: 'absolute',
             inset: 0,
-            background: getGradient(prevGradient, isBorderAnimated),
+            background: getGradient(borderGradient, isBorderAnimated),
             borderRadius: 'inherit',
-            opacity: fade || currentGradient !== 'none' ? 1 : 0,
-            transition: fade ? 'none' : 'opacity 0.4s ease',
-            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
-            zIndex: -2
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: getGradient(currentGradient, isBorderAnimated),
-            borderRadius: 'inherit',
-            opacity: fade ? 0 : 1,
-            transition: fade ? 'none' : 'opacity 0.4s ease',
-            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
+            opacity: borderGradient === 'none' ? 0 : 1,
+            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'borderFade 0.4s ease',
             zIndex: -1
           }}
         />
@@ -588,26 +560,14 @@ export function CameraPage(): React.JSX.Element {
         }}
       >
         <div
+          key={borderGradient}
           style={{
             position: 'absolute',
             inset: 0,
-            background: getGradient(prevGradient, isBorderAnimated),
+            background: getGradient(borderGradient, isBorderAnimated),
             borderRadius: 'inherit',
-            opacity: fade || currentGradient !== 'none' ? 1 : 0,
-            transition: fade ? 'none' : 'opacity 0.4s ease',
-            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
-            zIndex: -2
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            background: getGradient(currentGradient, isBorderAnimated),
-            borderRadius: 'inherit',
-            opacity: fade ? 0 : 1,
-            transition: fade ? 'none' : 'opacity 0.4s ease',
-            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'none',
+            opacity: borderGradient === 'none' ? 0 : 1,
+            animation: isBorderAnimated ? 'spinBorder 20s linear infinite' : 'borderFade 0.4s ease',
             zIndex: -1
           }}
         />
