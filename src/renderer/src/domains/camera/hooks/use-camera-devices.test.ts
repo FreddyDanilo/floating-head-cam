@@ -57,8 +57,8 @@ describe('useCameraDevices', () => {
     error.name = 'NotAllowedError'
     mockGetUserMedia.mockRejectedValue(error)
     const { result } = renderHook(() => useCameraDevices())
-    await vi.waitFor(() => expect(result.current.devices).toEqual([]))
-    await vi.waitFor(() => expect(result.current.permissionError).toBe(true))
+    await waitFor(() => expect(result.current.devices).toEqual([]))
+    await waitFor(() => expect(result.current.permissionError).toBe(true))
   })
   it('setSelectedDeviceId updates device selection', async () => {
     mockGetUserMedia.mockResolvedValue(mockStream)

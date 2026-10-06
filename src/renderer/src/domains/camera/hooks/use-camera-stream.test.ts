@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import { useCameraStream } from './use-camera-stream'
 const mockStop = vi.fn()
 const mockGetTracks = vi.fn(() => [{ stop: mockStop }])
@@ -29,7 +29,7 @@ describe('useCameraStream', () => {
   it('calls getUserMedia with correct deviceId when power is on', async () => {
     mockGetUserMedia.mockResolvedValue({ getTracks: mockGetTracks })
     renderHook(() => useCameraStream('cam1', true))
-    await vi.waitFor(() => expect(mockGetUserMedia).toHaveBeenCalledOnce())
+    await waitFor(() => expect(mockGetUserMedia).toHaveBeenCalledOnce())
     expect(mockGetUserMedia).toHaveBeenCalledWith({
       video: {
         deviceId: { exact: 'cam1' },
@@ -45,7 +45,7 @@ describe('useCameraStream', () => {
     const fakeStream = { getTracks: mockGetTracks }
     mockGetUserMedia.mockResolvedValue(fakeStream)
     const { unmount } = renderHook(() => useCameraStream('cam1', true))
-    await vi.waitFor(() => expect(mockGetUserMedia).toHaveBeenCalled())
+    await waitFor(() => expect(mockGetUserMedia).toHaveBeenCalled())
     unmount()
   })
   it('handles getUserMedia error without crashing and sets permissionError', async () => {
@@ -53,7 +53,7 @@ describe('useCameraStream', () => {
     error.name = 'NotAllowedError'
     mockGetUserMedia.mockRejectedValue(error)
     const { result } = renderHook(() => useCameraStream('cam1', true))
-    await vi.waitFor(() => expect(mockGetUserMedia).toHaveBeenCalled())
-    await vi.waitFor(() => expect(result.current.permissionError).toBe(true))
+    await waitFor(() => expect(mockGetUserMedia).toHaveBeenCalled())
+    await waitFor(() => expect(result.current.permissionError).toBe(true))
   })
 })
