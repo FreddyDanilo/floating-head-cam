@@ -84,7 +84,12 @@ export function useScreenRecorder(): {
 
   const stopRecording = useCallback(() => {
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop()
+      try {
+        mediaRecorderRef.current.stop()
+      } catch (err) {
+        console.error('Failed to stop MediaRecorder:', err)
+        mediaRecorderRef.current = null
+      }
     }
   }, [])
 
@@ -105,24 +110,42 @@ export function useScreenRecorder(): {
       let desktopStream: MediaStream | null = null
       let micStream: MediaStream | null = null
       let systemAudioStream: MediaStream | null = null
+      const ipc = window.electron?.ipcRenderer
+
+      const reportError = (message: string): void => {
+        if (ipc) {
+          ipc.send('recording-error-renderer', { message })
+        }
+      }
 
       try {
-        const ipc = window.electron?.ipcRenderer
         if (!ipc) throw new Error('No IPC found')
 
-        const permission = await ipc.invoke('check-screen-permission')
-        if (permission !== 'granted') {
+        // Screen permission handling differs per OS:
+        // - macOS: 'denied'/'restricted' is a hard block; 'not-determined' means
+        //   the OS prompt has not been answered yet, so we let getDisplayMedia
+        //   trigger it instead of showing a misleading "blocked" overlay.
+        // - Windows/Linux: always 'granted'; the source picker handles consent.
+        const screenPermission = await ipc.invoke('check-screen-permission')
+        const screenBlocked = screenPermission === 'denied' || screenPermission === 'restricted'
+        if (screenBlocked) {
           setScreenPermissionDenied(true)
           throw new Error('Screen permission denied')
         }
         setScreenPermissionDenied(false)
 
-        const micPermission = await ipc.invoke('check-media-permission', 'microphone')
-        if (micPermission !== 'granted') {
-          setMicPermissionDenied(true)
-          throw new Error('Microphone permission denied')
+        // Microphone is optional. A denied/blocked mic must not abort the whole
+        // recording: we fall back to capturing system audio + video only.
+        let micAllowed = true
+        try {
+          const micPermission = await ipc.invoke('check-media-permission', 'microphone')
+          micAllowed = micPermission !== 'denied' && micPermission !== 'restricted'
+          setMicPermissionDenied(!micAllowed)
+        } catch (micCheckErr) {
+          console.warn('Mic permission check failed; assuming allowed:', micCheckErr)
+          micAllowed = true
+          setMicPermissionDenied(false)
         }
-        setMicPermissionDenied(false)
 
         const parsedFps = parseInt(fps, 10) || 30
         desktopStream = await navigator.mediaDevices.getDisplayMedia({
@@ -156,27 +179,29 @@ export function useScreenRecorder(): {
 
         const useExactDevice = selectedMicrophoneId && selectedMicrophoneId !== 'default'
 
-        try {
-          micStream = await navigator.mediaDevices.getUserMedia({
-            video: false,
-            audio: useExactDevice
-              ? { ...micConstraintsBase, deviceId: { exact: selectedMicrophoneId } }
-              : micConstraintsBase
-          })
-        } catch (micErr) {
-          if (useExactDevice) {
-            try {
-              micStream = await navigator.mediaDevices.getUserMedia({
-                video: false,
-                audio: micConstraintsBase
-              })
-            } catch (retryErr) {
-              console.warn('Microphone unavailable after retry, recording without mic:', retryErr)
+        if (micAllowed) {
+          try {
+            micStream = await navigator.mediaDevices.getUserMedia({
+              video: false,
+              audio: useExactDevice
+                ? { ...micConstraintsBase, deviceId: { exact: selectedMicrophoneId } }
+                : micConstraintsBase
+            })
+          } catch (micErr) {
+            if (useExactDevice) {
+              try {
+                micStream = await navigator.mediaDevices.getUserMedia({
+                  video: false,
+                  audio: micConstraintsBase
+                })
+              } catch (retryErr) {
+                console.warn('Microphone unavailable after retry, recording without mic:', retryErr)
+                micStream = null
+              }
+            } else {
+              console.warn('Microphone unavailable, recording without mic:', micErr)
               micStream = null
             }
-          } else {
-            console.warn('Microphone unavailable, recording without mic:', micErr)
-            micStream = null
           }
         }
 
@@ -196,11 +221,21 @@ export function useScreenRecorder(): {
             await Promise.race([
               audioCtx.resume(),
               new Promise<void>((_, reject) =>
-                setTimeout(() => reject(new Error('AudioContext resume timeout')), 3000)
+                setTimeout(() => reject(new Error('AudioContext resume timeout')), 5000)
               )
             ])
           } catch (resumeErr) {
             console.warn('AudioContext resume failed or timed out:', resumeErr)
+          }
+        }
+        if (audioCtx.state !== 'running') {
+          console.warn(
+            `AudioContext is "${audioCtx.state}"; recorded audio may be silent. Retrying resume.`
+          )
+          try {
+            await audioCtx.resume()
+          } catch (err) {
+            console.warn('Final AudioContext resume attempt failed:', err)
           }
         }
         audioContextRef.current = audioCtx
@@ -270,60 +305,104 @@ export function useScreenRecorder(): {
           audioBitsPerSecond: 192000
         })
 
-        mediaRecorder.ondataavailable = (e) => {
-          if (e.data.size > 0) {
-            e.data.arrayBuffer().then((buffer) => {
-              ipc.send('recording-chunk', buffer)
-            })
-          }
-        }
-
-        mediaRecorder.onstop = async () => {
+        let finalized = false
+        const finalizeRecording = async (): Promise<void> => {
+          if (finalized) return
+          finalized = true
           desktopStream?.getTracks().forEach((track) => track.stop())
           micStream?.getTracks().forEach((track) => track.stop())
           systemAudioStream?.getTracks().forEach((track) => track.stop())
           mixedStream.getTracks().forEach((track) => track.stop())
           if (audioContextRef.current) {
-            audioContextRef.current.close()
+            const ctx = audioContextRef.current
             audioContextRef.current = null
+            try {
+              await ctx.close()
+            } catch (err) {
+              console.warn('Failed to close AudioContext:', err)
+            }
           }
           audioNodesRef.current = []
-          ipc.send('recording-stopped')
-          try {
-            await ipc.invoke('recording-stop')
-          } catch (err) {
-            console.error('Failed to finalize recording file:', err)
+          if (ipc) {
+            ipc.send('recording-stopped')
+            try {
+              await ipc.invoke('recording-stop')
+            } catch (err) {
+              console.error('Failed to finalize recording file:', err)
+            }
           }
           mediaRecorderRef.current = null
+        }
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) {
+            e.data
+              .arrayBuffer()
+              .then((buffer) => {
+                if (ipc) ipc.send('recording-chunk', buffer)
+              })
+              .catch((err) => console.error('Failed to read recording chunk:', err))
+          }
+        }
+
+        mediaRecorder.onstop = () => {
+          void finalizeRecording()
+        }
+
+        mediaRecorder.onerror = (event: Event) => {
+          const mediaError = (event as { error?: unknown })?.error
+          console.error('MediaRecorder error:', mediaError)
+          reportError('The screen recorder failed during capture.')
+          void finalizeRecording()
+        }
+
+        // If the user ends the screen share through the OS UI, stop cleanly.
+        if (videoTrack && typeof videoTrack.addEventListener === 'function') {
+          videoTrack.addEventListener('ended', () => {
+            console.warn('Screen capture track ended; stopping recording')
+            stopRecording()
+          })
         }
 
         const started = await ipc.invoke('recording-start', {
           encoder,
           resolution,
-          fps,
-          systemAudioVolume,
-          microphoneAudioVolume
+          fps
         })
         if (!started) {
           throw new Error('Recording could not start (destination folder unavailable?)')
         }
+
         mediaRecorder.start(250)
         mediaRecorderRef.current = mediaRecorder
 
         ipc.send('recording-started')
       } catch (e) {
         console.error('Failed to start recording', e)
+        // Distinguish a genuine screen-permission refusal (user cancelled the
+        // picker / denied the OS prompt) so the UI can guide them properly.
+        const errorName = (e as { name?: string })?.name
+        if (errorName === 'NotAllowedError') {
+          setScreenPermissionDenied(true)
+        }
         desktopStream?.getTracks().forEach((track) => track.stop())
         micStream?.getTracks().forEach((track) => track.stop())
         systemAudioStream?.getTracks().forEach((track) => track.stop())
         if (audioContextRef.current) {
-          audioContextRef.current.close()
+          const ctx = audioContextRef.current
           audioContextRef.current = null
+          try {
+            const result = ctx.close()
+            if (result && typeof result.catch === 'function') result.catch(() => {})
+          } catch {
+            /* ignore */
+          }
         }
         audioNodesRef.current = []
+        reportError(e instanceof Error ? e.message : String(e))
       }
     },
-    []
+    [stopRecording]
   )
 
   useEffect(() => {

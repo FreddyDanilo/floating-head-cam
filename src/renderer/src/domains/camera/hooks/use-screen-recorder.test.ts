@@ -8,17 +8,27 @@ describe('useScreenRecorder', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    const makeVideoTrack = (): {
+      stop: () => void
+      applyConstraints: () => Promise<void>
+      addEventListener: () => void
+    } => ({
+      stop: vi.fn(),
+      applyConstraints: vi.fn().mockResolvedValue(undefined),
+      addEventListener: vi.fn()
+    })
+
     vi.stubGlobal('navigator', {
       mediaDevices: {
         getUserMedia: vi.fn().mockResolvedValue({
           getTracks: () => [{ stop: vi.fn() }],
           getAudioTracks: () => [{ stop: vi.fn() }],
-          getVideoTracks: () => [{ stop: vi.fn() }]
+          getVideoTracks: () => [makeVideoTrack()]
         }),
         getDisplayMedia: vi.fn().mockResolvedValue({
           getTracks: () => [{ stop: vi.fn() }],
           getAudioTracks: () => [{ stop: vi.fn() }],
-          getVideoTracks: () => [{ stop: vi.fn() }]
+          getVideoTracks: () => [makeVideoTrack()]
         })
       }
     })

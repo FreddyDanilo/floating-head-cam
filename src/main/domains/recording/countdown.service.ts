@@ -12,13 +12,18 @@ export function showCountdown(recordingScreenId?: string): Promise<void> {
       alwaysOnTop: true,
       hasShadow: false,
       skipTaskbar: true,
+      show: false,
       webPreferences: {
         preload: join(__dirname, '../preload/index.js'),
-        sandbox: false
+        sandbox: false,
+        backgroundThrottling: false
       }
     })
 
     win.setIgnoreMouseEvents(true)
+    win.once('ready-to-show', () => {
+      if (!win.isDestroyed()) win.show()
+    })
 
     const displays = screen.getAllDisplays()
     const target = recordingScreenId

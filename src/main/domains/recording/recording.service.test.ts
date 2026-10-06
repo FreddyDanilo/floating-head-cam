@@ -185,4 +185,31 @@ describe('recording.service', () => {
     appListeners['before-quit'](event)
     expect(event.preventDefault).toHaveBeenCalled()
   })
+
+  describe('validation helpers', () => {
+    it('resolveEncoder falls back to a safe default for unknown encoders', async () => {
+      const { resolveEncoder } = await import('./recording.service')
+      expect(resolveEncoder('libx264')).toBe('libx264')
+      expect(resolveEncoder('totally-unknown')).toBe('h264_videotoolbox') // darwin default
+      expect(resolveEncoder(undefined)).toBe('h264_videotoolbox')
+      expect(resolveEncoder(123)).toBe('h264_videotoolbox')
+    })
+
+    it('resolveResolution only accepts known resolutions', async () => {
+      const { resolveResolution } = await import('./recording.service')
+      expect(resolveResolution('1080p')).toBe('1080p')
+      expect(resolveResolution('8k')).toBe('1080p')
+      expect(resolveResolution(undefined)).toBe('1080p')
+    })
+
+    it('resolveFps clamps invalid values into a sane range', async () => {
+      const { resolveFps } = await import('./recording.service')
+      expect(resolveFps('60')).toBe(60)
+      expect(resolveFps(30)).toBe(30)
+      expect(resolveFps(999)).toBe(120)
+      expect(resolveFps(-5)).toBe(1)
+      expect(resolveFps('abc')).toBe(30)
+      expect(resolveFps(undefined)).toBe(30)
+    })
+  })
 })
