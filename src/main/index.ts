@@ -32,6 +32,7 @@ import {
 } from './domains/tray/tray.service'
 import { showCountdown } from './domains/recording/countdown.service'
 import {
+  createSettingsWindow,
   createWindow,
   getSettingsWindow,
   resizeWindow,
@@ -43,6 +44,7 @@ import {
   resizeCameraWindow
 } from './domains/window/window.service'
 import { setupRecordingIPC, setOnRecordingAborted } from './domains/recording/recording.service'
+import { ensureSingleInstance } from './domains/single-instance/single-instance.service'
 import {
   getMediaPermissionStatus,
   isTrustedOrigin,
@@ -103,7 +105,12 @@ app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required')
 app.commandLine.appendSwitch('disable-color-correct-rendering')
 app.commandLine.appendSwitch('disable-renderer-backgrounding')
 
+// Relaunching while already running opens the existing instance's
+// preferences window instead of spawning a second camera + tray icon.
+const hasSingleInstanceLock = ensureSingleInstance(createSettingsWindow)
+
 app.whenReady().then(() => {
+  if (!hasSingleInstanceLock) return
   const loginSettings = app.getLoginItemSettings()
   if (loginSettings.wasOpenedAtLogin) {
     setIsCameraOn(false)
